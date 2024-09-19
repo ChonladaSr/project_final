@@ -314,6 +314,43 @@ app.post('/admin/login', async (req, res) => {
   }
 });
 
+// Route to render edit form
+app.get('/edit/:id', async (req, res) => {
+  const id = req.params.id;
+  try {
+    const result = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
+    const user = result.rows[0];
+    res.render('edit_user', { user });
+  } catch (err) {
+    console.error(err);
+    res.send('Error ' + err);
+  }
+});
+
+// Route to handle form submission for editing
+app.post('/edit/:id', async (req, res) => {
+  const id = req.params.id;
+  const { name, email, role } = req.body;
+  try {
+    await pool.query('UPDATE users SET name = $1, email = $2, role = $3 WHERE id = $4', [name, email, role, id]);
+    res.redirect('/admin/user');
+  } catch (err) {
+    console.error(err);
+    res.send('Error ' + err);
+  }
+});
+
+// Route to delete a user
+app.get('/delete/:id', async (req, res) => {
+  const id = req.params.id;
+  try {
+    await pool.query('DELETE FROM users WHERE id = $1', [id]);
+    res.redirect('/admin/user');
+  } catch (err) {
+    console.error(err);
+    res.send('Error ' + err);
+  }
+});
 
 
 
