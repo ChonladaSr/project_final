@@ -412,6 +412,9 @@ app.get('/team', (req, res) => {
   res.render("team_page");
 });
 
+app.get('/team/dashboard', (req, res) => {
+  res.render("team_dashboard");
+});
 
 //ส่วนของแอดมิน
 
