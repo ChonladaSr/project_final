@@ -4,8 +4,13 @@ const bcrypt = require("bcrypt");
 const passport = require("passport");
 const flash = require("express-flash");
 const session = require("express-session");
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 require("dotenv").config();
 const app = express();
+const jwt = require('jsonwebtoken');
+const alert = require('alert');
 
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 
@@ -100,6 +105,10 @@ app.get("/auth/google/callback",
 
 app.get("/users/dashboard", checkNotAuthenticated, (req, res) => {
   res.render("dashboard", { user: req.user.name });
+});
+
+app.get("/admin/dashboard", checkAdmin, (req, res) => {
+  res.render("admin_dashboard", { user: req.user.name });
 });
 
 app.get("/users/logout", (req, res) => {
@@ -207,20 +216,132 @@ app.post(
   })
 );
 
+// ส่วนของช่าง
+app.post("/submit", async (req, res) => {
+  let { name, phone, job_type, job_scope, range, username, password } = req.body;
 
+  let errors = [];
+
+  // Convert job_type to string if it is an array
+  if (Array.isArray(job_type)) {
+    job_type = job_type.join(', ');
+  }
+
+  if (!name || !phone || !job_type || !job_scope || !range || !username || !password) {
+    errors.push({ message: "Please enter all fields" });
+  }
+
+  if (phone.length < 10) {
+    errors.push({ message: "Phone Number must be at least 10 characters long" });
+  }
+
+  if (password.length < 6) {
+    errors.push({ message: "Password must be at least 6 characters long" });
+  }
+
+  if (errors.length > 0) {
+    res.render("team_form", { errors, name, phone, job_type, job_scope, range, username, password });
+  } else {
+    pool.query(
+      `SELECT * FROM teams WHERE username = $1`,
+      [username],
+      (err, results) => {
+        if (err) {
+          console.log(err);
+        }
+        console.log(results.rows);
+
+        if (results.rows.length > 0) {
+          return res.render("team_form", {
+            message: "Account already registered"
+          });
+        } else {
+          pool.query(
+            `INSERT INTO teams (name, phone, job_type, job_scope, range, username, password)
+             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+            [name, phone, job_type, job_scope, range, username, password],
+            (err, results) => {
+              if (err) {
+                throw err;
+              }
+              console.log(results.rows);
+              res.redirect("/team/login");
+            }
+          );
+        }
+      }
+    );
+  }
+});
+
+app.get('/team/register', (req, res) => {
+  res.render("team_form");
+});
+
+app.get('/team', (req, res) => {
+  res.render("team_page");
+});
+
+
+//ส่วนของแอดมิน
+
+app.get('/admin/login', (req, res) => {
+  res.render("admin_login");
+});
+
+// การตรวจสอบการเข้าสู่ระบบของ Admin
+app.post('/admin/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const result = await pool.query('SELECT * FROM users WHERE email = $1 AND role = $2', [email, 'admin']);
+
+    if (result.rows.length > 0) {
+      const user = result.rows[0];
+      const passwordMatch = await bcrypt.compare(password, user.password);
+
+      if (passwordMatch) {
+        res.status(200).send('Login successful!');
+      } else {
+        res.status(401).send('Invalid email or password');
+      }
+    } else {
+      res.status(401).send('Invalid email or password');
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error checking login');
+  }
+});
+
+
+
+
+//ฟังก์ชัน
 
 function checkAuthenticated(req, res, next) {
   if (req.isAuthenticated()) {
+    if (req.user.role === 'admin') {
+      return res.redirect("/admin");
+    }
     return res.redirect("/users/dashboard");
   }
   next();
 }
+
 
 function checkNotAuthenticated(req, res, next) {
   if (req.isAuthenticated()) {
     return next();
   }
   res.redirect("/users/login");
+}
+
+function checkAdmin(req, res, next) {
+  if (req.isAuthenticated() && req.user.role === 'admin') {
+    return next();
+  }
+  res.redirect('/users/login');
 }
 
 app.listen(PORT, () => {
