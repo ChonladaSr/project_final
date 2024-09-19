@@ -11,6 +11,9 @@ require("dotenv").config();
 const app = express();
 const jwt = require('jsonwebtoken');
 const alert = require('alert');
+const upload = require('./uploadConfig');
+
+
 
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 
@@ -217,62 +220,76 @@ app.post(
 );
 
 // ส่วนของช่าง
-app.post("/submit", async (req, res) => {
-  let { name, phone, job_type, job_scope, range, username, password } = req.body;
+app.post("/submit", (req, res) => {
+  upload(req, res, async (err) => {
+    if (err) {
+      console.error("Multer error:", err);
+      return res.status(400).render("team_form", { errors: [{ message: err.message }] });
+    }
 
-  let errors = [];
+    let { name, phone, job_scope, range, email, password } = req.body;
+    let job_type = req.body.job_type;
+    let errors = [];
 
-  // Convert job_type to string if it is an array
-  if (Array.isArray(job_type)) {
-    job_type = job_type.join(', ');
-  }
+    if (Array.isArray(job_type)) {
+      job_type = job_type.join(', ');
+    }
 
-  if (!name || !phone || !job_type || !job_scope || !range || !username || !password) {
-    errors.push({ message: "Please enter all fields" });
-  }
+    if (!name || !phone || !job_type || !job_scope || !range || !email || !password) {
+      errors.push({ message: "Please enter all fields" });
+    }
 
-  if (phone.length < 10) {
-    errors.push({ message: "Phone Number must be at least 10 characters long" });
-  }
+    if (phone.length < 10) {
+      errors.push({ message: "Phone Number must be at least 10 characters long" });
+    }
 
-  if (password.length < 6) {
-    errors.push({ message: "Password must be at least 6 characters long" });
-  }
+    if (password.length < 6) {
+      errors.push({ message: "Password must be at least 6 characters long" });
+    }
 
-  if (errors.length > 0) {
-    res.render("team_form", { errors, name, phone, job_type, job_scope, range, username, password });
-  } else {
-    pool.query(
-      `SELECT * FROM teams WHERE username = $1`,
-      [username],
-      (err, results) => {
-        if (err) {
-          console.log(err);
-        }
-        console.log(results.rows);
+    if (!req.file) {
+      errors.push({ message: "Please upload a profile image" });
+    }
 
-        if (results.rows.length > 0) {
+    if (errors.length > 0) {
+      return res.render("team_form", { errors, name, phone, job_type, job_scope, range, email, password });
+    } else {
+      try {
+        const userCheck = await pool.query(
+          `SELECT * FROM teams WHERE email = $1`,
+          [email]
+        );
+
+        if (userCheck.rows.length > 0) {
           return res.render("team_form", {
             message: "Account already registered"
           });
         } else {
-          pool.query(
-            `INSERT INTO teams (name, phone, job_type, job_scope, range, username, password)
-             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-            [name, phone, job_type, job_scope, range, username, password],
-            (err, results) => {
-              if (err) {
-                throw err;
-              }
-              console.log(results.rows);
-              res.redirect("/team/login");
-            }
+          await pool.query(
+            `INSERT INTO teams (name, phone, job_type, job_scope, range, email, password, profile_image)
+                  VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+            [name, phone, job_type, job_scope, range, email, password, req.file.filename]
           );
+
+          // เพิ่มงานใหม่ในตาราง tasks
+          const newTask = await pool.query(
+            `INSERT INTO tasks (description, status)
+             VALUES ($1, $2) RETURNING *`,
+            [`${name} - ${job_type}`, 'รอดำเนินการ']
+          );
+          console.log(newTask.rows); // ตรวจสอบว่ามีการเพิ่มงานใหม่ในตาราง tasks หรือไม่
+
+
+          res.redirect("/team/login");
         }
+      } catch (err) {
+        console.error("Server error:", err);
+        res.status(500).send("Server error");
       }
-    );
-  }
+    }
+  });
 });
+
 
 app.get('/team/register', (req, res) => {
   res.render("team_form");
@@ -314,6 +331,18 @@ app.post('/admin/login', async (req, res) => {
   }
 });
 
+// แสดงข้อมูลทั้งหมดของ user
+app.get('/admin/user', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM users ORDER BY id ASC');
+    const data = result.rows;
+    res.render('admin_user', { data });
+  } catch (err) {
+    console.error(err);
+    res.send('Error ' + err);
+  }
+});
+
 // Route to render edit form
 app.get('/edit/:id', async (req, res) => {
   const id = req.params.id;
@@ -351,6 +380,34 @@ app.get('/delete/:id', async (req, res) => {
     res.send('Error ' + err);
   }
 });
+
+app.get("/admin/dashboard", async (req, res) => {
+  try {
+    // Query to count tasks with status 'รอดำเนินการ'
+    const pendingCountResult = await pool.query(
+      `SELECT COUNT(*) FROM tasks WHERE status = 'รอดำเนินการ'`
+    );
+    const pendingCount = pendingCountResult.rows[0].count;
+
+    // Query to count tasks with status 'ยืนยันการรับงาน'
+    const approvedCountResult = await pool.query(
+      `SELECT COUNT(*) FROM tasks WHERE status = 'ยืนยันการรับงาน'`
+    );
+    const approvedCount = approvedCountResult.rows[0].count;
+
+    // Render the admin_dashboard template with the counts
+    res.render("admin_dashboard", { pendingCount, approvedCount });
+  } catch (err) {
+    console.error("Server error:", err);
+    res.status(500).send("Server error");
+  }
+});
+
+
+
+
+
+
 
 
 
