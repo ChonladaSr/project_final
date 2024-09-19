@@ -39,6 +39,12 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
 
+app.use((req, res, next) => {
+  res.locals.success_msg = req.flash('success_msg');
+  res.locals.error_msg = req.flash('error_msg');
+  next();
+});
+
 // Google Strategy
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
@@ -90,6 +96,26 @@ passport.deserializeUser((id, done) => {
   });
 });
 
+//ฟังก์ชัน
+
+//ตรวจสอบการเข้าระบบของ user
+function checkAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.redirect('/users/login');
+}
+
+//ตรวจสอบการเข้าระบบของช่าง
+function checkTeamAuthenticated(req, res, next) {
+  if (req.session && req.session.teamId) {
+    return next();
+  }
+  res.redirect('/team/login');
+}
+
+
+
 // Routes
 app.get("/", (req, res) => {
   res.render("index");
@@ -110,9 +136,9 @@ app.get("/users/dashboard", checkNotAuthenticated, (req, res) => {
   res.render("dashboard", { user: req.user.name });
 });
 
-app.get("/admin/dashboard", checkAdmin, (req, res) => {
-  res.render("admin_dashboard", { user: req.user.name });
-});
+// app.get("/admin/dashboard", checkAdmin, (req, res) => {
+//   res.render("admin_dashboard", { user: req.user.name });
+// });
 
 app.get("/users/logout", (req, res) => {
   req.session.destroy((err) => {
@@ -219,6 +245,67 @@ app.post(
   })
 );
 
+app.get('/profile/edit', checkAuthenticated, async (req, res) => {
+  const userId = req.user.id;
+  try {
+    const result = await pool.query('SELECT * FROM users WHERE id = $1', [userId]);
+    const user = result.rows[0];
+    res.render('profile_edit', { user, errors: [] });
+  } catch (err) {
+    console.error(err);
+    res.send('Error ' + err);
+  }
+});
+
+
+app.post('/profile/edit', checkAuthenticated, async (req, res) => {
+  const userId = req.user.id;
+  const { name, email, password, password2 } = req.body;
+
+  let errors = [];
+
+  if (!name || !email) {
+    errors.push({ message: "Please enter all fields" });
+  }
+
+  if (password && password.length < 6) {
+    errors.push({ message: "Password must be at least 6 characters long" });
+  }
+
+  if (password !== password2) {
+    errors.push({ message: "Passwords do not match" });
+  }
+
+  if (errors.length > 0) {
+    const user = { id: userId, name, email };  // Repopulate form with user data
+    res.render('profile_edit', { errors, user });
+  } else {
+    try {
+      if (password) {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        await pool.query(
+          'UPDATE users SET name = $1, email = $2, password = $3 WHERE id = $4',
+          [name, email, hashedPassword, userId]
+        );
+      } else {
+        await pool.query(
+          'UPDATE users SET name = $1, email = $2 WHERE id = $3',
+          [name, email, userId]
+        );
+      }
+      req.flash('success_msg', 'Profile updated successfully');
+      res.redirect('/users/dashboard');
+    } catch (err) {
+      console.error(err);
+      res.send('Error ' + err);
+    }
+  }
+});
+
+
+
+
+
 // ส่วนของช่าง
 app.post("/submit", (req, res) => {
   upload(req, res, async (err) => {
@@ -288,6 +375,32 @@ app.post("/submit", (req, res) => {
       }
     }
   });
+});
+
+app.post('/team/login', async (req, res) => {
+  const { email, password } = req.body;
+  let errors = [];
+
+  try {
+    const result = await pool.query('SELECT * FROM teams WHERE email = $1', [email]);
+    const team = result.rows[0];
+
+    if (team && team.password === password) { // Simplified password check, replace with hashed password check
+      req.session.teamId = team.id;
+      res.redirect('/team/dashboard');
+    } else {
+      errors.push({ message: 'Incorrect email or password' });
+      res.render('team_login', { errors });
+    }
+  } catch (err) {
+    console.error(err);
+    errors.push({ message: 'An error occurred. Please try again.' });
+    res.render('team_login', { errors });
+  }
+});
+
+app.get('/team/login', (req, res) => {
+  res.render('team_login', { errors: [] });
 });
 
 
@@ -383,15 +496,15 @@ app.get('/delete/:id', async (req, res) => {
 
 app.get("/admin/dashboard", async (req, res) => {
   try {
-    // Query to count tasks with status 'รอดำเนินการ'
+    // Query to count tasks with status ช่าง'รอดำเนินการ'
     const pendingCountResult = await pool.query(
       `SELECT COUNT(*) FROM tasks WHERE status = 'รอดำเนินการ'`
     );
     const pendingCount = pendingCountResult.rows[0].count;
 
-    // Query to count tasks with status 'ยืนยันการรับงาน'
+    // Query to count tasks with status 'approved'
     const approvedCountResult = await pool.query(
-      `SELECT COUNT(*) FROM tasks WHERE status = 'ยืนยันการรับงาน'`
+      `SELECT COUNT(*) FROM tasks WHERE status = 'approved'`
     );
     const approvedCount = approvedCountResult.rows[0].count;
 
@@ -411,17 +524,18 @@ app.get("/admin/dashboard", async (req, res) => {
 
 
 
+
 //ฟังก์ชัน
 
-function checkAuthenticated(req, res, next) {
-  if (req.isAuthenticated()) {
-    if (req.user.role === 'admin') {
-      return res.redirect("/admin");
-    }
-    return res.redirect("/users/dashboard");
-  }
-  next();
-}
+// function checkAuthenticated(req, res, next) {
+//   if (req.isAuthenticated()) {
+//     if (req.user.role === 'admin') {
+//       return res.redirect("/admin");
+//     }
+//     return res.redirect("/users/dashboard");
+//   }
+//   next();
+// }
 
 
 function checkNotAuthenticated(req, res, next) {
