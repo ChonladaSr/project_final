@@ -52,11 +52,10 @@ passport.use(new GoogleStrategy({
         if (result.rows.length > 0) {
           return done(null, result.rows[0]);
         } else {
-          // ใช้ค่าเริ่มต้นสำหรับรหัสผ่าน
           const defaultPassword = 'GOOGLE_AUTH';
           pool.query(
-            `INSERT INTO users (name, email, google_id, password) VALUES ($1, $2, $3, $4) RETURNING *`,
-            [displayName, email, googleId, defaultPassword],
+            `INSERT INTO users (name, email, google_id, password, role) VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+            [displayName, email, googleId, defaultPassword, 'user'],
             (err, newUser) => {
               if (err) {
                 return done(err);
@@ -100,8 +99,7 @@ app.get("/auth/google/callback",
 );
 
 app.get("/users/dashboard", checkNotAuthenticated, (req, res) => {
-  console.log(req.isAuthenticated());
-  res.render("dashboard", { user: req.user.displayName });
+  res.render("dashboard", { user: req.user.name });
 });
 
 app.get("/users/logout", (req, res) => {
@@ -126,10 +124,6 @@ app.get("/users/cleaning_work", (req, res) => {
   res.render("cleaning_work");
 });
 
-/* app.get("/teams/team_register", (req, res) => {
-  res.render("team_register");
-}); */
-
 app.get("/users/register", (req, res) => {
   res.render("register");
 });
@@ -141,9 +135,15 @@ app.get('/users/login', (req, res) => {
 
 app.post("/users/register", async (req, res) => {
   let { name, email, password, password2 } = req.body;
+
   let errors = [];
 
-  console.log({ name, email, password, password2 });
+  console.log({
+    name,
+    email,
+    password,
+    password2
+  });
 
   if (!name || !email || !password || !password2) {
     errors.push({ message: "Please enter all fields" });
@@ -162,9 +162,10 @@ app.post("/users/register", async (req, res) => {
   } else {
     hashedPassword = await bcrypt.hash(password, 10);
     console.log(hashedPassword);
-
+    // Validation passed
     pool.query(
-      `SELECT * FROM users WHERE email = $1`,
+      `SELECT * FROM users
+        WHERE email = $1`,
       [email],
       (err, results) => {
         if (err) {
@@ -178,7 +179,9 @@ app.post("/users/register", async (req, res) => {
           });
         } else {
           pool.query(
-            `INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id, password`,
+            `INSERT INTO users (name, email, password)
+                VALUES ($1, $2, $3)
+                RETURNING id, password`,
             [name, email, hashedPassword],
             (err, results) => {
               if (err) {
@@ -195,8 +198,6 @@ app.post("/users/register", async (req, res) => {
   }
 });
 
-
-
 app.post(
   "/users/login",
   passport.authenticate("local", {
@@ -205,6 +206,8 @@ app.post(
     failureFlash: true
   })
 );
+
+
 
 function checkAuthenticated(req, res, next) {
   if (req.isAuthenticated()) {
@@ -219,39 +222,6 @@ function checkNotAuthenticated(req, res, next) {
   }
   res.redirect("/users/login");
 }
-
-
-/* app.post("/teams/team_register", async (req, res) => {
-  let { name, phone, job_type, job_scope, wage_range } = req.body;
-  let errors = [];
-
-  console.log({ name, phone, job_type, job_scope, wage_range });
-
-  if (!name || !phone || !job_type || !job_scope || !wage_range) {
-    errors.push({ message: "Please enter all fields" });
-  }
-
-  if (errors.length > 0) {
-    res.render("team_register", { errors, name, phone, job_type, job_scope, wage_range });
-  } else {
-    pool.query(
-      `INSERT INTO teams (name, phone, job_type, job_scope, wage_range) VALUES ($1, $2, $3, $4, $5) RETURNING id`,
-      [name, phone, job_type, job_scope, wage_range],
-      (err, results) => {
-        if (err) {
-          throw err;
-        }
-        console.log(results.rows);
-        req.flash("success_msg", "You are now registered. Please log in");
-        res.redirect("/teams/team_login");
-      }
-    );
-  }
-});
-
-app.get("/teams/team_login", (req, res) => {
-  res.render("team_login");
-}); */
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

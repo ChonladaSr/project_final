@@ -1,83 +1,87 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>Regist</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <link href="modals.css" rel="stylesheet">
-  </head>
 
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <title>Register</title>
+  <link rel="icon" href="https://cdn-icons-png.freepik.com/256/9416/9416123.png?semt=ais_hybrid"> 
 
-  <body>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link href="modals.css" rel="stylesheet">
+</head>
 
-      <!-- เช็ค Error -->
-      <ul>
-        <% if (typeof errors !='undefined' ) { %>
-          <% errors.forEach(error=> { %>
-            <li>
-              <%= error.message %>
-            </li>
-            <% }) %>
-              <% } %>
-      </ul>
-      <!-- เช็ค Error -->
-      <form action="/users/register" method="POST">
+<body>
+  <!-- เช็ค Error -->
+  <ul>
+    <% if (typeof errors !='undefined' ) { %>
+      <div class="alert alert-danger">
+      <% errors.forEach(error=> { %>
+        <li>
+          <%= error.message %>
+        </li>
+        <% }) %>
+          <% } %>
+      </div>
+  </ul>
+  <!-- เช็ค Error -->
 
-      <div class="modal modal-sheet position-static d-block bg-body-secondary p-4 py-md-5" tabindex="-1" role="dialog" id="modalSignin">
-        <div class="modal-dialog" role="document">
-          <div class="modal-content rounded-4 shadow">
-            <div class="modal-header p-5 pb-4 border-bottom-0">
-              <h1 class="fw-bold mb-0 fs-2">Sign up</h1>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-      
-            <div class="modal-body p-5 pt-0">
-              <form class="">
-                 <!-- กรอกชื่อ -->
-                <div class="form-floating mb-3">
-                  <input type="text" class="form-control rounded-3" id="name" name="name" placeholder="Name" required />
-                  <label for="floatingInput">Name</label>
-                </div>
-                 <!-- กรอก Email -->
-                <div class="form-floating mb-3">
-                  <input type="email" class="form-control rounded-3" id="email" name="email" placeholder="Email" required />
-                  <label for="floatingPassword">Email</label>
-                </div>
-                <!-- กรอก Password -->
-                <div class="form-floating mb-3">
-                  <input type="password" class="form-control rounded-3" id="password" name="password" placeholder="Password" required />
-                  <label for="floatingPassword">Password</label>
-                </div>
-                <!-- กรอก Password อีกครั้ง -->
-                <div class="form-floating mb-3">
-                  <input type="password" class="form-control rounded-3" id="password2" name="password2" placeholder="Confirm Password" required />
-                  <label for="floatingPassword">Confirm Password</label>
-                </div>
-                <!-- ปุ่ม sign up -->
-                <button class="w-100 mb-2 btn btn-lg rounded-3 btn-primary" type="submit">Sign up</button>
-                <!-- ถ้าเป็นสมาชิกอยู่แล้ว -->
-                <small class="text-body-secondary"><a href="/users/login">Already registered? Login here</a></small>
-                <hr class="my-4">
-                <h2 class="fs-5 fw-bold mb-3">Or sign-up with</h2>
-                <button class="w-100 py-2 mb-2 btn btn-outline-secondary rounded-3" type="submit">
-                  
-                  <svg class="bi me-1 fab fa-google" width="16" height="16"><a href="https://www.flaticon.com/free-icon/gmail_888853" class="view link-icon-detail" title="Gmail" data-id="888853" data-src="?term=gmail&amp;page=1&amp;position=3&amp;origin=tag">
-                    <img src="https://cdn-icons-png.flaticon.com/128/888/888853.png" loading="lazy" alt="Gmail " title="Gmail " width="20" height="20">
-                  </a></svg>
-                  Sign up with Gmail
-                </button>
-                <!-- <button class="w-100 py-2 mb-2 btn btn-outline-primary rounded-3" type="submit">
-                  <svg class="bi me-1 " width="16" height="16"><use xlink:href="#facebook"></use></svg>
-                  Sign up with Facebook
-                </button> -->
-              </form>
-            </div>
+  <form action="/users/register" method="POST">
+    <div class="modal modal-sheet d-block bg-body-secondary " tabindex="-1" role="dialog"
+      id="modalSignin">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content rounded-4 shadow">
+          <div class="modal-header p-5 pb-4 border-bottom-0">
+            <h1 class="fw-bold mb-0 fs-2">Create Account</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+
+          <div class="modal-body p-5 pt-0">
+            <form class="">
+              <!-- กรอกชื่อ -->
+              <div class="form-floating mb-3">
+                <input type="text" class="form-control rounded-3" id="name" name="name" placeholder="Name" required />
+                <label for="floatingInput">Name</label>
+              </div>
+              <!-- กรอก Email -->
+              <div class="form-floating mb-3">
+                <input type="email" class="form-control rounded-3" id="email" name="email" placeholder="Email"
+                  required />
+                <label for="floatingPassword">Email</label>
+              </div>
+              <!-- กรอก Password -->
+              <div class="form-floating mb-3">
+                <input type="password" class="form-control rounded-3" id="password" name="password"
+                  placeholder="Password" required />
+                <label for="floatingPassword">Password</label>
+              </div>
+              <!-- กรอก Confirm Password -->
+              <div class="form-floating mb-3">
+                <input type="password" class="form-control rounded-3" id="password2" name="password2"
+                  placeholder="Confirm Password" required />
+                <label for="floatingPassword">Confirm Password</label>
+              </div>
+              <button class="w-100 mb-2 btn btn-lg rounded-3 btn-primary" type="submit">Sign up</button>
+              <!-- ยังไม่มีบัญชี -->
+              <small class="text-body-secondary"><a href="/users/login">Already have an account? Sign in
+                  here</a></small>
+            </form>
+            <hr class="my-4">
+            <h2 class="fs-5 fw-bold mb-3">Or continue with</h2>
+            <a class="w-100 py-2 mb-2 btn btn-outline-dark rounded-3" href="/auth/google">
+                <svg class="bi me-1" width="16" height="16"><use xlink:href="#google"></use>
+                  <img src="https://cdn4.iconfinder.com/data/icons/logos-brands-7/512/google_logo-google_icongoogle-512.png" loading="lazy" alt="Gmail "
+                  title="Gmail " width="20" height="20">
+                </svg>
+                 Google
+            </a>
           </div>
         </div>
       </div>
+    </div>
+  </form>
+</body>
 
-      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-  </body>
-  </html>
+</html>
