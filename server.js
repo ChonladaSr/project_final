@@ -422,6 +422,15 @@ app.get('/admin/login', (req, res) => {
   res.render("admin_login");
 });
 
+app.get("/admin/logout", (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      return res.status(500).send('Failed to logout');
+    }
+    res.redirect('/admin/login');
+  });
+});
+
 // การตรวจสอบการเข้าสู่ระบบของ Admin
 app.post('/admin/login', async (req, res) => {
   const { email, password } = req.body;
