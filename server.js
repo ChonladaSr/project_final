@@ -115,6 +115,12 @@ function checkTeamAuthenticated(req, res, next) {
   res.redirect('/team/login');
 }
 
+const ensureAuthenticated = (req, res, next) => {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.redirect('/login');
+};
 
 
 // Routes
@@ -327,27 +333,29 @@ app.post('/users/book_service', async (req, res) => {
   }
 });
 
-/*  
+
 // user ดูประวัติการจอง
 app.get('/users/view_bookings', ensureAuthenticated, async (req, res) => {
   try {
     const user_id = req.user.id;
 
-    const query = 'SELECT * FROM bookings WHERE user_id = $1 ORDER BY booking_date DESC;';
+    const query = 'SELECT * FROM bookings WHERE user_id = $1 ORDER BY booking_date ASC;';
     const values = [user_id];
     const result = await pool.query(query, values);
 
     if (result.rows.length === 0) {
-      return res.status(404).send('No bookings found.');
+      // Render the EJS template with a message when no bookings are found
+      return res.status(200).render('bookings', { bookings: [], noBookings: true });
     }
 
-    res.status(200).render('bookings', { bookings: result.rows });
+    res.status(200).render('bookings', { bookings: result.rows, noBookings: false });
   } catch (err) {
     console.error(err);
     res.status(500).send('Error ' + err);
   }
 });
 
+/*  
 // user ดูประวัติการจอง
 app.post('/users/view_bookings', ensureAuthenticated, async (req, res) => {
   try {
@@ -737,6 +745,24 @@ app.put('/tasks/:id/reject', async (req, res) => {
       ['ปฏิเสธการอนุมัติ', id]
     );
     res.status(200).json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server error");
+  }
+});
+
+app.delete('/tasks/:id', async (req, res) => {
+  const id = parseInt(req.params.id);
+
+  try {
+    const result = await pool.query(
+      'DELETE FROM tasks WHERE id = $1 RETURNING *',
+      [id]
+    );
+    if (result.rowCount === 0) {
+      return res.status(404).send("Task not found");
+    }
+    res.status(200).send('Task deleted successfully');
   } catch (err) {
     console.error(err);
     res.status(500).send("Server error");

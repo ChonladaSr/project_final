@@ -1,0 +1,63 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+<style>
+
+.prompt-medium {
+font-family: "Prompt", system-ui;
+font-weight: 500;
+font-style: normal;
+}
+
+.prompt-bold {
+font-family: "Prompt", system-ui;
+font-weight: 700;
+font-style: normal;
+}
+
+</style>
+
+
+
+<nav class="flex items-center justify-between p-6 lg:px-8" aria-label="Global">
+    <div class="flex lg:flex-1">
+      <a href="/users/dashboard" class="-m-1.5 p-1.5">
+        <!-- <span class="sr-only">Your Company</span> -->
+        <img class="h-8 w-auto" src="https://img2.pic.in.th/pic/Screenshot-2024-08-06-225808da68a23309b28136.png" alt="">
+      </a>
+    </div>
+    <div class="hidden lg:flex lg:gap-x-12">
+      <a href="/users/dashboard" class="text-sm prompt-medium leading-6 text-gray-900">หน้าหลัก</a>
+      <a href="/users/dashboard#section2" class="text-sm prompt-medium leading-6 text-gray-900">บริการ</a>
+      <a href="/users/view_bookings" class="text-sm prompt-medium leading-6 text-gray-900">ประวัติการจอง</a>
+      <a href="/users/dashboard#section3" class="text-sm prompt-medium leading-6 text-gray-900">ความพึงพอใจของผู้ใช้บริการ</a>
+      <!-- <a href="#" class="text-sm font-semibold leading-6 text-gray-900">Setting</a> -->
+    <!--   <a href="/profile/edit" class="-m-1.5 p-1.5">
+        <img src="https://cdn2.iconfinder.com/data/icons/user-profile/100/EditProfile-512.png"
+          alt="mobile icon" class="w-6 h-6" />
+      </a> -->
+    </div>
+    <div class="hidden lg:flex lg:flex-1 lg:justify-end items-center relative z-10">
+      <div class="relative group">
+        <button class="text-sm font-semibold leading-6 text-gray-900">
+           <span aria-hidden="true">☰</span>
+        </button>
+        <div class="hidden group-hover:block absolute right-0 mt-2 w-48 bg-white border border-gray-200 shadow-lg z-20">
+          <a href="/profile/edit" class="prompt-medium block px-4 py-2 text-sm text-gray-900">แก้ไขข้อมูล</a>
+          <a href="/users/logout" class="prompt-medium block px-4 py-2 text-sm text-gray-900">ออกจากระบบ</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+  
+  <style>
+    .group:hover .group-hover\:block {
+      display: block;
+      pointer-events: auto; /* Make sure the dropdown menu stays visible and clickable */
+    }
+    .group-hover\:block {
+      pointer-events: none; /* Make sure the dropdown menu doesn't interfere when hidden */
+    }
+  </style>
+  

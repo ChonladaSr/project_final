@@ -1,111 +1,140 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Booking History</title>
-  <style>
-body {
-  font-family: Arial, sans-serif;
-  background-color: #f4f4f9;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  margin: 0;
-}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking History</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 
-.container {
-  background-color: #fff;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-  max-width: 600px;
-  width: 100%;
-  text-align: center;
-}
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
 
-h1 {
-  margin-bottom: 20px;
-  color: #333;
-}
+        .container {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
 
-form {
-  margin-bottom: 20px;
-}
+        h1 {
+            margin-bottom: 20px;
+            color: #333;
+        }
 
-.btn {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  padding: 10px 20px;
-  cursor: pointer;
-  font-size: 16px;
-}
+        form {
+            margin-bottom: 20px;
+        }
 
-.btn:hover {
-  background-color: #0056b3;
-}
+        .btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 16px;
+        }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 20px 0;
-}
+        .btn:hover {
+            background-color: #0056b3;
+        }
 
-table, th, td {
-  border: 1px solid #ddd;
-}
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
 
-th, td {
-  padding: 10px;
-  text-align: left;
-}
+        table,
+        th,
+        td {
+            border: 1px solid #ddd;
+        }
 
-th {
-  background-color: #f2f2f2;
-}
+        th,
+        td {
+            padding: 10px;
+            text-align: left;
+        }
 
-  </style>
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
 </head>
+
 <body>
-  <div class="container">
-    <h1>Your Booking History</h1>
-    <% if (bookings.length > 0) { %>
-      <table>
-        <thead>
-          <tr>
-            <th>Booking ID</th>
-            <th>Team ID</th>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Phone</th>
-            <th>Address</th>
-            <th>Booking Date</th>
-            <th>Service Details</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% bookings.forEach(booking => { %>
-            <tr>
-              <td><%= booking.id %></td>
-              <td><%= booking.team_id %></td>
-              <td><%= booking.name %></td>
-              <td><%= booking.email %></td>
-              <td><%= booking.phone %></td>
-              <td><%= booking.address %></td>
-              <td><%= booking.booking_date %></td>
-              <td><%= booking.service_details %></td>
-              <td><%= booking.status %></td>
-            </tr>
-          <% }) %>
-        </tbody>
-      </table>
-    <% } else { %>
-      <p>No bookings found.</p>
-    <% } %>
-  </div>
+    <div class="container">
+        <p class="py-5 font-semibold text-center text-3xl text-gray-900">
+            Booking History
+        </p>
+
+        <% if (noBookings) { %>
+            <div class="flex flex-col items-center justify-center min-h-screen">
+                <img src="https://cdn-icons-png.flaticon.com/512/2748/2748558.png" alt="No bookings icon"
+                    class="w-24 h-24 mb-4" />
+                <p class="text-gray-800 text-xl font-semibold">No bookings found</p>
+            </div>
+            <% } else if (bookings.length> 0) { %>
+                <% bookings.forEach(booking=> { %>
+                    <div class="py-6">
+                        <div
+                            class="max-w-2xl mx-auto bg-zinc-100 shadow-md rounded-md p-4 flex items-center transition duration-200 hover:scale-105">
+                            <div>
+                                <p class="font-bold text-gray-800">
+                                    Order Number: #<%= booking.id %>
+                                </p>
+                                <div class="flex items-center">
+                                    <img src="https://cdn-icons-png.freepik.com/512/6829/6829879.png?uid=R154930515&ga=GA1.1.1806679622.1698741403"
+                                        alt="mobile icon" class="w-4 h-4 mr-2" />
+                                    <span class="font-semibold text-gray-800">Service Info: &nbsp;</span>
+                                    <span>
+                                        <%= booking.service_details %>
+                                    </span>
+                                </div>
+                                <div class="flex items-center">
+                                    <img src="https://cdn-icons-png.flaticon.com/512/10691/10691802.png"
+                                        alt="mobile icon" class="w-4 h-4 mr-2" />
+                                    <span class="font-semibold text-gray-800">Date: &nbsp;</span>
+                                    <span>
+                                        <%= booking.booking_date %>
+                                    </span>
+                                </div>
+                                <div class="flex items-center">
+                                    <img src="https://cdn-icons-png.freepik.com/512/5644/5644717.png?uid=R154930515&ga=GA1.1.1806679622.1698741403"
+                                        alt="mobile icon" class="w-4 h-4 mr-2" />
+                                    <span class="font-semibold text-gray-800">Status: &nbsp;</span>
+                                    <span class="">
+                                        <%= booking.status %>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="ml-auto flex items-center">
+                                <a href="#" class="-m-1.5 p-1.5">
+                                    <img src="https://cdn-icons-png.freepik.com/512/9477/9477273.png?uid=R154930515&ga=GA1.1.1806679622.1698741403"
+                                        alt="mobile icon" class="w-10 h-10 mr-2" />
+                                    <span class="bg-accent text-sm font-semibold items-center">Review</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <% }) %>
+                        <% } %>
+    </div>
+
+    </div>
 </body>
+
 </html>
