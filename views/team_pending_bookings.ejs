@@ -41,9 +41,28 @@ button {
   cursor: pointer;
 }
 
-button:hover {
-  background-color: #45a049;
-}
+
+
+.booking-actions {
+    display: flex;
+    gap: 10px;
+  }
+
+  .reject-button {
+    background-color: red;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    cursor: pointer;
+  }
+
+  .approve-button {
+    background-color: green;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    cursor: pointer;
+  }
 
   </style>
 </head>
@@ -66,11 +85,17 @@ button:hover {
           <p><strong>Address:</strong> <%= booking.address %></p>
           <p><strong>Booking Date:</strong> <%= booking.booking_date %></p>
           <p><strong>Service Details:</strong> <%= booking.service_details %></p>
-          <form action="/teams/approve_booking" method="POST">
-            <input type="hidden" name="booking_id" value="<%= booking.id %>">
-            <button type="submit">Approve</button>
-          </form>
-        </div>
+          <div class="booking-actions">
+            <form action="/team/approve_booking" method="POST">
+              <input type="hidden" name="booking_id" value="<%= booking.id %>">
+              <button type="submit" class="approve-button">Approve</button>
+            </form>
+          
+            <form action="/team/reject_booking" method="POST">
+              <input type="hidden" name="booking_id" value="<%= booking.id %>">
+              <button type="submit" class="reject-button">Reject</button>
+            </form>
+          </div>
       <% }); %>
     <% } %>
   </div>

@@ -15,6 +15,7 @@ const upload = require('./uploadConfig');
 
 
 
+
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 
 const PORT = process.env.PORT || 4000;
@@ -302,6 +303,71 @@ app.post('/profile/edit', checkAuthenticated, async (req, res) => {
   }
 });
 
+// user จองบริการ
+app.post('/users/book_service', async (req, res) => {
+  try {
+    const { user_id, team_id, service_details, booking_date } = req.body;
+
+    // ตรวจสอบข้อมูลที่จำเป็น
+    if (!user_id || !team_id || !service_details || !booking_date) {
+      return res.status(400).send('กรุณากรอกข้อมูล');
+    }
+
+    // ทำการบันทึกการจองลงในฐานข้อมูล
+    const query = 'INSERT INTO bookings (user_id, team_id, service_details, booking_date, status) VALUES ($1, $2, $3, $4, $5) RETURNING *';
+    const params = [user_id, team_id, service_details, booking_date, 'รอดำเนินการ'];
+
+    const result = await pool.query(query, params);
+    const booking = result.rows[0];
+
+    res.status(201).send('จองสำเร็จ!');
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error ' + err);
+  }
+});
+
+/*  
+// user ดูประวัติการจอง
+app.get('/users/view_bookings', ensureAuthenticated, async (req, res) => {
+  try {
+    const user_id = req.user.id;
+
+    const query = 'SELECT * FROM bookings WHERE user_id = $1 ORDER BY booking_date DESC;';
+    const values = [user_id];
+    const result = await pool.query(query, values);
+
+    if (result.rows.length === 0) {
+      return res.status(404).send('No bookings found.');
+    }
+
+    res.status(200).render('bookings', { bookings: result.rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error ' + err);
+  }
+});
+
+// user ดูประวัติการจอง
+app.post('/users/view_bookings', ensureAuthenticated, async (req, res) => {
+  try {
+    const user_id = req.user.id;
+
+    const query = 'SELECT * FROM bookings WHERE user_id = $1 ORDER BY booking_date DESC;';
+    const values = [user_id];
+    const result = await pool.query(query, values);
+
+    if (result.rows.length === 0) {
+      return res.status(404).send('No bookings found.');
+    }
+
+    res.status(200).render('bookings', { bookings: result.rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error ' + err);
+  }
+});
+*/
 
 
 
@@ -444,6 +510,36 @@ app.post('/teams/approve_booking', checkTeamAuthenticated, async (req, res) => {
   }
 });
 
+// ช่างปฏิเสธการรับงาน
+app.post('/team/reject_booking', checkTeamAuthenticated, async (req, res) => {
+  try {
+    const team_id = req.session.teamId;
+    const booking_id = req.body.booking_id;
+
+    if (!booking_id) {
+      return res.status(400).send('Please provide a booking ID.');
+    }
+
+    const bookingQuery = 'SELECT * FROM bookings WHERE id = $1 AND team_id = $2';
+    const bookingResult = await pool.query(bookingQuery, [booking_id, team_id]);
+
+    if (bookingResult.rows.length === 0) {
+      return res.status(404).send('Booking not found or not authorized.');
+    }
+
+    const deleteQuery = 'DELETE FROM bookings WHERE id = $1 AND team_id = $2 RETURNING *';
+    const deleteResult = await pool.query(deleteQuery, [booking_id, team_id]);
+    const deletedBooking = deleteResult.rows[0];
+
+    res.redirect(`/team/get_pending_bookings?message=Booking ID: ${deletedBooking.id} has been rejected and deleted.`);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error ' + err);
+  }
+});
+
+
 app.get('/teams/get_pending_bookings', checkTeamAuthenticated, async (req, res) => {
   try {
     const team_id = req.session.teamId;
@@ -458,6 +554,27 @@ app.get('/teams/get_pending_bookings', checkTeamAuthenticated, async (req, res) 
   } catch (err) {
     console.error(err);
     res.status(500).send('Error ' + err);
+  }
+});
+
+app.get('/users/ceiling_work', async (req, res) => {
+  try {
+    const { job_scope } = req.query;
+    let query = 'SELECT teams.*, tasks.* FROM teams INNER JOIN tasks ON teams.id = tasks.id WHERE tasks.status = $1 AND teams.job_type = $2';
+    const params = ['approved', 'roofer'];
+
+    if (job_scope) {
+      query += ' AND teams.job_scope = $3';
+      params.push(job_scope);
+    }
+
+    const result = await pool.query(query, params);
+    const job = result.rows;
+    const tasks = result.rows;
+    res.render('ceiling_work', { job, tasks });
+  } catch (err) {
+    console.error(err);
+    res.send('Error ' + err);
   }
 });
 
@@ -557,6 +674,75 @@ app.get('/delete/:id', async (req, res) => {
     res.send('Error ' + err);
   }
 });
+
+const authenticateUser = async (req, res, next) => {
+  const { email, password } = req.headers; // Replace with actual authentication method
+
+  try {
+    const result = await pool.query(
+      'SELECT * FROM users WHERE email = $1 AND password = $2',
+      [email, password]
+    );
+
+    if (result.rows.length > 0) {
+      req.user = result.rows[0];
+      next();
+    } else {
+      res.status(401).send('Unauthorized');
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server error");
+  }
+};
+
+const isAdmin = (req, res, next) => {
+  const user = req.user; // Assuming req.user is set after user authentication
+
+  if (user && user.role === 'admin') {
+    next(); // User is admin, allow access
+  } else {
+    res.status(403).send('Forbidden');
+  }
+};
+
+app.use(authenticateUser);
+
+// แอดมินดูการอนุมัติทั้งหมด
+
+
+// แอดมินอนุมัติงาน
+app.put('/tasks/:id/approve', async (req, res) => {
+  const id = parseInt(req.params.id);
+
+  try {
+    const result = await pool.query(
+      'UPDATE tasks SET status = $1 WHERE id = $2 RETURNING *',
+      ['อนุมัติ', id]
+    );
+    res.status(200).json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server error");
+  }
+});
+
+// แอดมินปฏิเสธงาน
+app.put('/tasks/:id/reject', async (req, res) => {
+  const id = parseInt(req.params.id);
+
+  try {
+    const result = await pool.query(
+      'UPDATE tasks SET status = $1 WHERE id = $2 RETURNING *',
+      ['ปฏิเสธการอนุมัติ', id]
+    );
+    res.status(200).json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server error");
+  }
+});
+
 
 app.get("/admin/dashboard", async (req, res) => {
   try {
