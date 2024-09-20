@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>หน้าหลัก</title>
     <%- include('./font') %>
+    <script src="https://cdn.tailwindcss.com"></script>
+
 
     <style>
         body, html {
@@ -49,15 +51,20 @@
         </style>
         </head>
         <body>
+
         
         <div class="hero-image">
+          
+          <div class="hidden lg:flex lg:flex-1 lg:justify-end pt-3 ">
+            <a href="/team/login" class="text-sm font-semibold text-white prompt-medium">เข้าสู่ระบบ <span aria-hidden="true">&rarr;</span></a>
+          </div>
+
           <div class="hero-text">
-            <h1 style="font-size:50px">I am John Doe</h1>
-            <p>And I'm a Photographer</p>
-            <button>สมัครเป็นช่าง</button>
+            <h1 style="font-size:60px" class="prompt-bold">ร่วมงานกับเรา</h1>
+            <p class="prompt-bold">สร้างอนาคตที่ใช่ เปิดโอกาสใหม่ๆ กับงานที่ใช่ตัวคุณ</p>
+            <a href="/team/register"><button class="prompt-medium mt-3">สมัครเป็นช่าง</button></a>
           </div>
         </div>
 
-        
         </body>
         </html>
