@@ -416,6 +416,58 @@ app.get('/team/dashboard', (req, res) => {
   res.render("team_dashboard");
 });
 
+// ช่างตอบรับงาน
+app.post('/teams/approve_booking', checkTeamAuthenticated, async (req, res) => {
+  try {
+    const team_id = req.session.teamId;
+    const booking_id = req.body.booking_id;
+
+    if (!booking_id) {
+      return res.status(400).send('Please provide a booking ID.');
+    }
+
+    const bookingQuery = 'SELECT * FROM bookings WHERE id = $1 AND team_id = $2';
+    const bookingResult = await pool.query(bookingQuery, [booking_id, team_id]);
+
+    if (bookingResult.rows.length === 0) {
+      return res.status(404).send('Booking not found or not authorized.');
+    }
+
+    const updateQuery = 'UPDATE bookings SET status = $1 WHERE id = $2 RETURNING *';
+    const updateResult = await pool.query(updateQuery, ['ยืนยัน', booking_id]);
+    const updatedBooking = updateResult.rows[0];
+
+    res.redirect(`/teams/get_pending_bookings?message=Booking ID: ${updatedBooking.id} has been approved.`);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error ' + err);
+  }
+});
+
+app.get('/teams/get_pending_bookings', checkTeamAuthenticated, async (req, res) => {
+  try {
+    const team_id = req.session.teamId;
+
+    const query = 'SELECT * FROM bookings WHERE team_id = $1 AND status = $2';
+    const values = [team_id, 'รอดำเนินการ'];
+    const result = await pool.query(query, values);
+
+    const message = req.query.message;
+
+    res.render('team_pending_bookings', { bookings: result.rows, message });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error ' + err);
+  }
+});
+
+
+
+
+
+
+
+
 //ส่วนของแอดมิน
 
 app.get('/admin/login', (req, res) => {
@@ -508,20 +560,33 @@ app.get('/delete/:id', async (req, res) => {
 
 app.get("/admin/dashboard", async (req, res) => {
   try {
-    // Query to count tasks with status ช่าง'รอดำเนินการ'
+    // นับจำนวนช่าง'รอดำเนินการ'
     const pendingCountResult = await pool.query(
       `SELECT COUNT(*) FROM tasks WHERE status = 'รอดำเนินการ'`
     );
     const pendingCount = pendingCountResult.rows[0].count;
 
-    // Query to count tasks with status 'approved'
-    const approvedCountResult = await pool.query(
-      `SELECT COUNT(*) FROM tasks WHERE status = 'approved'`
+    // นับจำนวนผู้ใช้ทั้งหมด
+    const userCountResult = await pool.query(
+      `SELECT COUNT(*) FROM users WHERE role = 'user'`
     );
-    const approvedCount = approvedCountResult.rows[0].count;
+    const userCount = userCountResult.rows[0].count;
 
-    // Render the admin_dashboard template with the counts
-    res.render("admin_dashboard", { pendingCount, approvedCount });
+    
+    // นับจำนวนงานที่ ยืนยันการรับงาน
+    const workCountResult = await pool.query(
+      `SELECT COUNT(*) FROM bookings WHERE status = 'ยืนยันการรับงาน'`
+    );
+    const workCount = workCountResult.rows[0].count;
+
+        // นับจำนวนที่ต้องตรวจสอบการชำระเงิน
+        const paymentCountResult = await pool.query(
+          `SELECT COUNT(*) FROM bookings WHERE  payment_status = 'รอการตรวจสอบ'`
+        );
+        const paymentCount = paymentCountResult.rows[0].count;
+    
+
+    res.render("admin_dashboard", { pendingCount, userCount, workCount, paymentCount });
   } catch (err) {
     console.error("Server error:", err);
     res.status(500).send("Server error");

@@ -22,7 +22,7 @@
     <div class="flex justify-between items-center px-10 h-14">
       <div class="flex justify-between items-center gap-x-14">
         <div class="w-40">
-          <h2 class="text-md font-bold" href="#">Rabiul Islam</h2>
+          <h2 class="text-md font-bold" href="#">..(ใส่ชื่อ)..</h2>
           <p class="text-gray-400 text-[12px] prompt-medium">
             ผู้ดูแลระบบ
           </p>
@@ -36,7 +36,7 @@
         
         <li class="" onclick="openUserDropdown()">
           <img class="inline-block h-8 w-8 rounded-full ring-2 ring-white cursor-pointer"
-            src="https://images.unsplash.com/photo-1550525811-e5869dd03032?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+            src="https://cdn-icons-png.freepik.com/512/1503/1503145.png?ga=GA1.1.512366322.1722083948"
             alt="">
           <ul id="user-dropdown" class="absolute hidden bg-white right-4 top-14 w-28 rounded shadow-md">
             <li class="mb-1 hover:bg-gray-50 text-gray-700 hover:text-gray-900"><a class="block px-5 py-2"
@@ -59,7 +59,7 @@
       <div class="flex flex-col justify-between h-full">
         <ul class="flex flex-col gap-1 mt-2">
           <li class="text-gray-500 hover:bg-gray-100 hover:text-gray-900">
-            <a class="w-full flex items-center py-3" href="#">
+            <a class="w-full flex items-center py-3" href="/admin/dashboard">
               <i class="fa-solid fa-house text-center px-5"></i>
               <span class="whitespace-nowrap pl-1 prompt-bold">หน้าหลัก</span>
             </a>
@@ -114,7 +114,7 @@
         <div class="bg-slate-50 p-5 m-2 rounded-md flex justify-between items-center shadow">
           <div>
             <h3 class="prompt-bold">จำนวนผู้ใช้งาน</h3>
-            <p class="text-gray-500">100</p>
+            <p class="text-gray-500"><%= userCount %></p>
           </div>
           <i class="fa-solid fa-users p-4 bg-gray-200 rounded-md"></i>
         </div>
@@ -122,7 +122,7 @@
         <div class="bg-slate-50 p-5 m-2 flex justify-between items-center shadow">
           <div>
             <h3 class="prompt-bold">งานที่สำเร็จแล้ว</h3>
-            <p class="text-gray-500">65</p>
+            <p class="text-gray-500"><%= workCount %></p>
           </div>
           <i class="fa-solid fa-users p-4 bg-green-200 rounded-md"></i>
         </div>
@@ -130,7 +130,7 @@
         <div class="bg-slate-50 p-5 m-2 flex justify-between items-center shadow">
           <div>
             <h3 class="prompt-bold">จำนวนช่างที่รอการอนุมัติ</h3>
-            <p class="text-gray-500">30</p>
+            <p class="text-gray-500"><%= pendingCount %></p>
           </div>
           <i class="fa-solid fa-users p-4 bg-yellow-200 rounded-md"></i>
         </div>
@@ -138,7 +138,7 @@
         <div class="bg-slate-50 p-5 m-2 flex justify-between items-center shadow">
           <div>
             <h3 class="prompt-bold">รอตรวจสอบการชำระเงิน</h3>
-            <p class="text-gray-500">5</p>
+            <p class="text-gray-500"><%= paymentCount %></p>
           </div>
           <i class="fa-solid fa-users p-4 bg-red-200 rounded-md"></i>
         </div>

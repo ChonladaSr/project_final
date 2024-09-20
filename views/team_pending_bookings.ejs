@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pending Bookings</title>
+  <style>
+    body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f4;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  width: 80%;
+  margin: 20px auto;
+  text-align: center;
+  background: #fff;
+  padding: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+  color: #333;
+}
+
+.booking {
+  border: 1px solid #ccc;
+  padding: 20px;
+  margin: 20px 0;
+  text-align: left;
+  background: #fafafa;
+}
+
+button {
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+  </style>
+</head>
+<body>
+  <% if (typeof message !== 'undefined') { %>
+    <script>
+      alert('<%= message %>');
+    </script>
+  <% } %>
+  <div class="container">
+    <h1>Pending Bookings</h1>
+    <% if (bookings.length === 0) { %>
+      <p>No pending bookings available.</p>
+    <% } else { %>
+      <% bookings.forEach(booking => { %>
+        <div class="booking">
+          <p><strong>Name:</strong> <%= booking.name %></p>
+          <p><strong>Email:</strong> <%= booking.email %></p>
+          <p><strong>Phone:</strong> <%= booking.phone %></p>
+          <p><strong>Address:</strong> <%= booking.address %></p>
+          <p><strong>Booking Date:</strong> <%= booking.booking_date %></p>
+          <p><strong>Service Details:</strong> <%= booking.service_details %></p>
+          <form action="/teams/approve_booking" method="POST">
+            <input type="hidden" name="booking_id" value="<%= booking.id %>">
+            <button type="submit">Approve</button>
+          </form>
+        </div>
+      <% }); %>
+    <% } %>
+  </div>
+</body>
+</html>
