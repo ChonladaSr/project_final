@@ -3,9 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Team Dashboard</title>
 </head>
 <body>
-    Welcome dashboad
+    <h1>Team Dashboard</h1>
+    <h2>Team Information</h2>
+    <p>Team ID: <%= team.id %></p>
+    <p>Team Name: <%= team.name %></p>
+    <p>Team Description: <%= team.description %></p>
+    
+    <h2>Tasks</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Task ID</th>
+                <th>Task Name</th>
+                <th>Task Status</th>
+                <!-- Add more columns as necessary -->
+            </tr>
+        </thead>
+        <tbody>
+            <% tasks.forEach(task => { %>
+                <tr>
+                    <td><%= task.id %></td>
+                    <td><%= task.name %></td>
+                    <td><%= task.status %></td>
+                    <!-- Add more columns as necessary -->
+                </tr>
+            <% }); %>
+        </tbody>
+    </table>
 </body>
 </html>

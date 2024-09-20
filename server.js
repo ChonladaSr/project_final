@@ -310,28 +310,33 @@ app.post('/profile/edit', checkAuthenticated, async (req, res) => {
 });
 
 // user จองบริการ
-app.post('/users/book_service', async (req, res) => {
+app.post('/users/book_service', ensureAuthenticated, async (req, res) => {
   try {
-    const { user_id, team_id, service_details, booking_date } = req.body;
+    const user_id = req.user.id;
+    const { team_id, name, email, phone, address, booking_date, service_details } = req.body;
 
-    // ตรวจสอบข้อมูลที่จำเป็น
-    if (!user_id || !team_id || !service_details || !booking_date) {
-      return res.status(400).send('กรุณากรอกข้อมูล');
+    if (!team_id || !name || !email || !phone || !address || !booking_date || !service_details) {
+      return res.status(400).send('กรุณากรอกข้อมูลให้ครบถ้วน');
     }
 
-    // ทำการบันทึกการจองลงในฐานข้อมูล
-    const query = 'INSERT INTO bookings (user_id, team_id, service_details, booking_date, status) VALUES ($1, $2, $3, $4, $5) RETURNING *';
-    const params = [user_id, team_id, service_details, booking_date, 'รอดำเนินการ'];
+    const query = `
+      INSERT INTO bookings (user_id, team_id, name, email, phone, address, booking_date, service_details, status)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      RETURNING *;
+    `;
 
-    const result = await pool.query(query, params);
+    const values = [user_id, team_id, name, email, phone, address, booking_date, service_details, 'pending'];
+    const result = await pool.query(query, values);
     const booking = result.rows[0];
 
-    res.status(201).send('จองสำเร็จ!');
+    const alertMessage = `การจองสำเร็จ! รหัสการจอง: ${booking.id}`;
+    res.status(201).send(`<script>alert('${alertMessage}'); window.location.href='/';</script>`);
   } catch (err) {
     console.error(err);
     res.status(500).send('Error ' + err);
   }
 });
+
 
 
 // user ดูประวัติการจอง
@@ -376,6 +381,44 @@ app.post('/users/view_bookings', ensureAuthenticated, async (req, res) => {
   }
 });
 */
+
+// รีวิว
+app.post('/teams/:teamId/review', ensureAuthenticated, async (req, res) => {
+  const { rating, comment } = req.body;
+  const userId = req.user.id;
+  const teamId = req.params.teamId;
+
+  try {
+      const result = await pool.query(
+          `INSERT INTO reviews (user_id, team_id, rating, comment) 
+           VALUES ($1, $2, $3, $4) RETURNING *`,
+          [userId, teamId, rating, comment]
+      );
+      req.flash('success_msg', 'Review submitted successfully');
+      res.redirect(`/teams/${teamId}`);
+  } catch (err) {
+      console.error(err);
+      req.flash('error_msg', 'Failed to submit review');
+      res.redirect(`/teams/${teamId}`);
+  }
+});
+
+// Route to fetch and display reviews for a team
+app.get('/teams/:teamId', async (req, res) => {
+  const teamId = req.params.teamId;
+  try {
+      const teamResult = await pool.query('SELECT * FROM teams WHERE id = $1', [teamId]);
+      const reviewsResult = await pool.query('SELECT * FROM reviews WHERE team_id = $1 ORDER BY created_at DESC', [teamId]);
+
+      res.render('team_details', { 
+          team: teamResult.rows[0], 
+          reviews: reviewsResult.rows 
+      });
+  } catch (err) {
+      console.error(err);
+      res.send('Error ' + err);
+  }
+});
 
 
 
@@ -564,6 +607,26 @@ app.get('/teams/get_pending_bookings', checkTeamAuthenticated, async (req, res) 
     res.status(500).send('Error ' + err);
   }
 });
+
+// ช่างดูข้อมูลการจองทั้งหมด (รวมทั้งสถานะการอนุมัติและปฏิเสธ) 
+app.get('/team/get_all_bookings', checkTeamAuthenticated, async (req, res) => {
+  try {
+    const team_id = req.session.teamId;
+
+    // ดึงข้อมูลการจองทั้งหมดที่เกี่ยวข้องกับทีมที่กำหนด
+    const query = 'SELECT * FROM bookings WHERE team_id = $1';
+    const values = [team_id];
+    const result = await pool.query(query, values);
+
+    const message = req.query.message;
+
+    res.render('team_bookings', { bookings: result.rows, message });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error ' + err);
+  }
+});
+
 
 app.get('/users/ceiling_work', async (req, res) => {
   try {

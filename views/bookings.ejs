@@ -14,7 +14,6 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
             margin: 0;
         }
 
@@ -22,7 +21,6 @@
             background-color: #fff;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            padding: 20px;
             max-width: 600px;
             width: 100%;
             text-align: center;
@@ -76,16 +74,19 @@
 </head>
 
 <body>
+   
+
     <div class="container">
-        <p class="py-5 font-semibold text-center text-3xl text-gray-900">
-            Booking History
+        <%- include('./partials/header') %>
+        <p class="py-5 prompt-medium text-center text-3xl text-gray-900">
+            ประวัติการจอง
         </p>
 
         <% if (noBookings) { %>
             <div class="flex flex-col items-center justify-center min-h-screen">
                 <img src="https://cdn-icons-png.flaticon.com/512/2748/2748558.png" alt="No bookings icon"
                     class="w-24 h-24 mb-4" />
-                <p class="text-gray-800 text-xl font-semibold">No bookings found</p>
+                <p class="text-gray-800 text-xl prompt-medium">No bookings found</p>
             </div>
             <% } else if (bookings.length> 0) { %>
                 <% bookings.forEach(booking=> { %>
@@ -93,13 +94,13 @@
                         <div
                             class="max-w-2xl mx-auto bg-zinc-100 shadow-md rounded-md p-4 flex items-center transition duration-200 hover:scale-105">
                             <div>
-                                <p class="font-bold text-gray-800">
-                                    Order Number: #<%= booking.id %>
+                                <p class="text-start prompt-medium text-gray-800">
+                                    หมายเลขการจอง: #<%= booking.id %>
                                 </p>
-                                <div class="flex items-center">
+                                <div class="flex items-center ">
                                     <img src="https://cdn-icons-png.freepik.com/512/6829/6829879.png?uid=R154930515&ga=GA1.1.1806679622.1698741403"
                                         alt="mobile icon" class="w-4 h-4 mr-2" />
-                                    <span class="font-semibold text-gray-800">Service Info: &nbsp;</span>
+                                    <span class="prompt-medium text-gray-800">รายละเอียดเพิ่มเติม: &nbsp;</span>
                                     <span>
                                         <%= booking.service_details %>
                                     </span>
@@ -107,7 +108,7 @@
                                 <div class="flex items-center">
                                     <img src="https://cdn-icons-png.flaticon.com/512/10691/10691802.png"
                                         alt="mobile icon" class="w-4 h-4 mr-2" />
-                                    <span class="font-semibold text-gray-800">Date: &nbsp;</span>
+                                    <span class="prompt-medium text-gray-800">วันนัดหมาย: &nbsp;</span>
                                     <span>
                                         <%= booking.booking_date %>
                                     </span>
@@ -115,7 +116,7 @@
                                 <div class="flex items-center">
                                     <img src="https://cdn-icons-png.freepik.com/512/5644/5644717.png?uid=R154930515&ga=GA1.1.1806679622.1698741403"
                                         alt="mobile icon" class="w-4 h-4 mr-2" />
-                                    <span class="font-semibold text-gray-800">Status: &nbsp;</span>
+                                    <span class="prompt-medium text-gray-800">สถานะ: &nbsp;</span>
                                     <span class="">
                                         <%= booking.status %>
                                     </span>
@@ -125,7 +126,7 @@
                                 <a href="#" class="-m-1.5 p-1.5">
                                     <img src="https://cdn-icons-png.freepik.com/512/9477/9477273.png?uid=R154930515&ga=GA1.1.1806679622.1698741403"
                                         alt="mobile icon" class="w-10 h-10 mr-2" />
-                                    <span class="bg-accent text-sm font-semibold items-center">Review</span>
+                                    <span class="bg-accent text-sm prompt-medium items-center">รีวิว</span>
                                 </a>
                             </div>
                         </div>

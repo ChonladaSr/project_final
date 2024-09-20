@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Bookings</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .status-pending {
+            background-color: #ffecb3;
+            color: #ff9800;
+        }
+        .status-approved {
+            background-color: #c8e6c9;
+            color: #4caf50;
+        }
+        .status-rejected {
+            background-color: #ffcdd2;
+            color: #f44336;
+        }
+        .booking-card {
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="mb-4">สถานะการจองทั้งหมด</h1>
+
+        <% if (message) { %>
+            <div class="alert alert-info"><%= message %></div>
+        <% } %>
+
+        <div class="row">
+            <% bookings.forEach(booking => { %>
+                <div class="col-md-4">
+                    <div class="card booking-card">
+                        <div class="card-body">
+                            <h5 class="card-title">Booking ID: <%= booking.id %></h5>
+                            <p class="card-text"><strong>ชื่อ:</strong> <%= booking.team_name %></p>
+                            <p class="card-text"><strong>วันที่จอง:</strong> <%= new Date(booking.booking_date).toLocaleDateString('th-TH') %></p>
+                            <p class="card-text"><strong>สถานะ:</strong> 
+                                <% if (booking.status === 'รอดำเนินการ') { %>
+                                    <span class="badge status-pending">รอดำเนินการ</span>
+                                <% } else if (booking.status === 'อนุมัติ') { %>
+                                    <span class="badge status-approved">อนุมัติ</span>
+                                <% } else if (booking.status === 'ปฏิเสธ') { %>
+                                    <span class="badge status-rejected">ปฏิเสธ</span>
+                                <% } %>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
