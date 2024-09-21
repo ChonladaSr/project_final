@@ -40,7 +40,12 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
 
+app.use(express.static('public'));
 app.use('/uploads', express.static('uploads'));
+app.use('/uploads/payment_proofs', express.static('uploads/payment_proofs'));
+
+const fileUpload = require('express-fileupload');
+app.use(fileUpload());
 
 
 app.use((req, res, next) => {
@@ -312,6 +317,22 @@ app.post('/profile/edit', checkAuthenticated, async (req, res) => {
   }
 });
 
+// Route สำหรับแสดงไฟล์หลักฐานการชำระเงิน
+app.get('/uploads/payment_proofs/:fileName', (req, res) => {
+  const fileName = req.params.fileName;
+  const filePath = path.join(__dirname, 'uploads/payment_proofs', fileName); // เส้นทางไปยังไฟล์
+
+  // ตรวจสอบว่าไฟล์มีอยู่หรือไม่
+  fs.access(filePath, fs.constants.F_OK, (err) => {
+    if (err) {
+      return res.status(404).send('File not found');
+    }
+
+    // ส่งไฟล์ไปยังผู้ใช้งาน
+    res.sendFile(filePath);
+  });
+});
+
 // user จองบริการ
 app.post('/users/book_service', ensureAuthenticated, async (req, res) => {
   try {
@@ -326,7 +347,7 @@ app.post('/users/book_service', ensureAuthenticated, async (req, res) => {
     const payment_proof = req.files.payment_proof;
     const fileName = `${Date.now()}_${payment_proof.name}`;
     const paymentProofPath = `public/uploads/payment_proofs/${fileName}`; // Full file path for saving the file
-    const relativePath = `/uploads/payment_proofs/${fileName}`; // Path saved in the database (relative to the public directory)
+    const relativePath = `/uploads/payment_proofs/${fileName}`; // เส้นทางใหม่
 
     // Move the file to the correct directory
     payment_proof.mv(paymentProofPath, async function(err) {
