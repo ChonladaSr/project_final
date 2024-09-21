@@ -157,16 +157,16 @@ app.get("/users/logout", (req, res) => {
 });
 
 // Existing routes
-app.get("/users/ceiling_work", (req, res) => {
-  res.render("ceiling_work");
+app.get("/users/roofer", (req, res) => {
+  res.render("work_roofer");
 });
 
-app.get("/users/paint_work", (req, res) => {
-  res.render("paint_work");
+app.get("/users/painter", (req, res) => {
+  res.render("work_painter");
 });
 
-app.get("/users/cleaning_work", (req, res) => {
-  res.render("cleaning_work");
+app.get("/users/cleaner", (req, res) => {
+  res.render("work_cleaner");
 });
 
 app.get("/users/register", (req, res) => {
