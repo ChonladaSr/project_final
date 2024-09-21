@@ -650,12 +650,11 @@ app.get('/bookings/:id', async (req, res) => {
 });
 
 
-
-app.get('/users/ceiling_work', async (req, res) => {
+app.get('/users/roofer', ensureAuthenticated, async (req, res) => {
   try {
     const { job_scope } = req.query;
     let query = 'SELECT teams.*, tasks.* FROM teams INNER JOIN tasks ON teams.id = tasks.id WHERE tasks.status = $1 AND teams.job_type = $2';
-    const params = ['approved', 'roofer'];
+    const params = ['อนุมัติ', 'ช่างฝ้า'];
 
     if (job_scope) {
       query += ' AND teams.job_scope = $3';
@@ -665,12 +664,36 @@ app.get('/users/ceiling_work', async (req, res) => {
     const result = await pool.query(query, params);
     const job = result.rows;
     const tasks = result.rows;
-    res.render('ceiling_work', { job, tasks });
+    res.render('work_roofer', { job, tasks });
   } catch (err) {
     console.error(err);
     res.send('Error ' + err);
   }
 });
+
+app.get('/users/roofer/:id', ensureAuthenticated, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const query = `
+      SELECT teams.*, tasks.*
+      FROM teams
+      INNER JOIN tasks ON teams.id = tasks.id
+      WHERE teams.id = $1
+    `;
+    const result = await pool.query(query, [id]);
+    const detail = result.rows[0];
+
+    if (!detail) {
+      return res.status(404).send('Details not found');
+    }
+
+    res.render('detail_roofer', { detail });
+  } catch (err) {
+    console.error(err);
+    res.send('Error ' + err);
+  }
+});
+
 
 
 
