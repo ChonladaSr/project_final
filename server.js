@@ -119,7 +119,7 @@ const ensureAuthenticated = (req, res, next) => {
   if (req.isAuthenticated()) {
     return next();
   }
-  res.redirect('/login');
+  res.redirect('/users/login');
 };
 
 
@@ -382,6 +382,22 @@ app.post('/users/view_bookings', ensureAuthenticated, async (req, res) => {
 });
 */
 
+// การส่งรีวิว
+app.post('/reviews/:id', ensureAuthenticated, async (req, res) => {
+  const bookingId = req.params.id;
+  const { rating, comment } = req.body;
+
+  try {
+    await pool.query('INSERT INTO reviews (booking_id, rating, comment, created_at) VALUES ($1, $2, $3, NOW())', [bookingId, rating, comment]);
+    req.flash('success', 'รีวิวของคุณถูกส่งเรียบร้อยแล้ว!');
+    res.redirect(`/bookings/${bookingId}`);
+  } catch (err) {
+    console.error('Error inserting review:', err);
+    req.flash('error', 'เกิดข้อผิดพลาดในการส่งรีวิว');
+    res.redirect(`/bookings/${bookingId}`);
+  }
+});
+
 // รีวิว
 app.post('/teams/:teamId/review', ensureAuthenticated, async (req, res) => {
   const { rating, comment } = req.body;
@@ -389,17 +405,17 @@ app.post('/teams/:teamId/review', ensureAuthenticated, async (req, res) => {
   const teamId = req.params.teamId;
 
   try {
-      const result = await pool.query(
-          `INSERT INTO reviews (user_id, team_id, rating, comment) 
+    const result = await pool.query(
+      `INSERT INTO reviews (user_id, team_id, rating, comment) 
            VALUES ($1, $2, $3, $4) RETURNING *`,
-          [userId, teamId, rating, comment]
-      );
-      req.flash('success_msg', 'Review submitted successfully');
-      res.redirect(`/teams/${teamId}`);
+      [userId, teamId, rating, comment]
+    );
+    req.flash('success_msg', 'Review submitted successfully');
+    res.redirect(`/teams/${teamId}`);
   } catch (err) {
-      console.error(err);
-      req.flash('error_msg', 'Failed to submit review');
-      res.redirect(`/teams/${teamId}`);
+    console.error(err);
+    req.flash('error_msg', 'Failed to submit review');
+    res.redirect(`/teams/${teamId}`);
   }
 });
 
@@ -407,16 +423,16 @@ app.post('/teams/:teamId/review', ensureAuthenticated, async (req, res) => {
 app.get('/teams/:teamId', async (req, res) => {
   const teamId = req.params.teamId;
   try {
-      const teamResult = await pool.query('SELECT * FROM teams WHERE id = $1', [teamId]);
-      const reviewsResult = await pool.query('SELECT * FROM reviews WHERE team_id = $1 ORDER BY created_at DESC', [teamId]);
+    const teamResult = await pool.query('SELECT * FROM teams WHERE id = $1', [teamId]);
+    const reviewsResult = await pool.query('SELECT * FROM reviews WHERE team_id = $1 ORDER BY created_at DESC', [teamId]);
 
-      res.render('team_details', { 
-          team: teamResult.rows[0], 
-          reviews: reviewsResult.rows 
-      });
+    res.render('team_details', {
+      team: teamResult.rows[0],
+      reviews: reviewsResult.rows
+    });
   } catch (err) {
-      console.error(err);
-      res.send('Error ' + err);
+    console.error(err);
+    res.send('Error ' + err);
   }
 });
 
@@ -426,63 +442,69 @@ app.get('/teams/:teamId', async (req, res) => {
 // ส่วนของช่าง
 app.post("/submit", (req, res) => {
   upload(req, res, async (err) => {
-      if (err) {
-          console.error("Multer error:", err);
-          return res.status(400).render("team_form", { errors: [{ message: err.message }] });
+
+    if (err) {
+      console.error("Multer error:", err);
+      return res.status(400).render("team_form", { errors: [{ message: err.message }] });
+    }
+
+    let { name, phone, job_scope, range, email, password, experience } = req.body;
+    let job_type = req.body.job_type;
+
+    let errors = [];
+
+    if (Array.isArray(job_type)) {
+      job_type = job_type.join(', ');
+    }
+
+    if (!name || !phone || !job_type || !job_scope || !range || !email || !password || !experience) {
+      errors.push({ message: "Please enter all fields" });
+    }
+
+    if (phone.length < 10) {
+      errors.push({ message: "Phone Number must be at least 10 characters long" });
+    }
+
+    if (password.length < 6) {
+      errors.push({ message: "Password must be at least 6 characters long" });
+    }
+
+    if (!req.files['profile_image']) {
+      errors.push({ message: "Please upload a profile image" });
+    }
+
+    if (errors.length > 0) {
+      return res.render("team_form", { errors, name, phone, job_type, job_scope, range, email, password });
+    } else {
+      try {
+        const userCheck = await pool.query(
+          `SELECT * FROM teams WHERE email = $1`,
+          [email]
+        );
+
+        if (userCheck.rows.length > 0) {
+          return res.render("team_form", {
+            message: "Account already registered"
+          });
+        } else {
+          const profileImage = req.files['profile_image'] ? req.files['profile_image'][0].filename : null;
+          const photo1 = req.files['photo1'] ? req.files['photo1'][0].filename : null;
+          const photo2 = req.files['photo2'] ? req.files['photo2'][0].filename : null;
+          const photo3 = req.files['photo3'] ? req.files['photo3'][0].filename : null;
+
+          await pool.query(
+            `INSERT INTO teams (name, phone, job_type, job_scope, range, email, password, profile_image, experience, photo1, photo2, photo3)
+   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+            [name, phone, job_type, job_scope, range, email, password, profileImage, experience, photo1, photo2, photo3]
+          );
+
+          res.redirect("/team/login");
+        }
+      } catch (err) {
+        console.error("Server error:", err);
+        res.status(500).send("Server error");
       }
-
-      let { name, phone, job_scope, range, email, password, experience } = req.body;
-      let job_type = req.body.job_type;
-
-      let errors = [];
-
-      if (Array.isArray(job_type)) {
-          job_type = job_type.join(', ');
-      }
-
-      if (!name || !phone || !job_type || !job_scope || !range || !email || !password || !experience) {
-          errors.push({ message: "Please enter all fields" });
-      }
-
-      if (phone.length < 10) {
-          errors.push({ message: "Phone Number must be at least 10 characters long" });
-      }
-
-      if (password.length < 6) {
-          errors.push({ message: "Password must be at least 6 characters long" });
-      }
-
-      if (!req.file) {
-          errors.push({ message: "Please upload a profile image" });
-      }
-
-      if (errors.length > 0) {
-          return res.render("team_form", { errors, name, phone, job_type, job_scope, range, email, password });
-      } else {
-          try {
-              const userCheck = await pool.query(
-                  `SELECT * FROM teams WHERE email = $1`,
-                  [email]
-              );
-
-              if (userCheck.rows.length > 0) {
-                  return res.render("team_form", {
-                      message: "Account already registered"
-                  });
-              } else {
-                  await pool.query(
-                      `INSERT INTO teams (name, phone, job_type, job_scope, range, email, password, experience, profile_image, photo1, photo2, photo3)
-                      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
-                      [name, phone, job_type, job_scope, range, email, password, experience, req.file.filename, req.files['photo1'][0].filename, req.files['photo2'][0].filename, req.files['photo3'][0].filename]
-                  );
-
-                  res.redirect("/team/login");
-              }
-          } catch (err) {
-              console.error("Server error:", err);
-              res.status(500).send("Server error");
-          }
-      }
+    }
   });
 });
 
@@ -522,9 +544,29 @@ app.get('/team', (req, res) => {
   res.render("team_page");
 });
 
-app.get('/team/dashboard', (req, res) => {
-  res.render("team_dashboard");
+app.get('/team/dashboard', checkTeamAuthenticated, async (req, res) => {
+  try {
+    const team_id = req.session.teamId;
+
+    // นับผลรวมของสถานะการจองที่เป็น 'ยืนยันงาน'
+    const query = `
+      SELECT COUNT(*) AS confirmed_count
+      FROM bookings
+      WHERE status = $1 AND team_id = $2
+    `;
+    const values = ['ยืนยันงาน', team_id];
+    const result = await pool.query(query, values);
+
+    const confirmedCount = result.rows[0].confirmed_count;
+
+    // ส่งผลรวมไปยังหน้า dashboard
+    res.render('team_dashboard', { confirmedCount: confirmedCount });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error ' + err);
+  }
 });
+
 
 // ช่างตอบรับงาน
 app.post('/teams/approve_booking', checkTeamAuthenticated, async (req, res) => {
@@ -620,25 +662,72 @@ app.get('/team/get_all_bookings', checkTeamAuthenticated, async (req, res) => {
   }
 });
 
+// ช่างส่งมอบงาน
+app.post('/team/confirm_booking', checkTeamAuthenticated, async (req, res) => {
+  try {
+    const { bookingId } = req.body; // รับค่า bookingId จาก body ของ request
+    const team_id = req.session.teamId;
+    const confirmedAt = new Date(); // บันทึกเวลาปัจจุบัน
+
+    // อัปเดตสถานะการจองเป็น 'ยืนยันแล้ว' และบันทึกเวลายืนยัน
+    const query = `
+      UPDATE bookings SET status = $1, confirmed_at = $2
+      WHERE id = $3 AND team_id = $4`
+      ;
+    const values = ['ยืนยันงาน', confirmedAt, bookingId, team_id];
+    await pool.query(query, values);
+
+    // ส่งข้อความแจ้งเตือนกลับไปยังหน้า team_inprogress
+    res.redirect('/team/get_inprogress_bookings?message=ส่งมอบงานสำเร็จ');
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error ' + err);
+  }
+});
+
 // ดูประวัติทีละ order
 app.get('/bookings/:id', async (req, res) => {
   const bookingId = req.params.id;
   try {
-      const bookingDetails = await pool.query(`
+    const bookingDetails = await pool.query(`
           SELECT bookings.*, teams.name AS technician_name
           FROM bookings
           JOIN teams ON bookings.team_id = teams.id
           WHERE bookings.id = $1
       `, [bookingId]);
 
-      if (bookingDetails.rows.length > 0) {
-          res.render('booking-details', { booking: bookingDetails.rows[0] });
-      } else {
-          res.status(404).send('Booking not found');
-      }
+    if (bookingDetails.rows.length > 0) {
+      res.render('booking-details', { booking: bookingDetails.rows[0] });
+    } else {
+      res.status(404).send('Booking not found');
+    }
   } catch (err) {
-      console.error(err.message);
-      res.status(500).send('Server Error');
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// user ยกเลิกการจอง
+app.post('/bookings/:id/cancel', async (req, res) => {
+  const bookingId = req.params.id;
+  const cancelledAt = new Date();  // Define cancelledAt with the current date and time
+  try {
+    const result = await pool.query(`
+      UPDATE bookings
+      SET status = 'ยกเลิกการจอง',
+          cancelled_at = $2
+      WHERE id = $1
+      RETURNING *
+    `, [bookingId, cancelledAt]);
+
+    if (result.rows.length > 0) {
+      res.redirect(`/bookings/${bookingId}?success=true&message=ยกเลิกการจองสำเร็จ`);
+    } else {
+      res.redirect(`/bookings/${bookingId}?success=false&message=ไม่พบการจอง`);
+    }
+  } catch (err) {
+    console.error(err.message);
+    res.redirect(`/bookings/${bookingId}?success=false&message=Server Error`);
   }
 });
 
@@ -655,18 +744,22 @@ app.get('/users/roofer', ensureAuthenticated, async (req, res) => {
     }
 
     const result = await pool.query(query, params);
-    const job = result.rows;
-    const tasks = result.rows;
-    res.render('work_roofer', { job, tasks });
+    const tasks = result.rows;  // Fetch tasks from the result
+    res.render('work_roofer', { tasks });  // Pass tasks to the EJS template
   } catch (err) {
     console.error(err);
     res.send('Error ' + err);
   }
 });
 
+
+
+
 app.get('/users/roofer/:id', ensureAuthenticated, async (req, res) => {
   try {
     const { id } = req.params;
+
+    // Query สำหรับดึงข้อมูลทีมและงาน
     const query = `
       SELECT teams.*, tasks.*
       FROM teams
@@ -677,10 +770,22 @@ app.get('/users/roofer/:id', ensureAuthenticated, async (req, res) => {
     const detail = result.rows[0];
 
     if (!detail) {
-      return res.status(404).send('Details not found');
+      return res.status(404).send('ขออภัย ไม่พบหน้าที่คุณต้องการ');
     }
 
-    res.render('detail_roofer', { detail });
+    // Query สำหรับดึงข้อมูลรีวิว, คอมเมนต์ และชื่อลูกค้าที่เกี่ยวข้องกับทีมนี้
+    const reviewQuery = `
+      SELECT reviews.rating, reviews.comment, reviews.created_at, users.name AS customer_name
+      FROM reviews
+      INNER JOIN bookings ON reviews.booking_id = bookings.id
+      INNER JOIN users ON bookings.user_id = users.id
+      WHERE bookings.team_id = $1
+      ORDER BY reviews.created_at DESC
+    `;
+    const reviewResult = await pool.query(reviewQuery, [id]);
+    const reviews = reviewResult.rows;
+
+    res.render('detail_roofer', { detail, reviews });
   } catch (err) {
     console.error(err);
     res.send('Error ' + err);
@@ -785,26 +890,7 @@ app.get('/delete/:id', async (req, res) => {
   }
 });
 
-const authenticateUser = async (req, res, next) => {
-  const { email, password } = req.headers; // Replace with actual authentication method
 
-  try {
-    const result = await pool.query(
-      'SELECT * FROM users WHERE email = $1 AND password = $2',
-      [email, password]
-    );
-
-    if (result.rows.length > 0) {
-      req.user = result.rows[0];
-      next();
-    } else {
-      res.status(401).send('Unauthorized');
-    }
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("Server error");
-  }
-};
 
 const isAdmin = (req, res, next) => {
   const user = req.user; // Assuming req.user is set after user authentication
@@ -816,7 +902,6 @@ const isAdmin = (req, res, next) => {
   }
 };
 
-app.use(authenticateUser);
 
 // แอดมินดูการอนุมัติทั้งหมด
 
@@ -886,21 +971,26 @@ app.get("/admin/dashboard", async (req, res) => {
     );
     const userCount = userCountResult.rows[0].count;
 
-    
+
     // นับจำนวนงานที่ ยืนยันการรับงาน
     const workCountResult = await pool.query(
       `SELECT COUNT(*) FROM bookings WHERE status = 'ยืนยันการรับงาน'`
     );
     const workCount = workCountResult.rows[0].count;
 
-        // นับจำนวนที่ต้องตรวจสอบการชำระเงิน
-        const paymentCountResult = await pool.query(
-          `SELECT COUNT(*) FROM bookings WHERE  payment_status = 'รอการตรวจสอบ'`
-        );
-        const paymentCount = paymentCountResult.rows[0].count;
-    
+    // นับจำนวนที่ต้องตรวจสอบการชำระเงิน
+    const paymentCountResult = await pool.query(
+      `SELECT COUNT(*) FROM bookings WHERE  payment_status = 'รอการตรวจสอบ'`
+    );
+    const paymentCount = paymentCountResult.rows[0].count;
 
-    res.render("admin_dashboard", { pendingCount, userCount, workCount, paymentCount });
+    // ดึงชื่อผู้ดูแลระบบ
+    const nameAdminResult = await pool.query(
+      `SELECT name FROM users WHERE role = 'admin'`
+    );
+    const nameAdmin = nameAdminResult.rows.length > 0 ? nameAdminResult.rows[0].name : null;
+
+    res.render("admin_dashboard", { pendingCount, userCount, workCount, paymentCount, nameAdmin });
   } catch (err) {
     console.error("Server error:", err);
     res.status(500).send("Server error");
