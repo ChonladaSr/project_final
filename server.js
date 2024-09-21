@@ -627,6 +627,29 @@ app.get('/team/get_all_bookings', checkTeamAuthenticated, async (req, res) => {
   }
 });
 
+// ดูประวัติทีละ order
+app.get('/bookings/:id', async (req, res) => {
+  const bookingId = req.params.id;
+  try {
+      const bookingDetails = await pool.query(`
+          SELECT bookings.*, teams.name AS technician_name
+          FROM bookings
+          JOIN teams ON bookings.team_id = teams.id
+          WHERE bookings.id = $1
+      `, [bookingId]);
+
+      if (bookingDetails.rows.length > 0) {
+          res.render('booking-details', { booking: bookingDetails.rows[0] });
+      } else {
+          res.status(404).send('Booking not found');
+      }
+  } catch (err) {
+      console.error(err.message);
+      res.status(500).send('Server Error');
+  }
+});
+
+
 
 app.get('/users/ceiling_work', async (req, res) => {
   try {
