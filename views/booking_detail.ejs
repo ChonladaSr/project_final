@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Details</title>
+</head>
+
+<body>
+    <h1>Booking Details</h1>
+    <p>Booking Number: <%= booking.id %>
+    </p>
+    <p>รายละเอียดเพิ่มเติม: <%= booking.service_details %>
+    </p>
+
+    <p>User Name: <%= booking.name %>
+    </p>
+    <p>Date: <% const bookingDate=new Date(booking.booking_date); const thaiDate=bookingDate.toLocaleDateString('th-TH',
+            { weekday: 'long' , year: 'numeric' , month: 'long' , day: 'numeric' }); %>
+            <%= thaiDate %>
+            เวลา <%= booking.booking_time %> 
+    </p>
+
+
+    <p>Status: <%= booking.status %>
+    </p>
+    <p>Technician: <%= booking.team_name %>
+    </p> <!-- Displaying Technician's Name -->
+    <!-- Add more fields as necessary -->
+</body>
+
+</html>

@@ -388,10 +388,6 @@ app.post('/users/book_service', ensureAuthenticated, async (req, res) => {
   }
 });
 
-
-
-
-
 // user ดูประวัติการจอง
 app.get('/users/view_bookings', ensureAuthenticated, async (req, res) => {
   try {
@@ -412,6 +408,32 @@ app.get('/users/view_bookings', ensureAuthenticated, async (req, res) => {
     res.status(500).send('Error ' + err);
   }
 });
+
+app.get('/users/view_booking/:id', ensureAuthenticated, async (req, res) => {
+  try {
+    const booking_id = req.params.id;
+
+    const query = `
+      SELECT bookings.*, teams.name AS team_name 
+      FROM bookings 
+      JOIN teams ON bookings.team_id = teams.id 
+      WHERE bookings.id = $1 AND bookings.user_id = $2;
+    `;
+    const values = [booking_id, req.user.id];
+    const result = await pool.query(query, values);
+
+    if (result.rows.length === 0) {
+      // Render the EJS template with a message when no bookings are found
+      return res.status(200).render('booking_detail', { booking: null, noBooking: true });
+    }
+
+    res.status(200).render('booking_detail', { booking: result.rows[0], noBooking: false });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error ' + err);
+  }
+});
+
 
 /*  
 // user ดูประวัติการจอง
