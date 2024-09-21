@@ -924,7 +924,15 @@ const isAdmin = (req, res, next) => {
 
 
 // แอดมินดูการอนุมัติทั้งหมด
-
+app.get('/admin/tasks', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM tasks');
+    res.render('tasks', { tasks: result.rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server error");
+  }
+});
 
 // แอดมินอนุมัติงาน
 app.put('/tasks/:id/approve', async (req, res) => {
@@ -975,6 +983,22 @@ app.delete('/tasks/:id', async (req, res) => {
     res.status(500).send("Server error");
   }
 });
+
+app.get('/admin/team_info/:id', async (req, res) => { 
+  const { id } = req.params;
+  try {
+    const result = await pool.query('SELECT * FROM teams WHERE id = $1', [id]);
+    if (result.rows.length > 0) {
+      res.render('team_view', { team: result.rows[0] }); 
+    } else {
+      res.status(404).send("Team not found");
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server error");
+  }
+});
+
 
 
 app.get("/admin/dashboard", async (req, res) => {

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Info</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        img {
+            max-width: 200px;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Team Information</h1>
+    
+    <table>
+        <tr>
+            <th>ID</th>
+            <td><%= team.id %></td>
+        </tr>
+        <tr>
+            <th>Name</th>
+            <td><%= team.name %></td>
+        </tr>
+        <tr>
+            <th>Phone</th>
+            <td><%= team.phone %></td>
+        </tr>
+        <tr>
+            <th>Job Type</th>
+            <td><%= team.job_type %></td>
+        </tr>
+        <tr>
+            <th>Job Scope</th>
+            <td><%= team.job_scope %></td>
+        </tr>
+        <tr>
+            <th>Range</th>
+            <td><%= team.range %></td>
+        </tr>
+        <tr>
+            <th>Email</th>
+            <td><%= team.email %></td>
+        </tr>
+        <tr>
+            <th>Password</th>
+            <td><%= team.password %></td>
+        </tr>
+        <tr>
+            <th>Profile Image</th>
+            <td><img src="/uploads/<%= team.profile_image %>" alt="Profile Image"></td>
+        </tr>
+        <tr>
+            <th>Experience</th>
+            <td><%= team.experience %></td>
+        </tr>
+        <tr>
+            <th>Photo 1</th>
+            <td><img src="/uploads/<%= team.photo1 %>" alt="Photo 1"></td>
+        </tr>
+        <tr>
+            <th>Photo 2</th>
+            <td><img src="/uploads/<%= team.photo2 %>" alt="Photo 2"></td>
+        </tr>
+        <tr>
+            <th>Photo 3</th>
+            <td><img src="/uploads/<%= team.photo3 %>" alt="Photo 3"></td>
+        </tr>
+    </table>
+
+</body>
+</html>
