@@ -316,29 +316,58 @@ app.post('/profile/edit', checkAuthenticated, async (req, res) => {
 app.post('/users/book_service', ensureAuthenticated, async (req, res) => {
   try {
     const user_id = req.user.id;
-    const { team_id, name, email, phone, address, booking_date, service_details } = req.body;
+    const { team_id, name, email, phone, address, booking_date, service_details, booking_time } = req.body;
 
-    if (!team_id || !name || !email || !phone || !address || !booking_date || !service_details) {
-      return res.status(400).send('กรุณากรอกข้อมูลให้ครบถ้วน');
+    // Check if payment proof is uploaded
+    if (!req.files || !req.files.payment_proof) {
+      return res.status(400).send('กรุณาอัปโหลดหลักฐานการชำระเงิน');
     }
 
-    const query = `
-      INSERT INTO bookings (user_id, team_id, name, email, phone, address, booking_date, service_details, status)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-      RETURNING *;
-    `;
+    const payment_proof = req.files.payment_proof;
+    const fileName = `${Date.now()}_${payment_proof.name}`;
+    const paymentProofPath = `public/uploads/payment_proofs/${fileName}`; // Full file path for saving the file
+    const relativePath = `/uploads/payment_proofs/${fileName}`; // Path saved in the database (relative to the public directory)
 
-    const values = [user_id, team_id, name, email, phone, address, booking_date, service_details, 'pending'];
-    const result = await pool.query(query, values);
-    const booking = result.rows[0];
+    // Move the file to the correct directory
+    payment_proof.mv(paymentProofPath, async function(err) {
+      if (err) {
+        console.error(err);
+        return res.status(500).send('เกิดข้อผิดพลาดในการอัปโหลดหลักฐานการชำระเงิน');
+      }
 
-    const alertMessage = `การจองสำเร็จ! รหัสการจอง: ${booking.id}`;
-    res.status(201).send(`<script>alert('${alertMessage}'); window.location.href='/';</script>`);
+      // Check for duplicate bookings
+      const checkQuery = `
+        SELECT * FROM bookings
+        WHERE booking_date = $1 AND booking_time = $2 AND team_id = $3;
+      `;
+      const checkValues = [booking_date, booking_time, team_id];
+      const checkResult = await pool.query(checkQuery, checkValues);
+
+      if (checkResult.rows.length > 0) {
+        const alertMessage = `ขออภัย มีการจองวันและเวลานี้แล้ว กรุณาเลือกวันนัดหมายอีกครั้ง`;
+        return res.status(400).send(`<script>alert('${alertMessage}'); window.history.back();</script>`);
+      }
+
+      // Insert booking data into the database with the relative path
+      const query = `
+        INSERT INTO bookings (user_id, team_id, name, email, phone, address, booking_date, booking_time, service_details, payment_proof, status)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        RETURNING *;
+      `;
+      const values = [user_id, team_id, name, email, phone, address, booking_date, booking_time, service_details, relativePath, 'รอดำเนินการ'];
+      const result = await pool.query(query, values);
+
+      const booking = result.rows[0];
+      const alertMessage = `การจองสำเร็จ!`;
+      res.status(201).send(`<script>alert('${alertMessage}'); window.location.href='/users/dashboard';</script>`);
+    });
   } catch (err) {
     console.error(err);
     res.status(500).send('Error ' + err);
   }
 });
+
+
 
 
 
@@ -554,28 +583,75 @@ app.get('/team', (req, res) => {
   res.render("team_page");
 });
 
-app.get('/team/dashboard', checkTeamAuthenticated, async (req, res) => {
+app.get("/team/dashboard", async (req, res) => {
+  const teamId = req.session.teamId;
+  if (!teamId) {
+    return res.redirect('/team/login'); // Redirect to login if not authenticated
+  }
   try {
-    const team_id = req.session.teamId;
+    // Fetch team information
+    const teamResult = await pool.query('SELECT * FROM teams WHERE id = $1', [teamId]);
+    const teamData = teamResult.rows[0];
 
-    // นับผลรวมของสถานะการจองที่เป็น 'ยืนยันงาน'
-    const query = `
+    // Fetch tasks associated with the team
+    const tasksResult = await pool.query('SELECT * FROM tasks WHERE id = $1', [teamId]);
+    const tasksData = tasksResult.rows;
+
+    // Count confirmed, pending, and in-progress bookings (existing logic remains)
+    const queryconfirmed = `
       SELECT COUNT(*) AS confirmed_count
       FROM bookings
       WHERE status = $1 AND team_id = $2
     `;
-    const values = ['ยืนยันงาน', team_id];
-    const result = await pool.query(query, values);
+    const valuesconfirmed = ['ยืนยันการรับงาน', teamId];
+    const resultconfirmed = await pool.query(queryconfirmed, valuesconfirmed);
+    const confirmedCount = resultconfirmed.rows[0].confirmed_count;
 
-    const confirmedCount = result.rows[0].confirmed_count;
+    const querypending = `
+      SELECT COUNT(*) AS pending_count
+      FROM bookings
+      WHERE status = $1 AND team_id = $2
+    `;
+    const valuespending = ['รอดำเนินการ', teamId];
+    const resultpending = await pool.query(querypending, valuespending);
+    const pendingCount = resultpending.rows[0].pending_count;
 
-    // ส่งผลรวมไปยังหน้า dashboard
-    res.render('team_dashboard', { confirmedCount: confirmedCount });
+    const queryinprogress = `
+      SELECT COUNT(*) AS inprogress_count
+      FROM bookings
+      WHERE status = $1 AND team_id = $2
+    `;
+    const valuesinprogress = ['กำลังดำเนินการ', teamId];
+    const resultinprogress = await pool.query(queryinprogress, valuesinprogress);
+    const inprogressCount = resultinprogress.rows[0].inprogress_count;
+
+    // Fetch reviews associated with the team's bookings
+    const queryreviews = `
+      SELECT reviews.id, reviews.rating, reviews.comment, reviews.created_at, reviews.response, bookings.id AS booking_id
+      FROM reviews
+      JOIN bookings ON reviews.booking_id = bookings.id
+      WHERE bookings.team_id = $1
+      ORDER BY reviews.created_at DESC
+    `;
+    const resultreviews = await pool.query(queryreviews, [teamId]);
+    const reviews = resultreviews.rows;
+
+    // Render the dashboard with team, tasks, booking counts, and reviews
+    res.render('team_dashboard', {
+      team: teamData,
+      tasks: tasksData,
+      confirmedCount: confirmedCount,
+      pendingCount: pendingCount,
+      inprogressCount: inprogressCount,
+      reviews: reviews,
+      teamId: teamId
+    });
   } catch (err) {
     console.error(err);
     res.status(500).send('Error ' + err);
   }
 });
+
 
 
 // ช่างตอบรับงาน
@@ -1048,6 +1124,44 @@ app.get('/admin/team_info/:id', async (req, res) => {
     res.status(500).send("Server error");
   }
 });
+
+// Admin view pending payments
+app.get('/admin/verify_payments', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT bookings.*, teams.range 
+      FROM bookings 
+      JOIN teams ON bookings.team_id = teams.id
+      WHERE bookings.payment_status = 'รอการตรวจสอบ';
+    `);
+    const bookings = result.rows;
+    res.render('admin_verify_payments', { bookings });
+  } catch (err) {
+    console.error(err);
+    res.send('Error ' + err);
+  }
+});
+
+// Admin verify or reject payment
+app.post('/admin/verify_payment/:id', async (req, res) => {
+  const bookingId = req.params.id;
+  const { action } = req.body; // 'verify' or 'reject'
+  const paymentVerifiedAt = new Date();
+  try {
+    const newStatus = action === 'ยืนยัน' ? 'ยืนยัน' : 'ยกเลิก';
+    await pool.query(`
+      UPDATE bookings 
+      SET payment_status = $1, payment_verified_at = $2
+      WHERE id = $3
+    `, [newStatus, paymentVerifiedAt, bookingId]);
+
+    res.redirect('/admin/verify_payments');
+  } catch (err) {
+    console.error(err);
+    res.send('Error ' + err);
+  }
+});
+
 
 
 
