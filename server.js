@@ -875,8 +875,8 @@ app.get('/admin/user', async (req, res) => {
   }
 });
 
-// Route to render edit form
-app.get('/edit/:id', async (req, res) => {
+// แอดมินแก้ไขข้อมูล user
+app.get('/admin/user/edit/:id', async (req, res) => {
   const id = req.params.id;
   try {
     const result = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
@@ -888,8 +888,8 @@ app.get('/edit/:id', async (req, res) => {
   }
 });
 
-// Route to handle form submission for editing
-app.post('/edit/:id', async (req, res) => {
+// แอดมินแก้ไขข้อมูล user
+app.post('/admin/user/edit/:id', async (req, res) => {
   const id = req.params.id;
   const { name, email, role } = req.body;
   try {
@@ -901,8 +901,8 @@ app.post('/edit/:id', async (req, res) => {
   }
 });
 
-// Route to delete a user
-app.get('/delete/:id', async (req, res) => {
+// แอดมินลบข้อมูล user
+app.get('/admin/user/delete/:id', async (req, res) => {
   const id = req.params.id;
   try {
     await pool.query('DELETE FROM users WHERE id = $1', [id]);
@@ -912,6 +912,53 @@ app.get('/delete/:id', async (req, res) => {
     res.send('Error ' + err);
   }
 });
+
+app.get('/admin/team', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM teams ORDER BY id ASC');
+    const data = result.rows;
+    res.render('admin_team', { data });
+  } catch (err) {
+    console.error(err);
+    res.send('Error ' + err);
+  }
+});
+
+app.get('/admin/team/edit/:id', async (req, res) => {
+  const teamId = req.params.id;
+  try {
+    const result = await pool.query('SELECT * FROM teams WHERE id = $1', [teamId]);
+    const team = result.rows[0];
+    res.render('edit_team', { team });
+  } catch (err) {
+    console.error(err);
+    res.send('Error ' + err);
+  }
+});
+
+app.post('/admin/team/edit/:id', async (req, res) => {
+  const { name, description } = req.body;
+  const teamId = req.params.id;
+  try {
+    await pool.query('UPDATE teams SET name = $1, description = $2 WHERE id = $3', [name, description, teamId]);
+    res.redirect('/admin/team');
+  } catch (err) {
+    console.error(err);
+    res.send('Error ' + err);
+  }
+});
+
+app.post('/admin/team/delete/:id', async (req, res) => {
+  const teamId = req.params.id;
+  try {
+    await pool.query('DELETE FROM teams WHERE id = $1', [teamId]);
+    res.redirect('/admin/team');
+  } catch (err) {
+    console.error(err);
+    res.send('Error ' + err);
+  }
+});
+
 
 
 
