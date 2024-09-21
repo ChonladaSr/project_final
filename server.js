@@ -426,73 +426,66 @@ app.get('/teams/:teamId', async (req, res) => {
 // ส่วนของช่าง
 app.post("/submit", (req, res) => {
   upload(req, res, async (err) => {
-    if (err) {
-      console.error("Multer error:", err);
-      return res.status(400).render("team_form", { errors: [{ message: err.message }] });
-    }
-
-    let { name, phone, job_scope, range, email, password } = req.body;
-    let job_type = req.body.job_type;
-    let errors = [];
-
-    if (Array.isArray(job_type)) {
-      job_type = job_type.join(', ');
-    }
-
-    if (!name || !phone || !job_type || !job_scope || !range || !email || !password) {
-      errors.push({ message: "Please enter all fields" });
-    }
-
-    if (phone.length < 10) {
-      errors.push({ message: "Phone Number must be at least 10 characters long" });
-    }
-
-    if (password.length < 6) {
-      errors.push({ message: "Password must be at least 6 characters long" });
-    }
-
-    if (!req.file) {
-      errors.push({ message: "Please upload a profile image" });
-    }
-
-    if (errors.length > 0) {
-      return res.render("team_form", { errors, name, phone, job_type, job_scope, range, email, password });
-    } else {
-      try {
-        const userCheck = await pool.query(
-          `SELECT * FROM teams WHERE email = $1`,
-          [email]
-        );
-
-        if (userCheck.rows.length > 0) {
-          return res.render("team_form", {
-            message: "Account already registered"
-          });
-        } else {
-          await pool.query(
-            `INSERT INTO teams (name, phone, job_type, job_scope, range, email, password, profile_image)
-                  VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-            [name, phone, job_type, job_scope, range, email, password, req.file.filename]
-          );
-
-          // เพิ่มงานใหม่ในตาราง tasks
-          const newTask = await pool.query(
-            `INSERT INTO tasks (description, status)
-             VALUES ($1, $2) RETURNING *`,
-            [`${name} - ${job_type}`, 'รอดำเนินการ']
-          );
-          console.log(newTask.rows); // ตรวจสอบว่ามีการเพิ่มงานใหม่ในตาราง tasks หรือไม่
-
-
-          res.redirect("/team/login");
-        }
-      } catch (err) {
-        console.error("Server error:", err);
-        res.status(500).send("Server error");
+      if (err) {
+          console.error("Multer error:", err);
+          return res.status(400).render("team_form", { errors: [{ message: err.message }] });
       }
-    }
+
+      let { name, phone, job_scope, range, email, password, experience } = req.body;
+      let job_type = req.body.job_type;
+
+      let errors = [];
+
+      if (Array.isArray(job_type)) {
+          job_type = job_type.join(', ');
+      }
+
+      if (!name || !phone || !job_type || !job_scope || !range || !email || !password || !experience) {
+          errors.push({ message: "Please enter all fields" });
+      }
+
+      if (phone.length < 10) {
+          errors.push({ message: "Phone Number must be at least 10 characters long" });
+      }
+
+      if (password.length < 6) {
+          errors.push({ message: "Password must be at least 6 characters long" });
+      }
+
+      if (!req.file) {
+          errors.push({ message: "Please upload a profile image" });
+      }
+
+      if (errors.length > 0) {
+          return res.render("team_form", { errors, name, phone, job_type, job_scope, range, email, password });
+      } else {
+          try {
+              const userCheck = await pool.query(
+                  `SELECT * FROM teams WHERE email = $1`,
+                  [email]
+              );
+
+              if (userCheck.rows.length > 0) {
+                  return res.render("team_form", {
+                      message: "Account already registered"
+                  });
+              } else {
+                  await pool.query(
+                      `INSERT INTO teams (name, phone, job_type, job_scope, range, email, password, experience, profile_image, photo1, photo2, photo3)
+                      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+                      [name, phone, job_type, job_scope, range, email, password, experience, req.file.filename, req.files['photo1'][0].filename, req.files['photo2'][0].filename, req.files['photo3'][0].filename]
+                  );
+
+                  res.redirect("/team/login");
+              }
+          } catch (err) {
+              console.error("Server error:", err);
+              res.status(500).send("Server error");
+          }
+      }
   });
 });
+
 
 app.post('/team/login', async (req, res) => {
   const { email, password } = req.body;

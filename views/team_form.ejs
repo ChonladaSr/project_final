@@ -115,13 +115,30 @@
 
                             <input type="file" name="profile_image" class="flex h-10 w-full rounded-md border border-input bg-zinc-100 px-3 py-2 text-sm text-gray-400 file:border-0 file:bg-transparent file:text-gray-600 file:text-sm file:font-medium" accept="image/*" required>
                         </div> -->
-
+<!-- 
                         <div class="grid w-full max-w-xs items-center gap-1.5">
                             <label
                                 class="text-sm text-black prompt-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">รูปภาพ</label>
                             <input
                                 class="flex w-full rounded-md border border-blue-300 border-input bg-white text-sm text-gray-400 file:border-0 file:bg-blue-600 file:text-white file:text-sm file:font-medium"
                                 type="file" id="picture" accept="image/*" required name="profile_image" />
+                        </div> -->
+
+                        <div class="form-group prompt-light">
+                            <label for="profile_image">อัปโหลดรูปโปรไฟล์</label>
+                            <input type="file" id="profile_image" name="profile_image" accept="image/*" required>
+                        </div>
+                        <div class="form-group prompt-light mt-1">
+                            <label for="additional_image_1">อัปโหลดรูปผลงานที่เคยทำ 1</label>
+                            <input type="file" id="photo1" name="photo1" accept="image/*">
+                        </div>
+                        <div class="form-group prompt-light mt-1">
+                            <label for="additional_image_2">อัปโหลดรูปผลงานที่เคยทำ 2</label>
+                            <input type="file" id="photo2" name="photo2" accept="image/*">
+                        </div>
+                        <div class="form-group prompt-light mt-1">
+                            <label for="additional_image_3">อัปโหลดรูปผลงานที่เคยทำ3</label>
+                            <input type="file" id="photo3" name="photo3" accept="image/*">
                         </div>
 
 
@@ -135,7 +152,7 @@
                         <a href="/team" type="button"
                             class="text-muted-foreground hover:text-muted-foreground/80 py-2 rounded-md prompt-medium">ยกเลิก</a>
                         <button type="submit"
-                            class="bg-blue-500 text-primary-foreground hover:bg-black/80 px-4 py-2 rounded-md prompt-medium">บันทึก</button>
+                            class="bg-gray-500 text-white hover:bg-black/80 hover:text-white px-4 py-2 rounded-md prompt-medium">บันทึก</button>
                     </div>
                 </div>
             </div>
