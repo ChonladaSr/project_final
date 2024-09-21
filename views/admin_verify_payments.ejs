@@ -47,8 +47,8 @@
     <h1 class="text-center prompt-medium">ระบบตรวจสอบการชำระเงิน</h1>
     
     <div class="table-responsive">
-      <table class="table table-striped table-bordered">
-        <thead class="table-dark">
+      <table class="table table-hover table-striped table-bordered ">
+        <thead class="table-dark ">
           <tr class="prompt-medium text-center">
             <th>หมายเลขการจอง</th>
             <th>ชื่อผู้จอง</th>
@@ -62,7 +62,7 @@
         <tbody>
           <% if (bookings.length > 0) { %>
             <% bookings.forEach(booking => { %>
-              <tr>
+                <tr class="prompt-light text-center">
                 <td><%= booking.id %></td>
                 <td><%= booking.name %></td>
                 <td><%= booking.email %></td>
@@ -76,10 +76,10 @@
                 <td><%= booking.payment_status %></td>
                 <td>
                   <form action="/admin/verify_payment/<%= booking.id %>" method="POST" class="d-inline-block">
-                    <button type="submit" name="action" value="verify" class="btn btn-verify btn-sm">ยืนยัน</button>
+                    <button type="submit" name="action" value="ยืนยัน" class="btn btn-verify btn-sm">ยืนยัน</button>
                   </form>
                   <form action="/admin/verify_payment/<%= booking.id %>" method="POST" class="d-inline-block">
-                    <button type="submit" name="action" value="reject" class="btn btn-reject btn-sm">ยกเลิก</button>
+                    <button type="submit" name="action" value="ยกเลิก" class="btn btn-reject btn-sm">ยกเลิก</button>
                   </form>
                 </td>
               </tr>

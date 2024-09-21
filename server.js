@@ -165,17 +165,17 @@ app.get("/users/logout", (req, res) => {
 });
 
 // Existing routes
-app.get("/users/roofer", (req, res) => {
-  res.render("work_roofer");
-});
+// app.get("/users/roofer", (req, res) => {
+//   res.render("work_roofer");
+// });
 
-app.get("/users/painter", (req, res) => {
-  res.render("work_painter");
-});
+// app.get("/users/painter", (req, res) => {
+//   res.render("work_painter");
+// });
 
-app.get("/users/cleaner", (req, res) => {
-  res.render("work_cleaner");
-});
+// app.get("/users/cleaner", (req, res) => {
+//   res.render("work_cleaner");
+// });
 
 app.get("/users/register", (req, res) => {
   res.render("register");
@@ -839,7 +839,7 @@ app.post('/bookings/:id/cancel', async (req, res) => {
 });
 
 
-app.get('/users/roofer', ensureAuthenticated, async (req, res) => {
+/* app.get('/users/roofer', ensureAuthenticated, async (req, res) => {
   try {
     const { job_scope } = req.query;
     let query = 'SELECT teams.*, tasks.* FROM teams INNER JOIN tasks ON teams.id = tasks.id WHERE tasks.status = $1 AND teams.job_type = $2';
@@ -856,6 +856,25 @@ app.get('/users/roofer', ensureAuthenticated, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.send('Error ' + err);
+  }
+}); */
+
+app.get('/users/roofer', ensureAuthenticated, async (req, res) => {
+  try {
+      const query = `
+          SELECT teams.*, tasks.* 
+          FROM teams 
+          INNER JOIN tasks ON teams.id = tasks.id 
+          WHERE tasks.status = $1 AND teams.job_type = $2
+      `;
+      const values = ['อนุมัติ', 'ช่างฝ้า'];
+
+      const { rows } = await pool.query(query, values);
+
+      res.render('work_roofer', { data: rows }); 
+  } catch (error) {
+      console.error(error);
+      res.send('Error ' + error);
   }
 });
 
@@ -1213,13 +1232,7 @@ app.get("/admin/dashboard", async (req, res) => {
     );
     const paymentCount = paymentCountResult.rows[0].count;
 
-    // ดึงชื่อผู้ดูแลระบบ
-    const nameAdminResult = await pool.query(
-      `SELECT name FROM users WHERE role = 'admin'`
-    );
-    const nameAdmin = nameAdminResult.rows.length > 0 ? nameAdminResult.rows[0].name : null;
-
-    res.render("admin_dashboard", { pendingCount, userCount, workCount, paymentCount, nameAdmin });
+    res.render("admin_dashboard", { pendingCount, userCount, workCount, paymentCount });
   } catch (err) {
     console.error("Server error:", err);
     res.status(500).send("Server error");
