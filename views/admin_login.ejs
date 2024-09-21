@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>เข้าสู่ระบบ</title>
+    <%- include('./font') %>
+
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .login-container {
+            margin-top: 100px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container login-container">
+        <div class="row justify-content-center">
+        
+            <div class="col-md-6">
+        <h2 class="text-center prompt-medium">เข้าสู่ระบบ</h2>
+        <h6 class="text-center prompt-medium text-gray-500">สำหรับผู้ดูแลระบบ</h6>
+
+                <% if (errors.length > 0) { %>
+                    <div class="alert alert-danger">
+                        <ul>
+                            <% errors.forEach(function(error) { %>
+                                <li><%= error.message %></li>
+                            <% }); %>
+                        </ul>
+                    </div>
+                <% } %>
+                <form action="/admin/login" method="POST">
+                    <div class="form-group  prompt-medium">
+                        <label for="email">อีเมล</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                    </div>
+                    <div class="form-group  prompt-medium">
+                        <label for="password">รหัสผ่าน</label>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block prompt-light">ยืนยัน</button>
+                </form>
+                <p class="text-center mt-3 prompt-light text-gray-500">กลับไปที่ <a href="/">หน้าแรก</a></p>
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

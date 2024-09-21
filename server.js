@@ -498,6 +498,13 @@ app.post("/submit", (req, res) => {
             [name, phone, job_type, job_scope, range, email, password, profileImage, experience, photo1, photo2, photo3]
           );
 
+          // เพิ่มงานใหม่ในตาราง tasks
+        const newTask = await pool.query(
+          `INSERT INTO tasks (description, status)
+           VALUES ($1, $2) RETURNING *`,
+          [`${name} - ${job_type}`, 'รอดำเนินการ']
+        );
+
           res.redirect("/team/login");
         }
       } catch (err) {
@@ -517,7 +524,7 @@ app.post('/team/login', async (req, res) => {
     const result = await pool.query('SELECT * FROM teams WHERE email = $1', [email]);
     const team = result.rows[0];
 
-    if (team && team.password === password) { // Simplified password check, replace with hashed password check
+    if (team && team.password === password) { 
       req.session.teamId = team.id;
       res.redirect('/team/dashboard');
     } else {
@@ -803,7 +810,7 @@ app.get('/users/roofer/:id', ensureAuthenticated, async (req, res) => {
 //ส่วนของแอดมิน
 
 app.get('/admin/login', (req, res) => {
-  res.render("admin_login");
+  res.render('admin_login', { errors: [] });
 });
 
 app.get("/admin/logout", (req, res) => {
@@ -818,27 +825,40 @@ app.get("/admin/logout", (req, res) => {
 // การตรวจสอบการเข้าสู่ระบบของ Admin
 app.post('/admin/login', async (req, res) => {
   const { email, password } = req.body;
+  let errors = [];
 
   try {
-    const result = await pool.query('SELECT * FROM users WHERE email = $1 AND role = $2', [email, 'admin']);
+    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    const user = result.rows[0];
 
-    if (result.rows.length > 0) {
-      const user = result.rows[0];
-      const passwordMatch = await bcrypt.compare(password, user.password);
-
-      if (passwordMatch) {
-        res.status(200).send('Login successful!');
+    if (user) {
+      // ตรวจสอบรหัสผ่านที่เข้ารหัส
+      const match = await bcrypt.compare(password, user.password);
+      if (match) {
+        if (user.role === 'admin') {
+          req.session.userId = user.id; // เก็บ userId ใน session
+          res.redirect('/admin/dashboard');
+        } else {
+          errors.push({ message: 'เฉพาะผู้ดูแลระบบเท่านั้น' });
+          res.render('admin_login', { errors });
+        }
       } else {
-        res.status(401).send('Invalid email or password');
+        errors.push({ message: 'Incorrect email or password' });
+        res.render('admin_login', { errors });
       }
     } else {
-      res.status(401).send('Invalid email or password');
+      errors.push({ message: 'เฉพาะผู้ดูแลระบบเท่านั้น' });
+      res.render('admin_login', { errors });
     }
   } catch (err) {
     console.error(err);
-    res.status(500).send('Error checking login');
+    errors.push({ message: 'An error occurred. Please try again.' });
+    res.render('admin_login', { errors });
   }
 });
+
+
+
 
 // แสดงข้อมูลทั้งหมดของ user
 app.get('/admin/user', async (req, res) => {
