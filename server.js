@@ -698,7 +698,7 @@ app.get("/team/dashboard", async (req, res) => {
 
 
 // ช่างตอบรับงาน
-app.post('/teams/approve_booking', checkTeamAuthenticated, async (req, res) => {
+app.post('/team/approve_booking', checkTeamAuthenticated, async (req, res) => {
   try {
     const team_id = req.session.teamId;
     const booking_id = req.body.booking_id;
@@ -707,6 +707,7 @@ app.post('/teams/approve_booking', checkTeamAuthenticated, async (req, res) => {
       return res.status(400).send('Please provide a booking ID.');
     }
 
+    // ตรวจสอบการจอง
     const bookingQuery = 'SELECT * FROM bookings WHERE id = $1 AND team_id = $2';
     const bookingResult = await pool.query(bookingQuery, [booking_id, team_id]);
 
@@ -714,16 +715,29 @@ app.post('/teams/approve_booking', checkTeamAuthenticated, async (req, res) => {
       return res.status(404).send('Booking not found or not authorized.');
     }
 
-    const updateQuery = 'UPDATE bookings SET status = $1 WHERE id = $2 RETURNING *';
-    const updateResult = await pool.query(updateQuery, ['ยืนยัน', booking_id]);
-    const updatedBooking = updateResult.rows[0];
+    // อัปเดตสถานะการจองเป็น "อนุมัติ" และบันทึกเวลาที่อนุมัติ
+    const approveQuery = `
+      UPDATE bookings 
+      SET status = $1, approved_at = $2 
+      WHERE id = $3 
+      RETURNING *`;
+    const now = new Date();
+    const approveResult = await pool.query(approveQuery, ['อนุมัติ', now, booking_id]);
+    const approvedBooking = approveResult.rows[0];
 
-    res.redirect(`/teams/get_pending_bookings?message=Booking ID: ${updatedBooking.id} has been approved.`);
+    // อัปเดตสถานะการจองเป็น "กำลังดำเนินการ"
+    const inProgressQuery = 'UPDATE bookings SET status = $1 WHERE id = $2 RETURNING *';
+    const inProgressResult = await pool.query(inProgressQuery, ['กำลังดำเนินการ', booking_id]);
+    const inProgressBooking = inProgressResult.rows[0];
+
+    res.redirect(`/team/get_pending_bookings?message=รับงานของหมายเลขการจอง: ${inProgressBooking.id}`);
+
   } catch (err) {
     console.error(err);
     res.status(500).send('Error ' + err);
   }
 });
+
 
 // ช่างปฏิเสธการรับงาน
 app.post('/team/reject_booking', checkTeamAuthenticated, async (req, res) => {
@@ -876,7 +890,7 @@ app.post('/bookings/:id/cancel', async (req, res) => {
 });
 
 
-/* app.get('/users/roofer', ensureAuthenticated, async (req, res) => {
+ app.get('/users/roofer', ensureAuthenticated, async (req, res) => {
   try {
     const { job_scope } = req.query;
     let query = 'SELECT teams.*, tasks.* FROM teams INNER JOIN tasks ON teams.id = tasks.id WHERE tasks.status = $1 AND teams.job_type = $2';
@@ -888,30 +902,12 @@ app.post('/bookings/:id/cancel', async (req, res) => {
     }
 
     const result = await pool.query(query, params);
-    const tasks = result.rows;  // Fetch tasks from the result
-    res.render('work_roofer', { tasks });  // Pass tasks to the EJS template
+    const job = result.rows;
+    const tasks = result.rows;
+    res.render('work_roofer', { job, tasks });
   } catch (err) {
     console.error(err);
     res.send('Error ' + err);
-  }
-}); */
-
-app.get('/users/roofer', ensureAuthenticated, async (req, res) => {
-  try {
-      const query = `
-          SELECT teams.*, tasks.* 
-          FROM teams 
-          INNER JOIN tasks ON teams.id = tasks.id 
-          WHERE tasks.status = $1 AND teams.job_type = $2
-      `;
-      const values = ['อนุมัติ', 'ช่างฝ้า'];
-
-      const { rows } = await pool.query(query, values);
-
-      res.render('work_roofer', { data: rows }); 
-  } catch (error) {
-      console.error(error);
-      res.send('Error ' + error);
   }
 });
 
