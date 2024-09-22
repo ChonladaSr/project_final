@@ -36,8 +36,10 @@
                 <div class="col-md-4">
                     <div class="card booking-card">
                         <div class="card-body">
-                            <h5 class="card-title">Booking ID: <%= booking.id %></h5>
-                            <p class="card-text"><strong>ชื่อ:</strong> <%= booking.team_name %></p>
+                            <h5 class="card-title">Booking ID: #<%= booking.id %></h5>
+                            <p class="card-text"><strong>รายละเอียดการจอง:</strong> <%= booking.service_details %></p>
+                            <p class="card-text"><strong>ชื่อ:</strong> <%= booking.name %></p>
+                            <p class="card-text"><strong>เบอร์โทรศัพท์:</strong> <%= booking.phone %></p>
                             <p class="card-text"><strong>วันที่จอง:</strong> <%= new Date(booking.booking_date).toLocaleDateString('th-TH') %></p>
                             <p class="card-text"><strong>สถานะ:</strong> 
                                 <% if (booking.status === 'รอดำเนินการ') { %>
@@ -46,6 +48,10 @@
                                     <span class="badge status-approved">อนุมัติ</span>
                                 <% } else if (booking.status === 'ปฏิเสธ') { %>
                                     <span class="badge status-rejected">ปฏิเสธ</span>
+                                <% } else if (booking.status === 'กำลังดำเนินการ') { %>
+                                    <span class="badge status-pending">กำลังดำเนินการ</span>
+                                <% } else if (booking.status === 'ยืนยันการรับงาน') { %>
+                                    <span class="badge status-approved">ยืนยันการรับงาน</span>
                                 <% } %>
                             </p>
                         </div>

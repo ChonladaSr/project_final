@@ -501,7 +501,7 @@ app.get('/teams/:teamId', async (req, res) => {
     const teamResult = await pool.query('SELECT * FROM teams WHERE id = $1', [teamId]);
     const reviewsResult = await pool.query('SELECT * FROM reviews WHERE team_id = $1 ORDER BY created_at DESC', [teamId]);
 
-    res.render('team_details', {
+    res.render('team_review', {
       team: teamResult.rows[0],
       reviews: reviewsResult.rows
     });
@@ -817,24 +817,39 @@ app.post('/team/confirm_booking', checkTeamAuthenticated, async (req, res) => {
 // ดูประวัติทีละ order
 app.get('/bookings/:id', async (req, res) => {
   const bookingId = req.params.id;
-  try {
-    const bookingDetails = await pool.query(`
-          SELECT bookings.*, teams.name AS technician_name
-          FROM bookings
-          JOIN teams ON bookings.team_id = teams.id
-          WHERE bookings.id = $1
-      `, [bookingId]);
 
-    if (bookingDetails.rows.length > 0) {
-      res.render('booking-details', { booking: bookingDetails.rows[0] });
+  try {
+    // ดึงข้อมูลการจองพร้อมข้อมูลทีม
+    const bookingDetails = await pool.query(`
+      SELECT bookings.*, teams.name AS technician_name, teams.phone AS technician_phone, teams.email AS technician_email 
+      FROM bookings
+      JOIN teams ON bookings.team_id = teams.id
+      WHERE bookings.id = $1
+    `, [bookingId]);
+
+    // ดึงข้อมูลการรีวิวที่เกี่ยวข้องกับการจอง
+    const bookingResult = await pool.query(`
+      SELECT bookings.*, reviews.rating, reviews.comment
+      FROM bookings
+      LEFT JOIN reviews ON bookings.id = reviews.booking_id
+      WHERE bookings.id = $1
+    `, [bookingId]);
+
+    // รวมข้อมูลการจองและรีวิว
+    const booking = bookingDetails.rows[0];
+    const review = bookingResult.rows[0];
+
+    if (booking) {
+      res.render('order_bookings', { booking, review });
     } else {
-      res.status(404).send('Booking not found');
+      res.status(404).send('ไม่พบการจองบริการ');
     }
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
   }
 });
+
 
 // user ยกเลิกการจอง
 app.post('/bookings/:id/cancel', async (req, res) => {
@@ -901,13 +916,11 @@ app.get('/users/roofer', ensureAuthenticated, async (req, res) => {
 });
 
 
-
-
 app.get('/users/roofer/:id', ensureAuthenticated, async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Query สำหรับดึงข้อมูลทีมและงาน
+    // Query to fetch team and task details
     const query = `
       SELECT teams.*, tasks.*
       FROM teams
@@ -921,22 +934,53 @@ app.get('/users/roofer/:id', ensureAuthenticated, async (req, res) => {
       return res.status(404).send('ขออภัย ไม่พบหน้าที่คุณต้องการ');
     }
 
-    // Query สำหรับดึงข้อมูลรีวิว, คอมเมนต์ และชื่อลูกค้าที่เกี่ยวข้องกับทีมนี้
+    // Query to fetch review counts and average rating for this team
     const reviewQuery = `
-      SELECT reviews.rating, reviews.comment, reviews.created_at, users.name AS customer_name
+      SELECT COUNT(reviews.rating) AS review_count, AVG(reviews.rating) AS average_rating
+      FROM teams
+      LEFT JOIN bookings ON teams.id = bookings.team_id
+      LEFT JOIN reviews ON bookings.id = reviews.booking_id
+      WHERE teams.id = $1
+    `;
+    const reviewResult = await pool.query(reviewQuery, [id]);
+    const reviewData = reviewResult.rows[0];
+
+    // Query to fetch comments, reviews, and team responses
+    const commentQuery = `
+      SELECT reviews.rating, reviews.comment, reviews.created_at, bookings.name AS customer_name
       FROM reviews
       INNER JOIN bookings ON reviews.booking_id = bookings.id
       INNER JOIN users ON bookings.user_id = users.id
       WHERE bookings.team_id = $1
-      ORDER BY reviews.created_at DESC
+      ORDER BY reviews.created_at DESC 
     `;
-    const reviewResult = await pool.query(reviewQuery, [id]);
-    const reviews = reviewResult.rows;
+    const commentResult = await pool.query(commentQuery, [id]);
+    const comments = commentResult.rows;
 
-    res.render('detail_roofer', { detail, reviews });
+    res.render('detail_roofer', { detail, reviewData, comments, teamId: id });
   } catch (err) {
     console.error(err);
     res.send('Error ' + err);
+  }
+});
+
+//ช่างตอบกลับรีวิว
+app.post('/reviews/:id/respond', async (req, res) => {
+  const { id } = req.params;
+  const { response_text } = req.body;
+  const team_id = req.session.team_id;  // Assuming the team is logged in
+
+  try {
+    await pool.query(
+      `INSERT INTO responses (review_id, team_id, response_text) VALUES ($1, $2, $3)`,
+      [id, team_id, response_text]
+    );
+    req.flash('success', 'Response submitted successfully');
+    res.redirect('back');
+  } catch (error) {
+    console.error(error);
+    req.flash('error', 'Failed to submit response');
+    res.redirect('back');
   }
 });
 

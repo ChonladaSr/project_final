@@ -60,21 +60,17 @@
 <p>Status: <%= detail.status %></p>
 
 <!-- ข้อมูลรีวิวและคอมเมนต์ -->
-<h2>Reviews</h2>
-<ul>
-  <% if (reviews.length > 0) { %>
-    <% reviews.forEach(review => { %>
-      <li>
-        <strong>Customer:</strong> <%= review.customer_name %><br>
-        <strong>Rating:</strong> <%= review.rating %>/5<br>
-        <strong>Comment:</strong> <%= review.comment ? review.comment : 'No comment' %><br>
-        <strong>Date:</strong> <%= new Date(review.created_at).toLocaleDateString() %>
-      </li>
-    <% }); %>
-  <% } else { %>
-    <li>No reviews yet.</li>
-  <% } %>
-</ul>
+<div class="reviews">
+  <h3>Reviews (Average Rating: <%= reviewData.average_rating %>, Total Reviews: <%= reviewData.review_count %>)</h3>
+  
+  <% comments.forEach(comment => { %>
+    <div class="review">
+      <p><strong><%= comment.customer_name %>:</strong> Rated <%= comment.rating %> stars</p>
+      <p>Comment: <%= comment.comment %></p>
+      <p>Date: <%= new Date(comment.created_at).toLocaleDateString() %></p>
+    </div>
+  <% }) %>
+</div>
 
 <a href="/users/roofer">Back to List</a>
 

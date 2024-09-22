@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reviews</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        h2 {
+            color: #2c3e50;
+            text-align: center;
+            padding: 20px 0;
+            background-color: #27ae60;
+            color: #fff;
+            margin: 0;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 20px;
+        }
+        li {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            padding: 15px;
+        }
+        p {
+            margin: 5px 0;
+        }
+        form {
+            margin-top: 10px;
+        }
+        textarea {
+            width: 100%;
+            height: 80px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 8px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #27ae60;
+            color: #fff;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        button:hover {
+            background-color: #2ecc71;
+        }
+        .response {
+            background-color: #f9f9f9;
+            border-left: 4px solid #27ae60;
+            padding: 10px;
+            margin-top: 10px;
+        }
+        .no-reviews {
+            text-align: center;
+            font-style: italic;
+            color: #999;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Reviews</h2>
+    <% if (reviews.length > 0) { %>
+        <ul>
+            <% reviews.forEach(review => { %>
+                <li>
+                    <p><strong>Rating:</strong> <%= review.rating %></p>
+                    <p><strong>Comment:</strong> <%= review.comment %></p>
+                    <p><strong>Date:</strong> <%= new Date(review.created_at).toLocaleString() %></p>
+                    <% if (review.response) { %>
+                        <div class="response">
+                            <p><strong>Response:</strong> <%= review.response %></p>
+                        </div>
+                    <% } else { %>
+                        <form action="/team/respond_review/<%= review.id %>" method="POST">
+                            <textarea name="response" placeholder="Write your response here..." required></textarea>
+                            <button type="submit">Submit Response</button>
+                        </form>
+                    <% } %>
+                </li>
+            <% }) %>
+        </ul>
+    <% } else { %>
+        <p class="no-reviews">No reviews yet.</p>
+    <% } %>
+</body>
+</html>

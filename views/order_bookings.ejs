@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Booking Detail</title>
-  <link rel="stylesheet" href="/path/to/your/css">
 </head>
 <body>
   <div class="container">
@@ -15,8 +14,7 @@
       <p><strong>หมายเลขการจอง:</strong> <%= booking.id %></p>
       <p><strong>สถานะ:</strong> <%= booking.status %></p>
       <p><strong>ชื่อช่าง:</strong> <%= booking.technician_name %></p>
-      <p><strong>วันที่จอง:</strong> <%= booking.created_at %></p>
-      <p><strong>วันที่บริการ:</strong> <%= booking.service_date %></p>
+      <p><strong>วันนัดหมาย:</strong> <%= booking.booking_date %></p>
     </div>
 
     <!-- ตรวจสอบว่ามีรีวิวหรือยัง -->
