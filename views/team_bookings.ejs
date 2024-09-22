@@ -42,7 +42,9 @@
                             <p class="card-text"><strong>เบอร์โทรศัพท์:</strong> <%= booking.phone %></p>
                             <p class="card-text"><strong>วันที่จอง:</strong> <%= new Date(booking.booking_date).toLocaleDateString('th-TH') %></p>
                             <p class="card-text"><strong>สถานะ:</strong> 
-                                <% if (booking.status === 'รอดำเนินการ') { %>
+                                <% if (booking.payment_status === 'ยืนยัน') { %>
+
+                                <% else if (booking.status === 'รอดำเนินการ') { %>
                                     <span class="badge status-pending">รอดำเนินการ</span>
                                 <% } else if (booking.status === 'อนุมัติ') { %>
                                     <span class="badge status-approved">อนุมัติ</span>
@@ -52,6 +54,9 @@
                                     <span class="badge status-pending">กำลังดำเนินการ</span>
                                 <% } else if (booking.status === 'ยืนยันการรับงาน') { %>
                                     <span class="badge status-approved">ยืนยันการรับงาน</span>
+                                <% } else { %>
+                                    รอการตรวจสอบ
+
                                 <% } %>
                             </p>
                         </div>

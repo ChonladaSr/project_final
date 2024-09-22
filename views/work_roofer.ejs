@@ -53,6 +53,49 @@
                 background-color: #555;
                 color: white;
             }
+
+            .radio-inputs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* จัดให้มี 3 คอลัมน์ */
+  gap: 10px;
+  padding: 10px;
+  background-color: #f9f9f9; /* กรอบพื้นหลัง */
+  border: 1px solid #ddd; /* ขอบกรอบ */
+  border-radius: 5px;
+}
+
+.radio-inputs .radio {
+  background-color: #fff;
+  border: 1px solid #ccc;
+  padding: 8px;
+  border-radius: 4px;
+  text-align: center;
+  font-size: 14px;
+  transition: background-color 0.3s, border-color 0.3s;
+}
+
+.radio-inputs .radio input[type="radio"] {
+  display: none; /* ซ่อนปุ่มวิทยุ */
+}
+
+.radio-inputs .radio .name {
+  display: inline-block;
+  padding: 5px;
+  color: #333;
+}
+
+.radio-inputs .radio:hover {
+  background-color: #e9e9e9;
+  border-color: #bbb;
+}
+
+.radio-inputs .radio input[type="radio"]:checked + .name {
+  background-color: #ff951c;
+  color: #fff;
+  border-radius: 4px;
+  padding: 5px;
+}
+
         </style>
 </head>
 
@@ -124,7 +167,9 @@
                         <a href="/users/roofer/<%= item.id %>"
                             class="bg-secondary text-white hover:bg-secondary/80 px-4 py-2 rounded-lg shadow prompt-bold">ดูประวัติ</a>
                         <button
-                            class="bg-orange-500 text-white hover:bg-orange-400 px-4 py-2 rounded-lg shadow prompt-bold">จอง</button>
+                            class="bg-orange-500 text-white hover:bg-orange-400 px-4 py-2 rounded-lg shadow prompt-bold"
+                            data-toggle="modal" data-target="#bookingModal">จอง</button>
+
                     </div>
                 </div>
             </div>
@@ -136,15 +181,15 @@
                     <div class="modal-dialog" role="document">
                         <div class="modal-content">
                             <div class="modal-header prompt-medium">
-                                <h5 class="modal-title" id="bookingModalLabel">การจองบริการช่างฝ้า</h5>
+                                <h5 class="modal-title" id="bookingModalLabel">จองบริการ</h5>
                                 <button type="button" class="close ml-auto" data-dismiss="modal" aria-label="Close">
                                     <span aria-hidden="true">&times;</span>
                                 </button>
                             </div>
                             <div class="modal-body">
-                                <form id="bookingForm" action="/users/book_service" method="POST">
+                                <form id="bookingForm" action="/users/book_service" method="POST" enctype="multipart/form-data">
                                     <input type="hidden" name="user_id" id="user_id">
-                                    <input type="hidden" name="team_id" id="teamId">
+                                    <input type="hidden" name="team_id" id="teamId" value="<%= team.id %>">
 
                                     <!-- Step 1: Booking Details -->
                                     <div id="step1" class="form-step">
@@ -173,10 +218,53 @@
                                         </div>
 
                                         <div class="form-group prompt-medium">
-                                            <label for="booking_date">นัดหมายวัน/เวลา:</label>
-                                            <input type="datetime-local" class="form-control prompt-light"
-                                                id="booking_date" name="booking_date" required>
+                                            <label for="booking_date">นัดหมายวัน:</label>
+                                            <input type="date" class="form-control prompt-light" id="booking_date"
+                                                name="booking_date" required>
                                         </div>
+
+                                        <div class="mb-2 form-group prompt-medium">
+                                            <label for="booking_time">ช่วงเวลาที่ต้องการรับบริการ:</label>
+                                            <div class="radio-inputs">
+                                              <label class="hour radio prompt-regular">
+                                                <input type="radio" id="hour_08" name="booking_time" value="08:00-09:00" required />
+                                                <span class="name">08:00-09:00</span>
+                                              </label>
+                                              <label class="hour radio prompt-regular">
+                                                <input type="radio" id="hour_09" name="booking_time" value="09:00-10:00" required />
+                                                <span class="name">09:00-10:00</span>
+                                              </label>
+                                              <label class="hour radio prompt-regular">
+                                                <input type="radio" id="hour_10" name="booking_time" value="10:00-11:00" required />
+                                                <span class="name">10:00-11:00</span>
+                                              </label>
+                                              <label class="hour radio prompt-regular">
+                                                <input type="radio" id="hour_11" name="booking_time" value="11:00-12:00" required />
+                                                <span class="name">11:00-12:00</span>
+                                              </label>
+                                              <label class="hour radio prompt-regular">
+                                                <input type="radio" id="hour_12" name="booking_time" value="12:00-13:00" required />
+                                                <span class="name">12:00-13:00</span>
+                                              </label>
+                                              <label class="hour radio prompt-regular">
+                                                <input type="radio" id="hour_13" name="booking_time" value="13:00-14:00" required />
+                                                <span class="name">13:00-14:00</span>
+                                              </label>
+                                              <label class="hour radio prompt-regular">
+                                                <input type="radio" id="hour_14" name="booking_time" value="14:00-15:00" required />
+                                                <span class="name">14:00-15:00</span>
+                                              </label>
+                                              <label class="hour radio prompt-regular">
+                                                <input type="radio" id="hour_15" name="booking_time" value="15:00-16:00" required />
+                                                <span class="name">15:00-16:00</span>
+                                              </label>
+                                              <label class="hour radio prompt-regular">
+                                                <input type="radio" id="hour_16" name="booking_time" value="16:00-17:00" required />
+                                                <span class="name">16:00-17:00</span>
+                                              </label>
+                                            </div>
+                                          </div>
+                                          
 
                                         <div class="form-group prompt-medium">
                                             <label for="serviceDetails">รายละเอียดเพิ่มเติม:</label>
@@ -191,68 +279,50 @@
 
                                     <!-- Step 2: Payment Details -->
                                     <div id="step2" class="form-step" style="display:none;">
+                                        <div class="form-group prompt-medium text-center">
+                                            <img class="mx-auto mt-2 h-52 w-52 rounded-lg border p-2"
+                                                src="https://img2.pic.in.th/pic/458260690_1202122877695548_3620449361034568857_n.jpg" alt="step" />
+                                            <h1 class="prompt-bold mt-4 text-xl">Skill Deck</h1>
+                                            <p class="prompt-medium text-gray-600">ชื่อบัญชี: บริษัท สกิลเด็ค
+                                                (ประเทศไทย) จำกัด</p>
+                                            <p class="prompt-medium text-red-500">xxx-xxx-1234</p>
+                                        </div>
 
-                                        <!-- component -->
-                                        <section class="body-font bg-gray-100 pt-10 text-gray-600">
-                                            <div
-                                                class="container mx-auto mt-10 flex max-w-3xl flex-wrap justify-center rounded-lg bg-white px-5 py-24">
-                                                <!-- QR Code Number Account & Uploadfile -->
-                                                <div class="flex-wrap md:flex">
-                                                    <div class="mx-auto">
-                                                        <img class="mx-auto mt-12 h-52 w-52 rounded-lg border p-2 md:mt-0"
-                                                            src="https://i.imgur.com/FQS7fFC.png" alt="step" />
-                                                        <div>
-                                                            <h1
-                                                                class="font-laonoto mt-4 text-center text-xl prompt-bold">
-                                                                Skill Deck</h1>
-                                                            <p class="mt-2 text-center prompt-medium text-gray-600">
-                                                                ชื่อบัญชี: บริษัท สกิลเด็ค (ประเทศไทย) จำกัด</p>
-                                                            <p class="mt-1 text-center prompt-medium text-red-500">
-                                                                xxx-xxx-1234</p>
-                                                        </div>
-                                                        <!-- component -->
-                                                        <div class="mx-auto w-52">
-                                                            <div class="m-4">
-                                                                <div class="flex w-full items-center justify-center">
-                                                                    <label
-                                                                        class="flex h-auto w-full cursor-pointer flex-col border-4 border-dashed border-gray-200 hover:border-gray-300 hover:bg-gray-100">
-                                                                        <div
-                                                                            class="mt-4 flex items-center justify-center space-x-1">
-                                                                            <svg xmlns="http://www.w3.org/2000/svg"
-                                                                                fill="none" viewBox="0 0 24 24"
-                                                                                stroke-width="1.5" stroke="currentColor"
-                                                                                class="h-6 w-6 text-gray-400">
-                                                                                <path stroke-linecap="round"
-                                                                                    stroke-linejoin="round"
-                                                                                    d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
-                                                                            </svg>
-                                                                            <p
-                                                                                class="prompt-light text-sm tracking-wider text-gray-400 group-hover:text-gray-600">
-                                                                                อัปโหลดหลักฐานการชำระเงิน</p>
-                                                                        </div>
-                                                                        <input type="file" class="opacity-0" />
-                                                                    </label>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div class="py-2">
-                                                            <button type="button" class="btn btn-dark prompt-bold"
-                                                                onclick="prevStep()">ย้อนกลับ</button>
-                                                            <button type="submit"
-                                                                class="rounded-md border prompt-bold bg-orange-500 px-6 py-2 text-white outline-none">ยืนยันการจอง</button>
-                                                        </div>
-                                                    </div>
+                                        <div class="form-group prompt-medium text-center">
+                                            <label
+                                                class="flex justify-center cursor-pointer flex-col border-4 border-dashed border-gray-200 hover:border-gray-300 hover:bg-gray-100">
+                                                <div class="mt-4 flex items-center justify-center space-x-1">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                        viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                                                        class="h-6 w-6 text-gray-400">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
+                                                    </svg>
+                                                    <p
+                                                        class="prompt-light text-sm tracking-wider text-gray-400 group-hover:text-gray-600">
+                                                        อัปโหลดหลักฐานการชำระเงิน</p>
+                                                        
                                                 </div>
-                                            </div>
-                                        </section>
+                                                <input type="file" name="payment_proof" class="opacity-0" required/>
+                                            </label>
+                                        </div>
+                                        
+
+                                        <div class="form-group prompt-medium text-center py-4">
+                                            <button type="button" class="btn btn-dark prompt-bold mx-2"
+                                                onclick="prevStep()">ย้อนกลับ</button>
+                                            <button type="submit"
+                                                class="btn btn-orange prompt-bold mx-2">ยืนยันการจอง</button>
+                                        </div>
                                     </div>
+
                                 </form>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                
+
                 <script>
                     document.getElementById('searchButton').addEventListener('click', function () {
                         const jobScope = document.getElementById('jobScopeSelect').value;
@@ -265,6 +335,49 @@
                         window.location.href = url.toString();
                     });
                 </script>
+
+                <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+                <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+                <script>
+                    // Switch between form steps
+                    function nextStep() {
+                        document.getElementById('step1').style.display = 'none';
+                        document.getElementById('step2').style.display = 'block';
+                    }
+
+                    function prevStep() {
+                        document.getElementById('step1').style.display = 'block';
+                        document.getElementById('step2').style.display = 'none';
+                    }
+                </script>
+
+              "  <script>
+                    let bookedSlots = {}; // To track booked slots by date
+
+                    function confirmBooking() {
+                        const date = document.getElementById('booking_date').value;
+                        const timeSlot = document.querySelector('input[name="booking_time"]:checked').value;
+
+                        if (date && timeSlot) {
+                            if (!bookedSlots[date]) {
+                                bookedSlots[date] = [];
+                            }
+
+                            if (bookedSlots[date].includes(timeSlot)) {
+                                alert('ช่วงเวลานี้ถูกจองไปแล้วในวันเดียวกัน');
+                            } else {
+                                bookedSlots[date].push(timeSlot);
+                                alert('การจองสำเร็จ!');
+                                // Proceed to the next step or submit the form
+                                console.log('Proceeding with booking...');
+                            }
+                        } else {
+                            alert('กรุณาเลือกวันที่และช่วงเวลา');
+                        }
+                    }
+                </script>"
+
 
 
                 <%- include('./partials/footer') %>
