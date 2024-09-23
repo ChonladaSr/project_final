@@ -12,7 +12,10 @@ const app = express();
 const jwt = require('jsonwebtoken');
 const alert = require('alert');
 const upload = require('./uploadConfig');
+const bodyParser = require('body-parser');
+const fileUpload = require('express-fileupload');
 
+app.use(fileUpload());
 
 
 
@@ -44,18 +47,21 @@ app.use(express.static('public'));
 app.use('/uploads', express.static('uploads'));
 app.use('/uploads/payment_proofs', express.static('uploads/payment_proofs'));
 
-const fileUpload = require('express-fileupload');
 app.use(fileUpload({
   limits: { fileSize: 10 * 1024 * 1024 }, // Limit to 10MB
 }));
 
 
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 
 app.use((req, res, next) => {
   res.locals.success_msg = req.flash('success_msg');
   res.locals.error_msg = req.flash('error_msg');
   next();
 });
+
+
 
 // Google Strategy
 passport.use(new GoogleStrategy({
@@ -310,49 +316,96 @@ app.post('/profile/edit', checkAuthenticated, async (req, res) => {
 });
 
 // user จองบริการ
-// app.post('/users/book_service', ensureAuthenticated, async (req, res) => {
-//   try {
-//     const user_id = req.user.id;
-//     const { team_id, name, email, phone, address, booking_date, booking_time, service_details } = req.body;
-//     const payment_proof = req.files ? req.files.payment_proof : null;
+/*  
+app.post('/users/book_service', ensureAuthenticated, async (req, res) => {
+  try {
+    const user_id = req.user.id;
+    const { team_id, name, email, phone, address, booking_date, booking_time, service_details } = req.body;
+    const payment_proof = req.files ? req.files.payment_proof : null;
 
-//      // Validate input fields
-//      if (!team_id || !name || !email || !phone || !address || !booking_date || !service_details | !booking_time) {
-//       return res.status(400).send('Please fill in all required fields.');
-//     }
+     // Validate input fields
+     if (!team_id || !name || !email || !phone || !address || !booking_date || !booking_time | !service_details) {
+      return res.status(400).send('Please fill in all required fields.');
+    }
 
-//     if (!payment_proof) {
-//       return res.status(400).send('Please upload the payment proof.');
-//     }
+    if (!payment_proof) {
+      return res.status(400).send('Please upload the payment proof.');
+    }
 
-//     // Define the directory to save the uploaded payment proof
-//     const paymentProofPath = `${Date.now()}_${payment_proof.name}`;
-//     payment_proof.mv(`./public${paymentProofPath}`, async function(err) {
-//       if (err) {
-//         console.error(err);
-//         return res.status(500).send('Error uploading payment proof.');
-//       }
+    // Define the directory to save the uploaded payment proof
+    const paymentProofPath = `${Date.now()}_${payment_proof.name}`;
+    payment_proof.mv(`./public${paymentProofPath}`, async function(err) {
+      if (err) {
+        console.error(err);
+        return res.status(500).send('Error uploading payment proof.');
+      }
 
 
-//       // Insert booking data into the bookings table
-//       const query = `
-//         INSERT INTO bookings (user_id, team_id, name, email, phone, address, booking_date, booking_time, service_details, payment_proof, status)
-//         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-//         RETURNING *;
-//       `;
-//       const values = [user_id, team_id, name, email, phone, address, booking_date, booking_time, service_details, paymentProofPath, 'รอดำเนินการ'];
-//       const result = await pool.query(query, values);
-//       const booking = result.rows[0];
+      // Insert booking data into the bookings table
+      const query = `
+        INSERT INTO bookings (user_id, team_id, name, email, phone, address, booking_date, booking_time, service_details, payment_proof, status)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        RETURNING *;
+      `;
+      const values = [user_id, team_id, name, email, phone, address, booking_date, booking_time, service_details, paymentProofPath, 'รอดำเนินการ'];
+      const result = await pool.query(query, values);
+      const booking = result.rows[0];
 
-//       const alertMessage = `การจองสำเร็จ!`;
-//       res.status(201).send(`<script>alert('${alertMessage}'); window.location.href='/users/dashboard';</script>`);
-//     });
-//   } catch (err) {
-//     console.error(err);
-//     res.status(500).send('Error ' + err);
-//   }
-// });
+      const alertMessage = `การจองสำเร็จ!`;
+      res.status(201).send(`<script>alert('${alertMessage}'); window.location.href='/users/dashboard';</script>`);
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error ' + err);
+  }
+});
+*/
 
+app.get('/users/book_service', ensureAuthenticated, (req, res) => {
+  const teamId = req.query.teamId;  // รับ team_id จาก query string
+  const userId = req.user.id;  // รับ user_id จากผู้ใช้ที่ล็อกอินอยู่
+  
+  // ส่ง userId และ teamId ไปที่ EJS
+  res.render('booking_form', { userId, teamId });
+});
+
+app.get('/users/book_service', ensureAuthenticated, (req, res) => {
+  const teamId = req.query.teamId;  // รับ team_id จาก query string
+  const userId = req.user.id;  // รับ user_id จากผู้ใช้ที่ล็อกอินอยู่
+  
+  // ส่ง userId และ teamId ไปที่ EJS
+  res.render('booking_form', { userId, teamId });
+});
+
+
+app.post('/users/book_service', ensureAuthenticated, async (req, res) => {
+  try {
+    console.log(req.body);  // เพิ่มการ log ข้อมูลที่รับมา
+    const user_id = req.user.id; 
+    const { team_id, name, email, phone, address, booking_date, booking_time, service_details } = req.body;
+
+    // ตรวจสอบว่าข้อมูลถูกส่งมาครบ
+    if (!team_id || !name || !email || !phone || !address || !booking_date || !booking_time || !service_details) {
+      return res.status(400).send('Please fill in all required fields.');
+    }
+
+    // ถ้าข้อมูลครบจะทำการบันทึก
+    const query = `
+      INSERT INTO bookings (user_id, team_id, name, email, phone, address, booking_date, booking_time, service_details, status)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      RETURNING *;
+    `;
+
+    const values = [user_id, team_id, name, email, phone, address, booking_date, booking_time, service_details, 'pending'];
+    const result = await pool.query(query, values);
+    const booking = result.rows[0];
+
+    res.status(201).send(`การจองสำเร็จ! รหัสการจอง: ${booking.id}`);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error ' + err);
+  }
+});
 
 
 

@@ -181,9 +181,9 @@
                     <div class="flex space-x-2">
                         <a href="/users/roofer/<%= item.id %>"
                             class="bg-secondary text-white hover:bg-secondary/80 px-4 py-2 rounded-lg shadow prompt-bold">ดูประวัติ</a>
-                        <button
+                        <a href="/users/book_service?teamId=<%= item.id %>"
                             class="bg-orange-500 text-white hover:bg-orange-400 px-4 py-2 rounded-lg shadow prompt-bold"
-                            data-toggle="modal" data-target="#bookingModal">จอง</button>
+                             >จอง</a>
 
                     </div>
                 </div>
@@ -191,7 +191,7 @@
             <% }) %>
 
 
-                <div class="modal fade" id="bookingModal" tabindex="-1" role="dialog"
+               <!--    <div class="modal fade" id="bookingModal" tabindex="-1" role="dialog"
                     aria-labelledby="bookingModalLabel" aria-hidden="true">
                     <div class="modal-dialog" role="document">
                         <div class="modal-content">
@@ -207,7 +207,7 @@
                                     <input type="hidden" name="user_id" id="user_id">
                                     <input type="hidden" name="team_id" id="teamId">
 
-                                    <!-- Step 1: Booking Details -->
+                                  Step 1: Booking Details 
                                     <div id="step1" class="form-step">
                                         <div class="form-group prompt-medium">
                                             <label for="name">ชื่อ:</label>
@@ -302,7 +302,7 @@
                                         </div>
                                     </div>
 
-                                    <!-- Step 2: Payment Details -->
+                                     Step 2: Payment Details 
                                     <div id="step2" class="form-step" style="display:none;">
                                         <div class="form-group prompt-medium text-center">
                                             <img class="mx-auto mt-2 h-52 w-52 rounded-lg border p-2"
@@ -392,12 +392,9 @@
                     });
                 </script>
 
-
-
-
                 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
                 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-
+-->
                 <%- include('./partials/footer') %>
 </body>
 
