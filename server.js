@@ -980,6 +980,144 @@ app.get('/users/roofer/:id', ensureAuthenticated, async (req, res) => {
   }
 });
 
+app.get('/users/painter', ensureAuthenticated, async (req, res) => {
+  try {
+    const { job_scope } = req.query;
+    let query = 'SELECT teams.*, tasks.* FROM teams INNER JOIN tasks ON teams.id = tasks.id WHERE tasks.status = $1 AND teams.job_type = $2';
+    const params = ['อนุมัติ', 'ช่างทาสี'];
+
+    if (job_scope) {
+      query += ' AND teams.job_scope = $3';
+      params.push(job_scope);
+    }
+
+    const result = await pool.query(query, params);
+    const job = result.rows;
+    const tasks = result.rows;
+    res.render('work_painter', { job, tasks });
+  } catch (err) {
+    console.error(err);
+    res.send('Error ' + err);
+  }
+});
+
+app.get('/users/painter/:id', ensureAuthenticated, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Query to fetch team and task details
+    const query = `
+      SELECT teams.*, tasks.*
+      FROM teams
+      INNER JOIN tasks ON teams.id = tasks.id
+      WHERE teams.id = $1
+    `;
+    const result = await pool.query(query, [id]);
+    const detail = result.rows[0];
+
+    if (!detail) {
+      return res.status(404).send('ขออภัย ไม่พบหน้าที่คุณต้องการ');
+    }
+
+    // Query to fetch review counts and average rating for this team
+    const reviewQuery = `
+      SELECT COUNT(reviews.rating) AS review_count, ROUND(AVG(reviews.rating), 1) AS average_rating
+      FROM teams
+      LEFT JOIN bookings ON teams.id = bookings.team_id
+      LEFT JOIN reviews ON bookings.id = reviews.booking_id
+      WHERE teams.id = $1
+    `;
+    const reviewResult = await pool.query(reviewQuery, [id]);
+    const reviewData = reviewResult.rows[0];
+
+    // Query to fetch comments, reviews, and team responses
+    const commentQuery = `
+      SELECT reviews.rating, reviews.comment, reviews.created_at, bookings.name AS customer_name
+      FROM reviews
+      INNER JOIN bookings ON reviews.booking_id = bookings.id
+      INNER JOIN users ON bookings.user_id = users.id
+      WHERE bookings.team_id = $1
+      ORDER BY reviews.created_at DESC 
+    `;
+    const commentResult = await pool.query(commentQuery, [id]);
+    const comments = commentResult.rows;
+
+    res.render('detail_painter', { detail, reviewData, comments, teamId: id });
+  } catch (err) {
+    console.error(err);
+    res.send('Error ' + err);
+  }
+});
+
+app.get('/users/cleaner', ensureAuthenticated, async (req, res) => {
+  try {
+    const { job_scope } = req.query;
+    let query = 'SELECT teams.*, tasks.* FROM teams INNER JOIN tasks ON teams.id = tasks.id WHERE tasks.status = $1 AND teams.job_type = $2';
+    const params = ['อนุมัติ', 'พนักงานทำความสะอาด'];
+
+    if (job_scope) {
+      query += ' AND teams.job_scope = $3';
+      params.push(job_scope);
+    }
+
+    const result = await pool.query(query, params);
+    const job = result.rows;
+    const tasks = result.rows;
+    res.render('work_cleaner', { job, tasks });
+  } catch (err) {
+    console.error(err);
+    res.send('Error ' + err);
+  }
+});
+
+app.get('/users/cleaner/:id', ensureAuthenticated, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Query to fetch team and task details
+    const query = `
+      SELECT teams.*, tasks.*
+      FROM teams
+      INNER JOIN tasks ON teams.id = tasks.id
+      WHERE teams.id = $1
+    `;
+    const result = await pool.query(query, [id]);
+    const detail = result.rows[0];
+
+    if (!detail) {
+      return res.status(404).send('ขออภัย ไม่พบหน้าที่คุณต้องการ');
+    }
+
+    // Query to fetch review counts and average rating for this team
+    const reviewQuery = `
+      SELECT COUNT(reviews.rating) AS review_count, ROUND(AVG(reviews.rating), 1) AS average_rating
+      FROM teams
+      LEFT JOIN bookings ON teams.id = bookings.team_id
+      LEFT JOIN reviews ON bookings.id = reviews.booking_id
+      WHERE teams.id = $1
+    `;
+    const reviewResult = await pool.query(reviewQuery, [id]);
+    const reviewData = reviewResult.rows[0];
+
+    // Query to fetch comments, reviews, and team responses
+    const commentQuery = `
+      SELECT reviews.rating, reviews.comment, reviews.created_at, bookings.name AS customer_name
+      FROM reviews
+      INNER JOIN bookings ON reviews.booking_id = bookings.id
+      INNER JOIN users ON bookings.user_id = users.id
+      WHERE bookings.team_id = $1
+      ORDER BY reviews.created_at DESC 
+    `;
+    const commentResult = await pool.query(commentQuery, [id]);
+    const comments = commentResult.rows;
+
+    res.render('detail_cleaner', { detail, reviewData, comments, teamId: id });
+  } catch (err) {
+    console.error(err);
+    res.send('Error ' + err);
+  }
+});
+
 //ช่างตอบกลับรีวิว
 app.post('/reviews/:id/respond', async (req, res) => {
   const { id } = req.params;

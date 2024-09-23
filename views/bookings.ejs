@@ -82,10 +82,10 @@
             </p>
 
             <% if (noBookings) { %>
-                <div class="flex flex-col items-center justify-center min-h-screen">
+                <div class="flex flex-col items-center justify-center mt-7 ">
                     <img src="https://cdn-icons-png.flaticon.com/512/2748/2748558.png" alt="No bookings icon"
                         class="w-24 h-24 mb-4" />
-                    <p class="text-gray-800 text-xl prompt-medium">No bookings found</p>
+                    <p class="text-gray-800 text-xl prompt-medium">ไม่พบประวัติการจอง</p>
                 </div>
                 <% } else if (bookings.length> 0) { %>
                     <% bookings.forEach(booking=> { %>
