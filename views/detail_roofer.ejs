@@ -1,78 +1,158 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Skill Deck</title>
-    <%- include('./font') %>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Skill Deck</title>
+  <%- include('./font') %>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
-    integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <style>
+      .container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
 
+      .content {
+        flex: 1;
+      }
+
+      .consult-button {
+        margin-left: auto;
+      }
+    </style>
 </head>
-<body>
-    <%- include('./partials/header') %>
 
-    <div class="max-full mx-auto p-4 bg-background rounded-lg shadow-md">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="relative">
-            <img src="/uploads/<%= detail.photo1 %>" alt="Gallery Image 1" class="w-full h-auto rounded-lg" />
+<body>
+  <%- include('./partials/header') %>
+    <div class="container">
+      <div class="content">
+        <div class="max-full mx-auto p-4 bg-background rounded-lg shadow-md">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="relative">
+              <img src="/uploads/<%= detail.photo1 %>" alt="Gallery Image 1" class="w-full h-auto rounded-lg" />
+            </div>
+            <div class="relative">
+              <img src="/uploads/<%= detail.photo2 %>" alt="Gallery Image 2" class="w-full h-auto rounded-lg" />
+            </div>
+            <div class="relative">
+              <img src="/uploads/<%= detail.photo3 %>" alt="Gallery Image 3" class="w-full h-auto rounded-lg" />
+            </div>
           </div>
-          <div class="relative">
-            <img src="/uploads/<%= detail.photo2 %>" alt="Gallery Image 2" class="w-full h-auto rounded-lg" />
-          </div>
-          <div class="relative">
-            <img src="/uploads/<%= detail.photo3 %>" alt="Gallery Image 3" class="w-full h-auto rounded-lg" />
-          </div>
-        </div>
-        <div class="mt-4">
+          <div class="mt-4">
             <div class="flex items-center">
 
               <img src="/uploads/<%= detail.profile_image %>" alt="Profile Picture" class="w-30 h-20 rounded mr-4" />
               <div>
-                <h2 class="text-xl text-base prompt-medium"><%= detail.name %></h2>
+                <h2 class="text-xl text-base prompt-medium">
+                  <%= detail.name %>
+                </h2>
+
+                <div class="flex items-center">
+                  <img class="w-7" src="https://cdn-icons-png.flaticon.com/512/8212/8212616.png" />
+                  <% if (reviewData && reviewData.review_count> 0) { %>
+                    <span class="p-2 prompt-light text-sm">
+                      <%= reviewData.average_rating %> (<%= reviewData.review_count %>)
+                    </span>
+                    <% } else { %>
+                      <span class="p-2 prompt-light text-sm text-muted-foreground">ยังไม่มีรีวิวจากผู้ใช้</span>
+                      <% } %>
+                </div>
+
+
+
                 <!-- Contact information on the same line -->
                 <div class="flex items-center mt-2 space-x-6">
+
                   <div class="flex items-center">
-                    <img src="/path/to/phone-icon.png" alt="Phone Icon" class="w-4 h-4 mr-2" />
-                    <span class="text-muted-foreground prompt-medium"><%= detail.phone %></span>
+                    <p class="prompt-medium">ช่องทางการติดต่อ: &nbsp;</p>
+                    <img src="https://cdn-icons-png.freepik.com/512/561/561131.png?ga=GA1.1.512366322.1722083948"
+                      alt="Phone Icon" class="w-4 h-4 mr-2" />
+                    <span class="text-muted-foreground prompt-medium">
+                      <%= detail.phone %>
+                    </span>
                   </div>
                   <div class="flex items-center">
-                    <img src="/path/to/email-icon.png" alt="Email Icon" class="w-4 h-4 mr-2" />
-                    <span class="text-muted-foreground prompt-medium"><%= detail.email %></span>
+                    <img src="https://cdn-icons-png.freepik.com/512/561/561127.png?ga=GA1.1.512366322.1722083948"
+                      alt="Email Icon" class="w-4 h-4 mr-2" />
+                    <span class="text-muted-foreground prompt-medium">
+                      <%= detail.email %>
+                    </span>
                   </div>
                 </div>
               </div>
             </div>
-            <p class="mt-4 text-muted-foreground prompt-medium">เกี่ยวกับช่าง</p>
-            <button class="mt-4 bg-secondary text-secondary-foreground hover:bg-secondary/80 px-4 py-2 rounded-lg">ปรึกษาช่าง</button>
+            <p class="mt-4 text-orange-500 prompt-bold">เกี่ยวกับช่าง</p>
+            <p class="mt-3 prompt-medium">&nbsp;&nbsp; ประเภทการให้บริการ - <%= detail.job_type %>
+            </p>
+            <p class="mt-2 prompt-medium">&nbsp;&nbsp; พื้นที่ให้บริการ - <%= detail.job_scope %>
+            </p>
+            <p class="mt-2 prompt-medium">&nbsp;&nbsp; ประสบการณ์การทำงาน - <%= detail.experience %> ปี</p>
+            <p class="mt-2 prompt-medium">&nbsp;&nbsp; ค่าบริการ - <%= detail.range %>.-</p>
+
+            <p class="mt-4 prompt-medium">&nbsp;&nbsp; สามารถดูรายละเอียดราคา หรือเลือกปรึกษาช่าง
+              เพื่อแชทสอบถามรายละเอียดเพิ่มเติมได้เลย</p>
+
+            <p class="mt-5 text-orange-500 prompt-bold">ความพึงพอใจต่อบริการช่าง</p>
+              <ul>
+                <% if (comments.length > 0) { %>
+                  <% comments.forEach(review => { %>
+                    <li>
+                      <div class="max-w-3xl mx-2 p-4 bg-card text-card-foreground">
+                        <div class="border-b border-muted mb-4 pb-4 mt-5">
+                          <div class="flex justify-between items-center">
+                            <div>
+                              <h3 class="prompt-medium">
+                                <%= review.customer_name.slice(0, 1) + '*' .repeat(review.customer_name.length - 1) %>
+                              </h3>
+                              <span class="text-muted prompt-light text-sm">
+                                <%= new Date(review.created_at).toLocaleDateString() %>
+                              </span>
+                            </div>
+                            <div class="flex items-center">
+                              <% for (let i = 1; i <= 5; i++) { %>
+                                <span class="<%= i <= review.rating ? 'text-yellow-500' : 'text-gray-400' %>">★</span>
+                              <% } %>
+                              <span class="ml-2 prompt-medium">
+                                <%= review.rating %>/5
+                              </span>
+                            </div>
+                          </div>
+                          <p class="mt-2 prompt-regular text-muted-foreground">
+                            <%= review.comment ? review.comment : 'No comment' %>
+                          </p>
+                        </div>
+              
+                        <!-- Display team response if exists -->
+                        <% if (review.response_text) { %>
+                          <div class="bg-gray-100 p-4 mt-4">
+                            <strong>Response from Team:</strong>
+                            <p class="text-gray-700 mt-1"><%= review.response_text %></p>
+                            <p class="text-sm text-muted">Responded on <%= new Date(review.response_created_at).toLocaleDateString() %></p>
+                          </div>
+                        <% } %>
+              
+                       
+                      </div>
+                    </li>
+                  <% }); %>
+                <% } else { %>
+                  <li class="prompt-regular">ยังไม่มีรีวิว</li>
+                <% } %>
+              </ul>
+              
           </div>
         </div>
-      
-
-
-
-
-    <h1>Detail for ID: <%= detail.id %></h1>
-<p>Team Name: <%= detail.name %></p>
-<p>Task Name: <%= detail.job_type %></p>
-<p>Job Scope: <%= detail.job_scope %></p>
-<p>Status: <%= detail.status %></p>
-
-<!-- ข้อมูลรีวิวและคอมเมนต์ -->
-<div class="reviews">
-  <h3>Reviews (Average Rating: <%= reviewData.average_rating %>, Total Reviews: <%= reviewData.review_count %>)</h3>
-  
-  <% comments.forEach(comment => { %>
-    <div class="review">
-      <p><strong><%= comment.customer_name %>:</strong> Rated <%= comment.rating %> stars</p>
-      <p>Comment: <%= comment.comment %></p>
-      <p>Date: <%= new Date(comment.created_at).toLocaleDateString() %></p>
+      </div>
     </div>
-  <% }) %>
-</div>
 
-<a href="/users/roofer">Back to List</a>
+    <!-- <a href="/chat" class="btn btn-primary consult-button">ปรึกษาช่าง</a> -->
+ 
+    <%- include('./partials/footer') %>
 
 </body>
+
 </html>

@@ -168,17 +168,6 @@ app.get("/users/logout", (req, res) => {
 });
 
 // Existing routes
-// app.get("/users/roofer", (req, res) => {
-//   res.render("work_roofer");
-// });
-
-// app.get("/users/painter", (req, res) => {
-//   res.render("work_painter");
-// });
-
-// app.get("/users/cleaner", (req, res) => {
-//   res.render("work_cleaner");
-// });
 
 app.get("/users/register", (req, res) => {
   res.render("register");
@@ -324,27 +313,22 @@ app.post('/profile/edit', checkAuthenticated, async (req, res) => {
 app.post('/users/book_service', ensureAuthenticated, async (req, res) => {
   try {
     const user_id = req.user.id;
-    const { team_id, name, email, phone, address, booking_date, service_details, booking_time } = req.body;
+    const { team_id, name, email, phone, address, booking_date, booking_time, service_details } = req.body;
+    const payment_proof = req.files ? req.files.payment_proof : null;
 
-    // Check if payment proof is uploaded
-    if (!req.files || !req.files.payment_proof) {
-      return res.status(400).send('กรุณาอัปโหลดหลักฐานการชำระเงิน');
+    if (!payment_proof) {
+      return res.status(400).send('Please upload the payment proof.');
     }
 
-    const payment_proof = req.files.payment_proof; // Retrieve payment proof from req.files
-    const uploadDir = path.join(__dirname, 'uploads', 'payment_proofs');
-    
-    // Create a unique file path for the payment proof
-    const paymentProofPath = path.join(uploadDir, `${Date.now()}_${payment_proof.name}`);
-    
-    // Move the uploaded file to the new location
-    payment_proof.mv(paymentProofPath, async function(err) {
+    // Define the directory to save the uploaded payment proof
+    const paymentProofPath = `${Date.now()}_${payment_proof.name}`;
+    payment_proof.mv(`./public${paymentProofPath}`, async function(err) {
       if (err) {
         console.error(err);
-        return res.status(500).send('เกิดข้อผิดพลาดในการอัปโหลดหลักฐานการชำระเงิน');
+        return res.status(500).send('Error uploading payment proof.');
       }
 
-      // Check for duplicate bookings
+      // Check if there's already a booking for the same date and time
       const checkQuery = `
         SELECT * FROM bookings
         WHERE booking_date = $1 AND booking_time = $2 AND team_id = $3;
@@ -353,11 +337,11 @@ app.post('/users/book_service', ensureAuthenticated, async (req, res) => {
       const checkResult = await pool.query(checkQuery, checkValues);
 
       if (checkResult.rows.length > 0) {
-        const alertMessage = `ขออภัย มีการจองวันและเวลานี้แล้ว กรุณาเลือกวันนัดหมายอีกครั้ง`;
+        const alertMessage = `ขออภัย, มีการจองสำหรับวันที่และช่วงเวลานี้แล้ว. กรุณาเลือกวันหรือเวลาที่ต่างกัน.`;
         return res.status(400).send(`<script>alert('${alertMessage}'); window.history.back();</script>`);
       }
 
-      // Insert booking data into the database with the relative path
+      // Insert booking data into the bookings table
       const query = `
         INSERT INTO bookings (user_id, team_id, name, email, phone, address, booking_date, booking_time, service_details, payment_proof, status)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
@@ -365,8 +349,8 @@ app.post('/users/book_service', ensureAuthenticated, async (req, res) => {
       `;
       const values = [user_id, team_id, name, email, phone, address, booking_date, booking_time, service_details, paymentProofPath, 'รอดำเนินการ'];
       const result = await pool.query(query, values);
-
       const booking = result.rows[0];
+
       const alertMessage = `การจองสำเร็จ!`;
       res.status(201).send(`<script>alert('${alertMessage}'); window.location.href='/users/dashboard';</script>`);
     });
@@ -375,6 +359,7 @@ app.post('/users/book_service', ensureAuthenticated, async (req, res) => {
     res.status(500).send('Error ' + err);
   }
 });
+
 
 
 
@@ -564,11 +549,11 @@ app.post("/submit", (req, res) => {
           );
 
           // เพิ่มงานใหม่ในตาราง tasks
-        const newTask = await pool.query(
-          `INSERT INTO tasks (description, status)
+          const newTask = await pool.query(
+            `INSERT INTO tasks (description, status)
            VALUES ($1, $2) RETURNING *`,
-          [`${name} - ${job_type}`, 'รอดำเนินการ']
-        );
+            [`${name} - ${job_type}`, 'รอดำเนินการ']
+          );
 
           res.redirect("/team/login");
         }
@@ -589,7 +574,7 @@ app.post('/team/login', async (req, res) => {
     const result = await pool.query('SELECT * FROM teams WHERE email = $1', [email]);
     const team = result.rows[0];
 
-    if (team && team.password === password) { 
+    if (team && team.password === password) {
       req.session.teamId = team.id;
       res.redirect('/team/dashboard');
     } else {
@@ -880,7 +865,7 @@ app.post('/bookings/:id/cancel', async (req, res) => {
 });
 
 
- app.get('/users/roofer', ensureAuthenticated, async (req, res) => {
+app.get('/users/roofer', ensureAuthenticated, async (req, res) => {
   try {
     const { job_scope } = req.query;
     let query = 'SELECT teams.*, tasks.* FROM teams INNER JOIN tasks ON teams.id = tasks.id WHERE tasks.status = $1 AND teams.job_type = $2';
@@ -900,7 +885,6 @@ app.post('/bookings/:id/cancel', async (req, res) => {
     res.send('Error ' + err);
   }
 });
-
 
 app.get('/users/roofer/:id', ensureAuthenticated, async (req, res) => {
   try {
@@ -922,7 +906,7 @@ app.get('/users/roofer/:id', ensureAuthenticated, async (req, res) => {
 
     // Query to fetch review counts and average rating for this team
     const reviewQuery = `
-      SELECT COUNT(reviews.rating) AS review_count, AVG(reviews.rating) AS average_rating
+      SELECT COUNT(reviews.rating) AS review_count, ROUND(AVG(reviews.rating), 1) AS average_rating
       FROM teams
       LEFT JOIN bookings ON teams.id = bookings.team_id
       LEFT JOIN reviews ON bookings.id = reviews.booking_id
@@ -970,6 +954,14 @@ app.post('/reviews/:id/respond', async (req, res) => {
   }
 });
 
+app.get("/team/logout", (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      return res.status(500).send('Failed to logout');
+    }
+    res.redirect('/team/login');
+  });
+});
 
 
 
@@ -1202,12 +1194,12 @@ app.delete('/tasks/:id', async (req, res) => {
   }
 });
 
-app.get('/admin/team_info/:id', async (req, res) => { 
+app.get('/admin/team_info/:id', async (req, res) => {
   const { id } = req.params;
   try {
     const result = await pool.query('SELECT * FROM teams WHERE id = $1', [id]);
     if (result.rows.length > 0) {
-      res.render('team_view', { team: result.rows[0] }); 
+      res.render('team_view', { team: result.rows[0] });
     } else {
       res.status(404).send("Team not found");
     }
