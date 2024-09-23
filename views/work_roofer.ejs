@@ -335,8 +335,8 @@
                                         <div class="form-group prompt-medium text-center py-4">
                                             <button type="button" class="btn btn-dark prompt-bold mx-2"
                                                 onclick="prevStep()">ย้อนกลับ</button>
-                                            <button type="button" class="btn btn-orange prompt-bold mx-2"
-                                                onclick="confirmBooking()">ยืนยันการจอง</button>
+                                            <button type="submit"
+                                                class="btn btn-orange prompt-bold mx-2">ยืนยันการจอง</button>
                                         </div>
                                     </div>
 
@@ -360,32 +360,37 @@
                 </script>
 
                 <script>
-                    let bookedSlots = {}; // To track booked slots by date
-
-                    function confirmBooking() {
-                        const date = document.getElementById('booking_date').value;
-                        const timeSlot = document.querySelector('input[name="booking_time"]:checked').value;
-
-                        if (date && timeSlot) {
-                            if (!bookedSlots[date]) {
-                                bookedSlots[date] = [];
-                            }
-
-                            if (bookedSlots[date].includes(timeSlot)) {
-                                alert('ช่วงเวลานี้ถูกจองไปแล้วในวันเดียวกัน');
-                            } else {
-                                bookedSlots[date].push(timeSlot);
-                                alert('การจองสำเร็จ!');
-                                // Proceed to the next step or submit the form
-                                console.log('Proceeding with booking...');
-                            }
-                        } else {
-                            alert('กรุณาเลือกวันที่และช่วงเวลา');
-                        }
+                    function openBookingModal(teamId) {
+                        document.getElementById('teamId').value = teamId;
+                        document.getElementById('bookingModal').style.display = 'block';
                     }
 
-                </script>
+                    function closeBookingModal() {
+                        document.getElementById('bookingModal').style.display = 'none';
+                    }
 
+                    document.getElementById('bookingForm').addEventListener('submit', async function (e) {
+                        e.preventDefault();
+                        const formData = new FormData(e.target);
+                        const data = Object.fromEntries(formData.entries());
+
+                        const response = await fetch('/users/book_service', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(data),
+                        });
+
+                        if (response.ok) {
+                            const booking = await response.json();
+                            alert('Booking successful!');
+                            closeBookingModal();
+                        } else {
+                            alert('Booking failed!');
+                        }
+                    });
+                </script>
 
 
 

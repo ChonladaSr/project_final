@@ -6,135 +6,140 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Booking History</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <%- include('./font') %>
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 0;
-        }
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background-color: #f4f4f9;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                margin: 0;
+            }
 
-        .container {
-            background-color: #fff;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            max-width: 600px;
-            width: 100%;
-            text-align: center;
-        }
+            .container {
+                background-color: #fff;
+                border-radius: 10px;
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+                max-width: 600px;
+                width: 100%;
+                text-align: center;
+            }
 
-        h1 {
-            margin-bottom: 20px;
-            color: #333;
-        }
+            h1 {
+                margin-bottom: 20px;
+                color: #333;
+            }
 
-        form {
-            margin-bottom: 20px;
-        }
+            form {
+                margin-bottom: 20px;
+            }
 
-        .btn {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            padding: 10px 20px;
-            cursor: pointer;
-            font-size: 16px;
-        }
+            .btn {
+                background-color: #007bff;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                padding: 10px 20px;
+                cursor: pointer;
+                font-size: 16px;
+            }
 
-        .btn:hover {
-            background-color: #0056b3;
-        }
+            .btn:hover {
+                background-color: #0056b3;
+            }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-        }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 20px 0;
+            }
 
-        table,
-        th,
-        td {
-            border: 1px solid #ddd;
-        }
+            table,
+            th,
+            td {
+                border: 1px solid #ddd;
+            }
 
-        th,
-        td {
-            padding: 10px;
-            text-align: left;
-        }
+            th,
+            td {
+                padding: 10px;
+                text-align: left;
+            }
 
-        th {
-            background-color: #f2f2f2;
-        }
-    </style>
+            th {
+                background-color: #f2f2f2;
+            }
+        </style>
 </head>
 
 <body>
     <div class="container">
         <%- include('./partials/header') %>
-        <p class="py-5 prompt-medium text-center text-3xl text-gray-900">
-            ประวัติการจอง
-        </p>
+            <p class="py-5 prompt-medium text-center text-3xl text-gray-900">
+                ประวัติการจอง
+            </p>
 
-        <% if (noBookings) { %>
-            <div class="flex flex-col items-center justify-center min-h-screen">
-                <img src="https://cdn-icons-png.flaticon.com/512/2748/2748558.png" alt="No bookings icon"
-                    class="w-24 h-24 mb-4" />
-                <p class="text-gray-800 text-xl prompt-medium">No bookings found</p>
-            </div>
-        <% } else if (bookings.length > 0) { %>
-            <% bookings.forEach(booking => { %>
-                 <a href="/users/view_booking/<%= booking.id %>">
-                <div class="py-6">
-                   
-                    <div
-                        class="max-w-2xl mx-auto bg-zinc-100 shadow-md rounded-md p-4 flex items-center transition duration-200 hover:scale-105">
-                        <div>
-                            <p class="text-start prompt-medium text-gray-800">
-                                หมายเลขการจอง: #<%= booking.id %>
-                            </p>
-                            <div class="flex items-center ">
-                                <img src="https://cdn-icons-png.freepik.com/512/6829/6829879.png?uid=R154930515&ga=GA1.1.1806679622.1698741403"
-                                    alt="mobile icon" class="w-4 h-4 mr-2" />
-                                <span class="prompt-medium text-gray-800">รายละเอียดเพิ่มเติม: &nbsp;</span>
-                                <span>
-                                    <%= booking.service_details %>
-                                </span>
-                            </div>
-                            <div class="flex items-center">
-                                <img src="https://cdn-icons-png.flaticon.com/512/10691/10691802.png"
-                                    alt="mobile icon" class="w-4 h-4 mr-2" />
-                                <span class="prompt-medium text-gray-800">วันนัดหมาย: &nbsp;</span>
-                                <span>
-                                    <%= booking.booking_date %>
-                                </span>
-                            </div>
-                            <div class="flex items-center">
-                                <img src="https://cdn-icons-png.freepik.com/512/5644/5644717.png?uid=R154930515&ga=GA1.1.1806679622.1698741403"
-                                    alt="mobile icon" class="w-4 h-4 mr-2" />
-                                <span class="prompt-medium text-gray-800">สถานะ: &nbsp;</span>
-                                <span class="">
-                                    <%= booking.status %>
-                                </span>
-                            </div>
-                        </div>
-                        <div class="ml-auto flex items-center">
-                           
-                            <a href="#" class="-m-1.5 p-1.5">
-                                <img src="https://cdn-icons-png.freepik.com/512/9477/9477273.png?uid=R154930515&ga=GA1.1.1806679622.1698741403"
-                                    alt="mobile icon" class="w-10 h-10 mr-2" />
-                                <span class="bg-accent text-sm prompt-medium items-center">รีวิว</span>
-                            </a>
-                        </div>
-                    </div>
+            <% if (noBookings) { %>
+                <div class="flex flex-col items-center justify-center min-h-screen">
+                    <img src="https://cdn-icons-png.flaticon.com/512/2748/2748558.png" alt="No bookings icon"
+                        class="w-24 h-24 mb-4" />
+                    <p class="text-gray-800 text-xl prompt-medium">No bookings found</p>
                 </div>
-            </a>
-            <% }) %>
-        <% } %>
+                <% } else if (bookings.length> 0) { %>
+                    <% bookings.forEach(booking=> { %>
+                        <a href="/users/view_booking/<%= booking.id %>">
+                            <div class="py-6">
+
+                                <div
+                                    class="max-w-2xl mx-auto bg-zinc-100 shadow-md rounded-md p-4 flex items-center transition duration-200 hover:scale-105">
+                                    <div>
+                                        <p class="text-start prompt-medium text-gray-800">
+                                            หมายเลขการจอง: #<%= booking.id %>
+                                        </p>
+                                        <div class="flex items-center prompt-medium text-gray-800">
+                                            <img src="https://cdn-icons-png.freepik.com/512/6829/6829879.png?uid=R154930515&ga=GA1.1.1806679622.1698741403"
+                                                alt="mobile icon" class="w-4 h-4 mr-2" />
+                                            <span class="prompt-medium text-gray-800">รายละเอียดเพิ่มเติม: &nbsp;</span>
+                                            <span>
+                                                <%= booking.service_details %>
+                                            </span>
+                                        </div>
+                                        <div class="flex items-center prompt-medium text-gray-800">
+                                            <img src="https://cdn-icons-png.flaticon.com/512/10691/10691802.png"
+                                                alt="mobile icon" class="w-4 h-4 mr-2" />
+                                            <span class="prompt-medium text-gray-800">วันนัดหมาย: &nbsp;</span>
+                                            <span>
+                                                <% const options={ year: 'numeric' , month: 'long' , day: 'numeric' };
+                                                    const thaiDate=new
+                                                    Date(booking.booking_date).toLocaleDateString('th-TH', options); %>
+                                                    <%= thaiDate %>
+                                                    เวลา <%= booking.booking_time %> น.
+                                            </span>
+                                        </div>
+                                        <div class="flex items-center prompt-medium text-gray-800">
+                                            <img src="https://cdn-icons-png.freepik.com/512/5644/5644717.png?uid=R154930515&ga=GA1.1.1806679622.1698741403"
+                                                alt="mobile icon" class="w-4 h-4 mr-2" />
+                                            <span class="prompt-medium text-gray-800">สถานะ: &nbsp;</span>
+                                            <span class="">
+                                                <%= booking.status %>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="ml-auto flex items-center prompt-medium text-gray-800">
+
+                                        <a href="#" class="-m-1.5 p-1.5">
+                                            <img src="https://cdn-icons-png.freepik.com/512/9477/9477273.png?uid=R154930515&ga=GA1.1.1806679622.1698741403"
+                                                alt="mobile icon" class="w-10 h-10 mr-2" />
+                                            <span class="bg-accent text-sm prompt-medium items-center">รีวิว</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                        <% }) %>
+                            <% } %>
     </div>
 </body>
 

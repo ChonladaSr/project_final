@@ -310,55 +310,48 @@ app.post('/profile/edit', checkAuthenticated, async (req, res) => {
 });
 
 // user จองบริการ
-app.post('/users/book_service', ensureAuthenticated, async (req, res) => {
-  try {
-    const user_id = req.user.id;
-    const { team_id, name, email, phone, address, booking_date, booking_time, service_details } = req.body;
-    const payment_proof = req.files ? req.files.payment_proof : null;
+// app.post('/users/book_service', ensureAuthenticated, async (req, res) => {
+//   try {
+//     const user_id = req.user.id;
+//     const { team_id, name, email, phone, address, booking_date, booking_time, service_details } = req.body;
+//     const payment_proof = req.files ? req.files.payment_proof : null;
 
-    if (!payment_proof) {
-      return res.status(400).send('Please upload the payment proof.');
-    }
+//      // Validate input fields
+//      if (!team_id || !name || !email || !phone || !address || !booking_date || !service_details | !booking_time) {
+//       return res.status(400).send('Please fill in all required fields.');
+//     }
 
-    // Define the directory to save the uploaded payment proof
-    const paymentProofPath = `${Date.now()}_${payment_proof.name}`;
-    payment_proof.mv(`./public${paymentProofPath}`, async function(err) {
-      if (err) {
-        console.error(err);
-        return res.status(500).send('Error uploading payment proof.');
-      }
+//     if (!payment_proof) {
+//       return res.status(400).send('Please upload the payment proof.');
+//     }
 
-      // Check if there's already a booking for the same date and time
-      const checkQuery = `
-        SELECT * FROM bookings
-        WHERE booking_date = $1 AND booking_time = $2 AND team_id = $3;
-      `;
-      const checkValues = [booking_date, booking_time, team_id];
-      const checkResult = await pool.query(checkQuery, checkValues);
+//     // Define the directory to save the uploaded payment proof
+//     const paymentProofPath = `${Date.now()}_${payment_proof.name}`;
+//     payment_proof.mv(`./public${paymentProofPath}`, async function(err) {
+//       if (err) {
+//         console.error(err);
+//         return res.status(500).send('Error uploading payment proof.');
+//       }
 
-      if (checkResult.rows.length > 0) {
-        const alertMessage = `ขออภัย, มีการจองสำหรับวันที่และช่วงเวลานี้แล้ว. กรุณาเลือกวันหรือเวลาที่ต่างกัน.`;
-        return res.status(400).send(`<script>alert('${alertMessage}'); window.history.back();</script>`);
-      }
 
-      // Insert booking data into the bookings table
-      const query = `
-        INSERT INTO bookings (user_id, team_id, name, email, phone, address, booking_date, booking_time, service_details, payment_proof, status)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-        RETURNING *;
-      `;
-      const values = [user_id, team_id, name, email, phone, address, booking_date, booking_time, service_details, paymentProofPath, 'รอดำเนินการ'];
-      const result = await pool.query(query, values);
-      const booking = result.rows[0];
+//       // Insert booking data into the bookings table
+//       const query = `
+//         INSERT INTO bookings (user_id, team_id, name, email, phone, address, booking_date, booking_time, service_details, payment_proof, status)
+//         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+//         RETURNING *;
+//       `;
+//       const values = [user_id, team_id, name, email, phone, address, booking_date, booking_time, service_details, paymentProofPath, 'รอดำเนินการ'];
+//       const result = await pool.query(query, values);
+//       const booking = result.rows[0];
 
-      const alertMessage = `การจองสำเร็จ!`;
-      res.status(201).send(`<script>alert('${alertMessage}'); window.location.href='/users/dashboard';</script>`);
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).send('Error ' + err);
-  }
-});
+//       const alertMessage = `การจองสำเร็จ!`;
+//       res.status(201).send(`<script>alert('${alertMessage}'); window.location.href='/users/dashboard';</script>`);
+//     });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).send('Error ' + err);
+//   }
+// });
 
 
 
