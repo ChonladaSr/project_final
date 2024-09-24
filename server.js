@@ -19,8 +19,6 @@ const socketIo = require('socket.io');
 const server = http.createServer(app);
 const io = socketIo(server);
 
-app.use(fileUpload());
-
 
 
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
@@ -51,10 +49,7 @@ app.use(express.static('public'));
 app.use('/uploads', express.static('uploads'));
 app.use('/uploads/payment_proofs', express.static('uploads/payment_proofs'));
 
-app.use(fileUpload({
-  limits: { fileSize: 10 * 1024 * 1024 }, // Limit to 10MB
-}));
-
+app.use(fileUpload());
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
