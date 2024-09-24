@@ -270,7 +270,6 @@ app.get('/profile/edit', checkAuthenticated, async (req, res) => {
   }
 });
 
-
 app.post('/profile/edit', checkAuthenticated, async (req, res) => {
   const userId = req.user.id;
   const { name, email, password, password2 } = req.body;
@@ -364,7 +363,7 @@ app.post('/users/book_service', ensureAuthenticated, async (req, res) => {
 app.get('/users/book_service', ensureAuthenticated, (req, res) => {
   const teamId = req.query.teamId;  // รับ team_id จาก query string
   const userId = req.user.id;  // รับ user_id จากผู้ใช้ที่ล็อกอินอยู่
-  
+
   // ส่ง userId และ teamId ไปที่ EJS
   res.render('booking_form', { userId, teamId });
 });
@@ -372,7 +371,7 @@ app.get('/users/book_service', ensureAuthenticated, (req, res) => {
 app.get('/users/book_service', ensureAuthenticated, (req, res) => {
   const teamId = req.query.teamId;  // รับ team_id จาก query string
   const userId = req.user.id;  // รับ user_id จากผู้ใช้ที่ล็อกอินอยู่
-  
+
   // ส่ง userId และ teamId ไปที่ EJS
   res.render('booking_form', { userId, teamId });
 });
@@ -381,7 +380,7 @@ app.get('/users/book_service', ensureAuthenticated, (req, res) => {
 app.post('/users/book_service', ensureAuthenticated, async (req, res) => {
   try {
     console.log(req.body);  // เพิ่มการ log ข้อมูลที่รับมา
-    const user_id = req.user.id; 
+    const user_id = req.user.id;
     const { team_id, name, email, phone, address, booking_date, booking_time, service_details } = req.body;
 
     // ตรวจสอบว่าข้อมูลถูกส่งมาครบ
@@ -516,7 +515,7 @@ app.post('/teams/:teamId/review', ensureAuthenticated, async (req, res) => {
 });
 
 // Route to fetch and display reviews for a team
-app.get('/teams/:teamId', async (req, res) => {
+/* app.get('/teams/:teamId', async (req, res) => {
   const teamId = req.params.teamId;
   try {
     const teamResult = await pool.query('SELECT * FROM teams WHERE id = $1', [teamId]);
@@ -530,7 +529,7 @@ app.get('/teams/:teamId', async (req, res) => {
     console.error(err);
     res.send('Error ' + err);
   }
-});
+}); */
 
 
 
@@ -671,14 +670,17 @@ app.get("/team/dashboard", async (req, res) => {
     const resultconfirmed = await pool.query(queryconfirmed, valuesconfirmed);
     const confirmedCount = resultconfirmed.rows[0].confirmed_count;
 
+    // นับผลรวมของสถานะการจองที่เป็น 'รอดำเนินการ' และ 'รอการตรวจสอบ'
     const querypending = `
-      SELECT COUNT(*) AS pending_count
-      FROM bookings
-      WHERE status = $1 AND team_id = $2
-    `;
-    const valuespending = ['รอดำเนินการ', teamId];
+    SELECT COUNT(*) AS pending_count
+    FROM bookings
+    WHERE status = $1 AND payment_status = $2 AND team_id = $3
+  `;
+    const valuespending = ['รอดำเนินการ', 'ยืนยัน', teamId];
     const resultpending = await pool.query(querypending, valuespending);
+
     const pendingCount = resultpending.rows[0].pending_count;
+
 
     const queryinprogress = `
       SELECT COUNT(*) AS inprogress_count
@@ -717,7 +719,6 @@ app.get("/team/dashboard", async (req, res) => {
 });
 
 
-
 // ช่างตอบรับงาน
 app.post('/team/approve_booking', checkTeamAuthenticated, async (req, res) => {
   try {
@@ -751,7 +752,7 @@ app.post('/team/approve_booking', checkTeamAuthenticated, async (req, res) => {
     const inProgressResult = await pool.query(inProgressQuery, ['กำลังดำเนินการ', booking_id]);
     const inProgressBooking = inProgressResult.rows[0];
 
-    res.redirect(`/team/get_pending_bookings?message=รับงานของหมายเลขการจอง: ${inProgressBooking.id}`);
+    res.redirect(`/teams/pending_bookings?message=รับงานของหมายเลขการจอง: ${inProgressBooking.id}`);
 
   } catch (err) {
     console.error(err);
@@ -781,7 +782,7 @@ app.post('/team/reject_booking', checkTeamAuthenticated, async (req, res) => {
     const deleteResult = await pool.query(deleteQuery, [booking_id, team_id]);
     const deletedBooking = deleteResult.rows[0];
 
-    res.redirect(`/team/get_pending_bookings?message=Booking ID: ${deletedBooking.id} has been rejected and deleted.`);
+    res.redirect(`/teams/pending_bookings?message=Booking ID: ${deletedBooking.id} has been rejected and deleted.`);
 
   } catch (err) {
     console.error(err);
@@ -789,8 +790,8 @@ app.post('/team/reject_booking', checkTeamAuthenticated, async (req, res) => {
   }
 });
 
-
-app.get('/teams/get_pending_bookings', checkTeamAuthenticated, async (req, res) => {
+//ช่างดูงานที่รอดำเนินการ
+app.get('/teams/pending_bookings', checkTeamAuthenticated, async (req, res) => {
   try {
     const team_id = req.session.teamId;
 
@@ -806,6 +807,47 @@ app.get('/teams/get_pending_bookings', checkTeamAuthenticated, async (req, res) 
     res.status(500).send('Error ' + err);
   }
 });
+
+//ช่างดูงานที่กำลังดำเนินการ
+app.get('/teams/inprogress_bookings', checkTeamAuthenticated, async (req, res) => {
+  try {
+    const team_id = req.session.teamId;
+
+    const query = 'SELECT * FROM bookings WHERE team_id = $1 AND status = $2';
+    const values = [team_id, 'กำลังดำเนินการ']; // เปลี่ยนสถานะเป็น 'กำลังดำเนินการ'
+    const result = await pool.query(query, values);
+
+    const message = req.query.message;
+
+    res.render('team_inprogress_bookings', { bookings: result.rows, message }); // เปลี่ยนหน้าที่แสดงผลเป็น 'team_inprogress_bookings'
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error ' + err);
+  }
+});
+
+app.post('/teams/confirm_booking/:id', checkTeamAuthenticated, async (req, res) => {
+  try {
+    const booking_id = req.params.id;
+    const team_id = req.session.teamId;
+
+    const query = 'UPDATE bookings SET status = $1 WHERE id = $2 AND team_id = $3 RETURNING *';
+    const values = ['ยืนยันงาน', booking_id, team_id];
+
+    const result = await pool.query(query, values);
+
+    if (result.rowCount === 0) {
+      return res.status(404).send('Booking not found or not authorized');
+    }
+
+    res.redirect('/team/get_all_bookings?message=ยืนยันการจองสำเร็จแล้ว');
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error ' + err);
+  }
+});
+
+
 
 // ช่างดูข้อมูลการจองทั้งหมด (รวมทั้งสถานะการอนุมัติและปฏิเสธ) 
 app.get('/team/get_all_bookings', checkTeamAuthenticated, async (req, res) => {
