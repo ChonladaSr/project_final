@@ -535,6 +535,8 @@ app.post('/teams/:teamId/review', ensureAuthenticated, async (req, res) => {
 
 
 // ส่วนของช่าง
+
+//ช่างสมัครงาน
 app.post("/submit", (req, res) => {
   upload(req, res, async (err) => {
 
@@ -826,6 +828,7 @@ app.get('/teams/inprogress_bookings', checkTeamAuthenticated, async (req, res) =
   }
 });
 
+//ช่างกดยืนยันงาน
 app.post('/teams/confirm_booking/:id', checkTeamAuthenticated, async (req, res) => {
   try {
     const booking_id = req.params.id;
@@ -890,6 +893,66 @@ app.post('/team/confirm_booking', checkTeamAuthenticated, async (req, res) => {
     res.status(500).send('Error ' + err);
   }
 });
+
+// ช่างแก้ไขข้อมูล
+app.get('/team/profile/edit', checkTeamAuthenticated, async (req, res) => {
+  const teamId = req.session.teamId;  
+  try {
+    const result = await pool.query('SELECT * FROM teams WHERE id = $1', [teamId]);
+    const team = result.rows[0];
+    res.render('team_profile_edit', { team, errors: [] });
+  } catch (err) {
+    console.error(err);
+    res.send('Error ' + err);
+  }
+});
+
+// ช่างแก้ไขข้อมูล
+app.post('/team/profile/edit', checkTeamAuthenticated, async (req, res) => {
+  const teamId = req.session.teamId;  
+  const { name, phone, job_type, job_scope, range, email, password, password2, experience, profile_image } = req.body;
+
+  let errors = [];
+
+  // Basic validation
+  if (!name || !phone || !job_type || !job_scope || !range || !email || !experience) {
+    errors.push({ message: "Please enter all required fields" });
+  }
+
+  if (password && password.length < 6) {
+    errors.push({ message: "Password must be at least 6 characters long" });
+  }
+
+  if (password !== password2) {
+    errors.push({ message: "Passwords do not match" });
+  }
+
+  if (errors.length > 0) {
+    const team = { id: teamId, name, phone, job_type, job_scope, range, email, experience, profile_image };  // Repopulate form with team data
+    res.render('team_profile_edit', { errors, team });
+  } else {
+    try {
+      if (password) {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        await pool.query(
+          'UPDATE teams SET name = $1, phone = $2, job_type = $3, job_scope = $4, range = $5, email = $6, password = $7, experience = $8, profile_image = $9 WHERE id = $10',
+          [name, phone, job_type, job_scope, range, email, hashedPassword, experience, profile_image, teamId]
+        );
+      } else {
+        await pool.query(
+          'UPDATE teams SET name = $1, phone = $2, job_type = $3, job_scope = $4, range = $5, email = $6, experience = $7, profile_image = $8 WHERE id = $9',
+          [name, phone, job_type, job_scope, range, email, experience, profile_image, teamId]
+        );
+      }
+      req.flash('success_msg', 'Profile updated successfully');
+      res.redirect('/team/dashboard');
+    } catch (err) {
+      console.error(err);
+      res.send('Error ' + err);
+    }
+  }
+});
+
 
 // ดูประวัติทีละ order
 app.get('/bookings/:id', async (req, res) => {

@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แก้ไขข้อมูลส่วนตัว</title>
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/6342/6342703.png">
+    <%- include('./font') %>
+        <script src="https://cdn.tailwindcss.com"></script>
+
+        <style>
+            body {
+                font-family: 'Arial', sans-serif;
+                background-color: #f4f4f9;
+                margin: 0;
+                padding: 0;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+
+
+            }
+
+            .form-container {
+                background-color: #fff;
+                padding: 30px;
+                border-radius: 10px;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                max-width: 600px;
+                width: 100%;
+                display: contents;
+            }
+
+            h2 {
+                text-align: center;
+                margin-bottom: 20px;
+                color: #333;
+            }
+
+            .form-group {
+                margin-bottom: 15px;
+            }
+
+            .form-group label {
+                display: block;
+                font-weight: bold;
+                margin-bottom: 5px;
+                color: #555;
+            }
+
+            .form-group input,
+            .form-group textarea,
+            .form-group select {
+                width: 100%;
+                padding: 10px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                font-size: 16px;
+                color: #333;
+            }
+
+            .form-group textarea {
+                resize: none;
+                height: 100px;
+            }
+
+            .form-group input[type="file"] {
+                padding: 5px;
+            }
+
+            .btn {
+                display: block;
+                width: 100%;
+                padding: 10px;
+                background-color: #28a745;
+                border: none;
+                border-radius: 5px;
+                color: white;
+                font-size: 16px;
+                cursor: pointer;
+            }
+
+            .btn:hover {
+                background-color: #218838;
+            }
+
+            .errors {
+                color: red;
+                margin-bottom: 15px;
+                text-align: center;
+            }
+
+            .success {
+                color: green;
+                margin-bottom: 15px;
+                text-align: center;
+            }
+
+            .topnav {
+                overflow: hidden;
+                background-color: #333;
+            }
+
+            .topnav a {
+                float: left;
+                color: #f2f2f2;
+                text-align: center;
+                padding: 14px 16px;
+                text-decoration: none;
+                font-size: 17px;
+            }
+
+            .topnav a:hover {
+                background-color: #ddd;
+                color: black;
+            }
+
+            .topnav a.active {
+                background-color: #04AA6D;
+                color: white;
+            }
+
+            .topnav-right {
+                float: right;
+            }
+
+            .profile-image {
+                display: block;
+                margin: 0 auto;
+                width: 120px;
+                height: 120px;
+                border-radius: 50%;
+                object-fit: cover;
+                margin-bottom: 20px;
+            }
+        </style>
+</head>
+
+<body>
+    <div class="topnav prompt-medium">
+        <a href="/team/dashboard">หน้าหลัก</a>
+        <a href="/teams/pending_bookings">งานที่รอดำเนินการ</a>
+        <a href="/teams/inprogress_bookings">งานที่กำลังซ่อมแซม</a>
+        <a href="/team/get_all_bookings">งานทั้งหมด</a>
+        <div class="topnav-right">
+            <a href="#search">ข้อความ</a>
+            <a class="active" href="/team/profile/edit">แก้ไขข้อมูล</a>
+            <a href="/team/logout">ออกจากระบบ</a>
+        </div>
+    </div>
+
+    <div class="form-container">
+        <h2 class="prompt-medium p-5 text-2xl">แก้ไขข้อมูล</h2>
+
+        <!-- Display profile image if exists -->
+        <% if (team.profile_image) { %>
+            <img src="/uploads/<%= team.profile_image %>" alt="Profile Image" class="profile-image">
+            <% } %>
+
+                <% if (errors.length> 0) { %>
+                    <div class="errors">
+                        <% errors.forEach(function(error) { %>
+                            <p>
+                                <%= error.message %>
+                            </p>
+                            <% }); %>
+                    </div>
+                    <% } %>
+
+                        <form action="/team/profile/edit" method="POST" enctype="multipart/form-data">
+
+                            <div class="bg-gray-100 dark:bg-gray-800 transition-colors duration-300">
+                                <div class="container p-5 ">
+                                    <div class="bg-background ">
+
+                                        <form>
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 prompt-regular">
+                                                <label for="name">ชื่อ
+                                                    <input type="text" name="name" id="name" value="<%= team.name %>"
+                                                        class="border p-2 rounded w-full" required></label>
+                                                <label for="phone">เบอร์โทรศัพท์
+                                                    <input type="text" name="phone" id="phone" value="<%= team.phone %>"
+                                                        class="border p-2 rounded w-full" required></label>
+                                            </div>
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 prompt-regular">
+                                                <label for="job_type">ประเภทของงาน
+                                                    <input type="text" name="job_type" id="job_type"
+                                                        value="<%= team.job_type %>" class="border p-2 rounded w-full"
+                                                        required></label>
+                                                <label for="job_scope">พื้นที่ให้บริการ
+                                                    <input type="text" name="job_scope" id="job_scope"
+                                                        value="<%= team.job_scope %>" class="border p-2 rounded w-full"
+                                                        required></label>
+                                            </div>
+
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 prompt-regular">
+                                                <label for="range">ช่วงราคา/บาท
+                                                    <input type="text" name="range" id="range" value="<%= team.range %>"
+                                                        class="border p-2 rounded w-full" required></label>
+                                                <label for="experience">ประสบการณ์การทำงาน/ปี
+                                                    <input type="text" name="experience" id="experience"
+                                                        value="<%= team.experience %>" class="border p-2 rounded w-full"
+                                                        required></label>
+                                            </div>
+
+                                            <div class="mb-4 prompt-regular">
+                                                <label for="email">อีเมล
+                                                    <input type="email" name="email" id="email"
+                                                        value="<%= team.email %>" class="border p-2 rounded w-full"
+                                                        required></label>
+                                            </div>
+                                            <div class="mb-4 prompt-regular">
+                                                <label for="password">รหัสผ่าน
+                                                    <input type="password" name="password" id="password"
+                                                        placeholder="******" class="border p-2 rounded w-full"
+                                                        required></label>
+                                            </div>
+                                            <div class="mb-4 prompt-regular">
+                                                <label for="password2">รหัสผ่าน
+                                                    <input type="password" name="password2" id="password2"
+                                                        placeholder="******" class="border p-2 rounded w-full"
+                                                        required></label>
+                                            </div>
+                                            <!-- <div class="mb-4 prompt-regular">
+                                                <label for="profile_image">อัปเดตรูปโปร์ไฟล์</label>
+                                                <input type="file" name="profile_image" id="profile_image"
+                                                    class="border p-2 rounded w-full" class="border p-2 rounded w-full"
+                                                    required>
+                                            </div> -->
+                                    </div>
+                                    <button type="submit" id="theme-toggle"
+                                        class="prompt-medium px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600 focus:outline-none transition-colors">
+                                        บันทึก
+                                    </button>
+                        </form>
+    </div>
+
+
+
+    <!--  
+          <div class="form-group">
+            <label for="name">Team Name</label>
+            <input type="text" name="name" id="name" value="<%= team.name %>" required>
+          </div>
+    
+          <div class="form-group">
+            <label for="phone">Phone</label>
+            <input type="text" name="phone" id="phone" value="<%= team.phone %>" required>
+          </div>
+    
+          <div class="form-group">
+            <label for="job_type">Job Type</label>
+            <input type="text" name="job_type" id="job_type" value="<%= team.job_type %>" required>
+          </div>
+    
+          <div class="form-group">
+            <label for="job_scope">Job Scope</label>
+            <textarea name="job_scope" id="job_scope" required><%= team.job_scope %></textarea>
+          </div>
+    
+          <div class="form-group">
+            <label for="range">Range</label>
+            <input type="text" name="range" id="range" value="<%= team.range %>" required>
+          </div>
+    
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" name="email" id="email" value="<%= team.email %>" required>
+          </div>
+    
+          <div class="form-group">
+            <label for="experience">Experience (Years)</label>
+            <input type="number" name="experience" id="experience" value="<%= team.experience %>" required>
+          </div>
+    
+          <div class="form-group">
+            <label for="profile_image">Profile Image</label>
+            <input type="file" name="profile_image" id="profile_image">
+          </div>
+    
+          <div class="form-group">
+            <label for="password">New Password (optional)</label>
+            <input type="password" name="password" id="password">
+          </div>
+    
+          <div class="form-group">
+            <label for="password2">Confirm New Password</label>
+            <input type="password" name="password2" id="password2">
+          </div>
+    
+          <button type="submit" class="btn">Update Profile</button>-->
+    </form>
+    </div>
+
+</body>
+
+</html>
