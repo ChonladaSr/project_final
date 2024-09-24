@@ -14,6 +14,10 @@ const alert = require('alert');
 const upload = require('./uploadConfig');
 const bodyParser = require('body-parser');
 const fileUpload = require('express-fileupload');
+const http = require('http');
+const socketIo = require('socket.io');
+const server = http.createServer(app);
+const io = socketIo(server);
 
 app.use(fileUpload());
 
@@ -138,6 +142,101 @@ const ensureAuthenticated = (req, res, next) => {
   }
   res.redirect('/users/login');
 };
+
+//ระบบแชท
+
+io.on("connection", (socket) => {
+  console.log("New user connected:", socket.id);
+
+  socket.on("joinRoom", async (room) => {
+    if (room && room.trim()) {
+      socket.join(room);
+      console.log(`User ${socket.id} joined room ${room}`);
+  
+      try {
+        const result = await pool.query(
+          `SELECT * FROM messages WHERE room_id = $1 ORDER BY created_at ASC`,
+          [room]
+        );
+  
+        // Retrieve user and team names
+        const messages = await Promise.all(result.rows.map(async (message) => {
+          let name = "Unknown";
+  
+          if (message.user_id) {
+            const userResult = await pool.query(`SELECT name FROM users WHERE id = $1`, [message.user_id]);
+            if (userResult.rows.length > 0) {
+              name = userResult.rows[0].name;
+            }
+          } else if (message.team_id) {
+            const teamResult = await pool.query(`SELECT name FROM teams WHERE id = $1`, [message.team_id]);
+            if (teamResult.rows.length > 0) {
+              name = teamResult.rows[0].name;
+            }
+          }
+  
+          // Return message along with created_at and user/team name
+          return {
+            ...message,
+            name,
+            created_at: message.created_at  // Include created_at
+          };
+        }));
+  
+        // Send the messages with created_at back to the client
+        socket.emit('loadMessages', messages);
+      } catch (err) {
+        console.error("Error retrieving chat history:", err);
+      }
+    } else {
+      socket.emit('message', 'Room name cannot be empty');
+    }
+  });
+  
+  socket.on("chatMessage", async ({ room, message, userId, teamId }) => {
+    if (room && message) {
+      let username = "Unknown";
+      const createdAt = new Date();  // Get the current timestamp
+  
+      // Fetch username based on userId or teamId
+      if (userId) {
+        const result = await pool.query(`SELECT name FROM users WHERE id = $1`, [userId]);
+        if (result.rows.length > 0) {
+          username = result.rows[0].name;
+        }
+      } else if (teamId) {
+        const result = await pool.query(`SELECT name FROM teams WHERE id = $1`, [teamId]);
+        if (result.rows.length > 0) {
+          username = result.rows[0].name;
+        }
+      }
+  
+      // Emit the message along with created_at
+      io.to(room).emit("chatMessage", { 
+        username, 
+        message, 
+        created_at: createdAt  // Send the timestamp
+      });
+  
+      // Save the message to the database
+      try {
+        await pool.query(
+          `INSERT INTO messages (room_id, user_id, team_id, message, created_at) VALUES ($1, $2, $3, $4, $5)`,
+          [room, userId || null, teamId || null, message, createdAt]
+        );
+        console.log("Message saved to the database.");
+      } catch (err) {
+        console.error("Error saving message:", err);
+      }
+    }
+  });
+  
+
+  socket.on("disconnect", () => {
+    console.log("User disconnected:", socket.id);
+  });
+});
+
 
 
 // Routes

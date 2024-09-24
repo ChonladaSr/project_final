@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Skill Deck</title>
+  <link rel="icon" href="https://cdn-icons-png.freepik.com/256/9416/9416123.png?semt=ais_hybrid">
+
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <%- include('./partials/font') %>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+      body {
+        font-family: 'Roboto', sans-serif;
+        background-color: #f7f7f7;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+      }
+
+      #chat-container {
+        width: 500px;
+        background: #ffffff;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+
+      #room-selection,
+      #chat-room {
+        padding: 20px;
+      }
+
+      #room-selection input,
+      #room-selection button {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+
+      #room-selection button {
+        background-color: #ffa20d;
+        color: white;
+        border: none;
+        cursor: pointer;
+        font-weight: bold;
+      }
+
+      #room-selection button:hover {
+        background-color: #ff9635;
+      }
+
+      #chat-room {
+        display: none;
+      }
+
+      #messages {
+        height: 400px;
+        overflow-y: scroll;
+        border: 1px solid #ddd;
+        padding: 10px;
+        margin-bottom: 10px;
+        background-color: #f1f1f1;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .message {
+        padding: 10px;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        max-width: 90%;
+        align-self: flex-start;
+      }
+
+      .message.sent {
+        background-color: #dbffb6;
+        align-self: flex-end;
+        text-align: right;
+      }
+
+      .message.received {
+        background-color: #e4e4e4;
+        align-self: flex-start;
+        text-align: left;
+      }
+
+
+      #message-input {
+        width: calc(100% - 80px);
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+
+      #send-button {
+        width: 60px;
+        padding: 10px;
+        margin-left: 10px;
+        background-color: #ffa20d;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+      }
+
+      #send-button:hover {
+        background-color: #ff9635;
+      }
+
+      #username {
+        font-weight: bold;
+        margin-bottom: 10px;
+      }
+    </style>
+
+</head>
+
+<body>
+  <div id="room-selection">
+    <div class="flex justify-center mb-8">
+      <img src="https://img2.pic.in.th/pic/Screenshot-2024-08-06-225808.png" alt="Logo" class="w-21 h-10">
+    </div>
+<!--     <fieldset disabled>
+      <input id="room-input" class="prompt-regular" type="text" value="<%= teamId %>" readonly />
+    </fieldset> -->
+    <button id="join-button" class="prompt-regular">เข้าร่วมแชท</button>
+  </div>
+
+  <div id="chat-room" style="display: none;">
+    <div id="messages" class="prompt-regular"></div>
+    <input id="message-input" class="prompt-regular" type="text" placeholder="พิมพ์ข้อความที่นี่..." />
+    <button id="send-button" class="prompt-regular">ส่ง</button>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    let currentRoom = '<%= teamId %>';
+    const userId = "<%= userId %>"; // User ID from backend
+    const teamId = "<%= teamId %>"; // Team ID from backend
+
+    // Join the room when clicking "join-button"
+    document.getElementById('join-button').onclick = function () {
+      if (currentRoom) {
+        socket.emit("joinRoom", currentRoom); // Join the room
+        document.getElementById('room-selection').style.display = 'none';
+        document.getElementById('chat-room').style.display = 'block';
+      }
+    };
+
+    // Send a message
+    document.getElementById('send-button').onclick = function () {
+      const message = document.getElementById('message-input').value;
+      if (currentRoom && message) {
+        const now = new Date(); // Current time
+        // Emit chatMessage with created_at
+        socket.emit("chatMessage", {
+          room: currentRoom,
+          message: message,
+          userId: userId || null, // Send userId if available
+          teamId: teamId || null,  // Send teamId if available
+          created_at: now.toISOString() // Add created_at in ISO format
+        });
+        document.getElementById('message-input').value = ''; // Clear input
+      }
+    };
+
+    socket.on('loadMessages', (messages) => {
+      const messagesContainer = document.getElementById('messages');
+      messagesContainer.innerHTML = ''; // Clear old messages
+
+      // Display each message with created_at
+      messages.forEach(message => {
+        const messageElement = document.createElement("div");
+        messageElement.classList.add('message', 'received');
+
+        // Convert created_at to local time (Thailand time zone UTC+7)
+        const date = new Date(message.created_at);
+
+        // Format the date and time
+        const dateOptions = {
+          timeZone: 'Asia/Bangkok',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        };
+        const timeOptions = {
+          timeZone: 'Asia/Bangkok',
+          hour: '2-digit',
+          minute: '2-digit'
+        };
+
+        const dateString = date.toLocaleDateString('th-TH', dateOptions);
+        const timeString = date.toLocaleTimeString('th-TH', timeOptions);
+
+        // Create a span for name and timestamp with class "text-sm"
+        const metaDataElement = document.createElement("span");
+        metaDataElement.classList.add('text-xs', 'text-gray-500');
+        metaDataElement.textContent = `${message.name || 'Unknown'} (${dateString} ${timeString} น.)`;
+
+        // Create a break for separating metadata and message
+        const lineBreak = document.createElement("br");
+
+        // Add the actual message content
+        const messageContent = document.createTextNode(message.message);
+
+        // Append the elements in order
+        messageElement.appendChild(metaDataElement);
+        messageElement.appendChild(lineBreak);
+        messageElement.appendChild(messageContent);
+
+        messagesContainer.appendChild(messageElement);
+      });
+
+      // Scroll to the latest message
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    });
+
+    socket.on("chatMessage", (data) => {
+      const messageElement = document.createElement("div");
+      messageElement.classList.add('message', 'received');
+
+      // Convert created_at to local time (Thailand time zone UTC+7)
+      const date = new Date(data.created_at);
+
+      // Format the date and time
+      const dateOptions = {
+        timeZone: 'Asia/Bangkok',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      };
+      const timeOptions = {
+        timeZone: 'Asia/Bangkok',
+        hour: '2-digit',
+        minute: '2-digit'
+      };
+
+      const dateString = date.toLocaleDateString('th-TH', dateOptions);
+      const timeString = date.toLocaleTimeString('th-TH', timeOptions);
+
+      // Create a span for name and timestamp with class "text-sm"
+      const metaDataElement = document.createElement("span");
+      metaDataElement.classList.add('text-xs', 'text-gray-500');
+      metaDataElement.textContent = `${data.username || 'Unknown'} (${dateString} ${timeString} น.)`;
+
+      // Create a break for separating metadata and message
+      const lineBreak = document.createElement("br");
+
+      // Add the actual message content
+      const messageContent = document.createTextNode(data.message);
+
+      // Append the elements in order
+      messageElement.appendChild(metaDataElement);
+      messageElement.appendChild(lineBreak);
+      messageElement.appendChild(messageContent);
+
+      document.getElementById('messages').appendChild(messageElement);
+
+      // Scroll to the latest message
+      document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+    });
+
+
+    // Display server messages
+    socket.on('message', (msg) => {
+      const messageElement = document.createElement("div");
+      messageElement.classList.add('message', 'received');
+      messageElement.textContent = msg;
+      document.getElementById('messages').appendChild(messageElement);
+      document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+    });
+
+  </script>
+</body>
+
+
+</html>
