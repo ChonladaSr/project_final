@@ -51,8 +51,9 @@ app.use('/uploads/payment_proofs', express.static('uploads/payment_proofs'));
 
 app.use(fileUpload());
 
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+app.use(express.json({ limit: '50mb' }));
+
 
 app.use((req, res, next) => {
   res.locals.success_msg = req.flash('success_msg');
@@ -462,15 +463,6 @@ app.get('/users/book_service', ensureAuthenticated, (req, res) => {
   res.render('booking_form', { userId, teamId });
 });
 
-app.get('/users/book_service', ensureAuthenticated, (req, res) => {
-  const teamId = req.query.teamId;  // รับ team_id จาก query string
-  const userId = req.user.id;  // รับ user_id จากผู้ใช้ที่ล็อกอินอยู่
-
-  // ส่ง userId และ teamId ไปที่ EJS
-  res.render('booking_form', { userId, teamId });
-});
-
-
 app.post('/users/book_service', ensureAuthenticated, async (req, res) => {
   try {
     console.log(req.body);  // เพิ่มการ log ข้อมูลที่รับมา
@@ -489,7 +481,7 @@ app.post('/users/book_service', ensureAuthenticated, async (req, res) => {
       RETURNING *;
     `;
 
-    const values = [user_id, team_id, name, email, phone, address, booking_date, booking_time, service_details, 'pending'];
+    const values = [user_id, team_id, name, email, phone, address, booking_date, booking_time, service_details, 'รอดำเนินการ'];
     const result = await pool.query(query, values);
     const booking = result.rows[0];
 

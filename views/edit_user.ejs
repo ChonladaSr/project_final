@@ -12,53 +12,50 @@
 <body>
 
   <form action="/edit/<%= user.id %>" method="POST">
-    <div class="container pt-10 ">
-      <div
-        class="max-w-md mx-auto relative overflow-hidden z-10 bg-white p-8 rounded-lg shadow-md before:w-24 before:h-24 before:absolute before:bg-purple-500 before:rounded-full before:-z-10 before:blur-2xl after:w-32 after:h-32 after:absolute after:bg-sky-400 after:rounded-full after:-z-10 after:blur-xl after:top-24 after:-right-12">
-        <h2 class="text-2xl text-black prompt-medium mb-6">การแก้ไขข้อมูลผู้ใช้งาน</h2>
+    <div class="container pt-3">
+      <div class="prompt-regular max-w-md mx-auto relative overflow-hidden z-10 bg-stone-100 p-8 rounded-lg shadow-md">
+          <h2 class="text-2xl text-black prompt-bold mb-6 text-center">การแก้ไขข้อมูลผู้ใช้งาน</h2>
 
-        <div class="mb-4">
-          <label class="block text-sm prompt-medium text-gray-600" for="name">ชื่อ</label>
-          <input class="mt-1 p-2 w-full border rounded-md" type="text" id="name" name="name" value="<%= user.name %>"
-            required>
+          <div class="mb-4">
+              <label class="block text-sm prompt-medium text-gray-600" for="name">ชื่อ</label>
+              <input
+                  class="mt-1 p-3 w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400"
+                  type="text" id="name" name="name" value="<%= user.name %>" required>
+          </div>
+
+          <div class="mb-4">
+              <label class="block text-sm prompt-medium text-gray-600" for="email">อีเมล</label>
+              <input
+                  class="mt-1 p-3 w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400"
+                  name="email" id="email" type="text" value="<%= user.email %>" required>
+          </div>
+
+          <div class="mb-4">
+            <label class="block text-sm prompt-medium text-gray-600" for="email">อีเมล</label>
+            <input
+                class="mt-1 p-3 w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400"
+                name="role" id="role" type="text" value="<%= user.role %>" required>
         </div>
+          <div class="flex justify-end space-x-4">
+              <button
+                  class="bg-gray-700 text-white px-4 py-2 prompt-bold rounded-lg hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-600"
+                  type="submit">
+                  บันทึก
+              </button>
 
-        <div class="mb-4">
-          <label class="block text-sm prompt-medium text-gray-600" for="email">อีเมล</label>
-          <input class="mt-1 p-2 w-full border rounded-md" name="email" id="email" type="email"
-            value="<%= user.email %>" required>
-        </div>
-
-        <div class="mb-4">
-          <label class="block text-sm prompt-medium text-gray-600" for="role">หน้าที่</label>
-          <input class="mt-1 p-2 w-full border rounded-md" name="role" id="role" type="text" value="<%= user.role %>"
-            required>
-        </div>
-
-        <div class="flex justify-end space-x-4">
-          <button
-            class="[background:linear-gradient(144deg,#af40ff,#5b42f3_50%,#00ddeb)] text-white px-4 py-2 prompt-medium rounded-md hover:opacity-80"
-            type="submit">
-            บันทึก
-          </button>
-
-
-          <a href="/admin/user/delete/<%= user.id %>"
-            class="inline-flex items-center px-4 py-2 bg-red-600 transition ease-in-out delay-75 hover:bg-red-700 text-white text-sm prompt-medium rounded-md ">
-            <svg stroke="currentColor" viewBox="0 0 24 24" fill="none" class="h-5 w-5 mr-2"
-              xmlns="http://www.w3.org/2000/svg">
-              <path
-                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></path>
-            </svg>
-
-            ลบ
-          </a>
-
-          <!--   <a href="/delete/<%= user.id %>"
-            class="[background:linear-gradient(144deg,#af40ff,#5b42f3_50%,#00ddeb)] text-white px-4 py-2 font-bold rounded-md hover:opacity-80"
-            onclick="return confirm('Are you sure you want to delete this user?')">Delete</a> -->
-        </div>
+              <a href="/admin/user/delete/<%= user.id %>"
+                  class="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm prompt-bold rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600">
+                  <svg stroke="currentColor" viewBox="0 0 24 24" fill="none" class="h-5 w-5 mr-2"
+                      xmlns="http://www.w3.org/2000/svg">
+                      <path
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></path>
+                  </svg>
+                  ลบ
+              </a>
+          </div>
+      </div>
+  </div>
   </form>
   </div>
   </div>
