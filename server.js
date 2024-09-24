@@ -152,17 +152,17 @@ io.on("connection", (socket) => {
     if (room && room.trim()) {
       socket.join(room);
       console.log(`User ${socket.id} joined room ${room}`);
-  
+
       try {
         const result = await pool.query(
           `SELECT * FROM messages WHERE room_id = $1 ORDER BY created_at ASC`,
           [room]
         );
-  
+
         // Retrieve user and team names
         const messages = await Promise.all(result.rows.map(async (message) => {
           let name = "Unknown";
-  
+
           if (message.user_id) {
             const userResult = await pool.query(`SELECT name FROM users WHERE id = $1`, [message.user_id]);
             if (userResult.rows.length > 0) {
@@ -174,7 +174,7 @@ io.on("connection", (socket) => {
               name = teamResult.rows[0].name;
             }
           }
-  
+
           // Return message along with created_at and user/team name
           return {
             ...message,
@@ -182,7 +182,7 @@ io.on("connection", (socket) => {
             created_at: message.created_at  // Include created_at
           };
         }));
-  
+
         // Send the messages with created_at back to the client
         socket.emit('loadMessages', messages);
       } catch (err) {
@@ -192,12 +192,12 @@ io.on("connection", (socket) => {
       socket.emit('message', 'Room name cannot be empty');
     }
   });
-  
+
   socket.on("chatMessage", async ({ room, message, userId, teamId }) => {
     if (room && message) {
       let username = "Unknown";
       const createdAt = new Date();  // Get the current timestamp
-  
+
       // Fetch username based on userId or teamId
       if (userId) {
         const result = await pool.query(`SELECT name FROM users WHERE id = $1`, [userId]);
@@ -210,14 +210,14 @@ io.on("connection", (socket) => {
           username = result.rows[0].name;
         }
       }
-  
+
       // Emit the message along with created_at
-      io.to(room).emit("chatMessage", { 
-        username, 
-        message, 
+      io.to(room).emit("chatMessage", {
+        username,
+        message,
         created_at: createdAt  // Send the timestamp
       });
-  
+
       // Save the message to the database
       try {
         await pool.query(
@@ -230,7 +230,7 @@ io.on("connection", (socket) => {
       }
     }
   });
-  
+
 
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
@@ -753,15 +753,12 @@ app.get("/team/dashboard", async (req, res) => {
     return res.redirect('/team/login'); // Redirect to login if not authenticated
   }
   try {
-    // Fetch team information
     const teamResult = await pool.query('SELECT * FROM teams WHERE id = $1', [teamId]);
     const teamData = teamResult.rows[0];
 
-    // Fetch tasks associated with the team
     const tasksResult = await pool.query('SELECT * FROM tasks WHERE id = $1', [teamId]);
     const tasksData = tasksResult.rows;
 
-    // Count confirmed, pending, and in-progress bookings (existing logic remains)
     const queryconfirmed = `
       SELECT COUNT(*) AS confirmed_count
       FROM bookings
@@ -803,6 +800,16 @@ app.get("/team/dashboard", async (req, res) => {
     const resultreviews = await pool.query(queryreviews, [teamId]);
     const reviews = resultreviews.rows;
 
+    // นับจำนวนคนที่มารีวิวทีมตาม teamId
+    const queryReviewCount = `
+      SELECT COUNT(*) AS review_count
+      FROM reviews
+      JOIN bookings ON reviews.booking_id = bookings.id
+      WHERE bookings.team_id = $1
+    `;
+    const resultReviewCount = await pool.query(queryReviewCount, [teamId]);
+    const reviewCount = resultReviewCount.rows[0].review_count;
+
     // Render the dashboard with team, tasks, booking counts, and reviews
     res.render('team_dashboard', {
       team: teamData,
@@ -811,6 +818,7 @@ app.get("/team/dashboard", async (req, res) => {
       pendingCount: pendingCount,
       inprogressCount: inprogressCount,
       reviews: reviews,
+      reviewCount: reviewCount,
       teamId: teamId
     });
   } catch (err) {
@@ -995,7 +1003,7 @@ app.post('/team/confirm_booking', checkTeamAuthenticated, async (req, res) => {
 
 // ช่างแก้ไขข้อมูล
 app.get('/team/profile/edit', checkTeamAuthenticated, async (req, res) => {
-  const teamId = req.session.teamId;  
+  const teamId = req.session.teamId;
   try {
     const result = await pool.query('SELECT * FROM teams WHERE id = $1', [teamId]);
     const team = result.rows[0];
@@ -1008,7 +1016,7 @@ app.get('/team/profile/edit', checkTeamAuthenticated, async (req, res) => {
 
 // ช่างแก้ไขข้อมูล
 app.post('/team/profile/edit', checkTeamAuthenticated, async (req, res) => {
-  const teamId = req.session.teamId;  
+  const teamId = req.session.teamId;
   const { name, phone, job_type, job_scope, range, email, password, password2, experience, profile_image } = req.body;
 
   let errors = [];
@@ -1167,15 +1175,15 @@ app.get('/users/roofer/:id', ensureAuthenticated, async (req, res) => {
 
     // Query to fetch comments, reviews, and team responses
     const commentQuery = `
-      SELECT reviews.rating, reviews.comment, reviews.created_at, bookings.name AS customer_name
-      FROM reviews
-      INNER JOIN bookings ON reviews.booking_id = bookings.id
-      INNER JOIN users ON bookings.user_id = users.id
-      WHERE bookings.team_id = $1
-      ORDER BY reviews.created_at DESC 
-    `;
-    const commentResult = await pool.query(commentQuery, [id]);
-    const comments = commentResult.rows;
+    SELECT reviews.rating, reviews.comment, reviews.response, reviews.created_at, bookings.name AS customer_name
+    FROM reviews
+    INNER JOIN bookings ON reviews.booking_id = bookings.id
+    INNER JOIN users ON bookings.user_id = users.id
+    WHERE bookings.team_id = $1
+    ORDER BY reviews.created_at DESC
+  `;
+  const commentResult = await pool.query(commentQuery, [id]);
+  const comments = commentResult.rows;
 
     res.render('detail_roofer', { detail, reviewData, comments, teamId: id });
   } catch (err) {
@@ -1236,15 +1244,15 @@ app.get('/users/painter/:id', ensureAuthenticated, async (req, res) => {
 
     // Query to fetch comments, reviews, and team responses
     const commentQuery = `
-      SELECT reviews.rating, reviews.comment, reviews.created_at, bookings.name AS customer_name
-      FROM reviews
-      INNER JOIN bookings ON reviews.booking_id = bookings.id
-      INNER JOIN users ON bookings.user_id = users.id
-      WHERE bookings.team_id = $1
-      ORDER BY reviews.created_at DESC 
-    `;
-    const commentResult = await pool.query(commentQuery, [id]);
-    const comments = commentResult.rows;
+    SELECT reviews.rating, reviews.comment, reviews.response, reviews.created_at, bookings.name AS customer_name
+    FROM reviews
+    INNER JOIN bookings ON reviews.booking_id = bookings.id
+    INNER JOIN users ON bookings.user_id = users.id
+    WHERE bookings.team_id = $1
+    ORDER BY reviews.created_at DESC
+  `;
+  const commentResult = await pool.query(commentQuery, [id]);
+  const comments = commentResult.rows;
 
     res.render('detail_painter', { detail, reviewData, comments, teamId: id });
   } catch (err) {
@@ -1305,15 +1313,15 @@ app.get('/users/cleaner/:id', ensureAuthenticated, async (req, res) => {
 
     // Query to fetch comments, reviews, and team responses
     const commentQuery = `
-      SELECT reviews.rating, reviews.comment, reviews.created_at, bookings.name AS customer_name
-      FROM reviews
-      INNER JOIN bookings ON reviews.booking_id = bookings.id
-      INNER JOIN users ON bookings.user_id = users.id
-      WHERE bookings.team_id = $1
-      ORDER BY reviews.created_at DESC 
-    `;
-    const commentResult = await pool.query(commentQuery, [id]);
-    const comments = commentResult.rows;
+    SELECT reviews.rating, reviews.comment, reviews.response, reviews.created_at, bookings.name AS customer_name
+    FROM reviews
+    INNER JOIN bookings ON reviews.booking_id = bookings.id
+    INNER JOIN users ON bookings.user_id = users.id
+    WHERE bookings.team_id = $1
+    ORDER BY reviews.created_at DESC
+  `;
+  const commentResult = await pool.query(commentQuery, [id]);
+  const comments = commentResult.rows;
 
     res.render('detail_cleaner', { detail, reviewData, comments, teamId: id });
   } catch (err) {
@@ -1323,7 +1331,56 @@ app.get('/users/cleaner/:id', ensureAuthenticated, async (req, res) => {
 });
 
 //ช่างตอบกลับรีวิว
-app.post('/reviews/:id/respond', async (req, res) => {
+app.get('/team/view_review', async (req, res) => {
+  const teamId = req.session.teamId;
+  if (!teamId) {
+    return res.redirect('/team/login'); // Redirect to login if not authenticated
+  }
+
+  try {
+    // Query เพื่อดึงรีวิวทั้งหมดที่เกี่ยวข้องกับทีมตาม teamId
+    const queryreviews = `
+      SELECT reviews.id, reviews.rating, reviews.comment, reviews.created_at, reviews.response, bookings.id AS booking_id
+      FROM reviews
+      JOIN bookings ON reviews.booking_id = bookings.id
+      WHERE bookings.team_id = $1
+      ORDER BY reviews.created_at DESC
+    `;
+    const resultreviews = await pool.query(queryreviews, [teamId]);
+    const reviews = resultreviews.rows;
+
+    // Render the view and pass the reviews data
+    res.render('team_review', { reviews });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error ' + err);
+  }
+});
+
+// เส้นทางสำหรับการตอบกลับรีวิว
+app.post('/team/respond_review/:id', async (req, res) => {
+  const reviewId = req.params.id;
+  const { response } = req.body;
+
+  try {
+    // อัพเดตการตอบกลับในตาราง reviews
+    const query = `
+      UPDATE reviews
+      SET response = $1
+      WHERE id = $2
+    `;
+    await pool.query(query, [response, reviewId]);
+
+    // หลังจากตอบกลับเสร็จแล้ว กลับไปที่หน้ารีวิว
+    res.redirect('/team/view_review');
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error ' + err);
+  }
+});
+
+//ช่างตอบกลับรีวิว
+/* app.post('/reviews/:id/respond', async (req, res) => {
   const { id } = req.params;
   const { response_text } = req.body;
   const team_id = req.session.team_id;  // Assuming the team is logged in
@@ -1340,7 +1397,8 @@ app.post('/reviews/:id/respond', async (req, res) => {
     req.flash('error', 'Failed to submit response');
     res.redirect('back');
   }
-});
+}); */
+
 
 app.get("/team/logout", (req, res) => {
   req.session.destroy((err) => {

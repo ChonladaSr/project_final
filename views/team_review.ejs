@@ -3,21 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reviews</title>
+    <title>หรีวิว</title>
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/6342/6342703.png">
+    <%- include('./font') %>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            color: #333;
-            margin: 0;
-            padding: 0;
-        }
-        h2 {
-            color: #2c3e50;
+         body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      .topnav {
+        overflow: hidden;
+        background-color: #333;
+      }
+
+      .topnav a {
+        float: left;
+        color: #f2f2f2;
+        text-align: center;
+        padding: 14px 16px;
+        text-decoration: none;
+        font-size: 17px;
+      }
+
+      .topnav a:hover {
+        background-color: #ddd;
+        color: black;
+      }
+
+      .topnav a.active {
+        background-color: #04AA6D;
+        color: white;
+      }
+
+      .topnav-right {
+        float: right;
+      }
+        h1 {
+            color: #333333;
             text-align: center;
             padding: 20px 0;
-            background-color: #27ae60;
-            color: #fff;
+            color: #232323;
             margin: 0;
         }
         ul {
@@ -75,23 +101,39 @@
     </style>
 </head>
 <body>
-    <h2>Reviews</h2>
+    
+  <div class="topnav prompt-medium">
+    <a href="/team/dashboard">หน้าหลัก</a>
+    <a href="/teams/pending_bookings">งานที่รอดำเนินการ</a>
+    <a href="/teams/inprogress_bookings">งานที่กำลังซ่อมแซม</a>
+    <a href="/team/get_all_bookings">งานทั้งหมด</a>
+    <div class="topnav-right">
+      <a href="#search">ข้อความ</a>
+      <a href="/team/profile/edit">แก้ไขข้อมูล</a>
+      <a href="/team/logout">ออกจากระบบ</a>
+    </div>
+  </div>
+
+    <h1 class="prompt-medium">รีวิว</h1>
     <% if (reviews.length > 0) { %>
         <ul>
             <% reviews.forEach(review => { %>
-                <li>
-                    <p><strong>Rating:</strong> <%= review.rating %></p>
-                    <p><strong>Comment:</strong> <%= review.comment %></p>
-                    <p><strong>Date:</strong> <%= new Date(review.created_at).toLocaleString() %></p>
+                <li class="prompt-medium">
+                    <p><strong>คะแนนความพึงพอใจ:</strong> <%= review.rating %> / 5</p>
+                    <p><strong>คอมเมนต์:</strong> <%= review.comment %></p>
+                    <p><strong>วันที่:</strong> <%= new Date(review.created_at).toLocaleString() %></p>
                     <% if (review.response) { %>
                         <div class="response">
-                            <p><strong>Response:</strong> <%= review.response %></p>
+                            <p><strong>การตอบกลับ:</strong> <%= review.response %></p>
                         </div>
                     <% } else { %>
                         <form action="/team/respond_review/<%= review.id %>" method="POST">
-                            <textarea name="response" placeholder="Write your response here..." required></textarea>
-                            <button type="submit">Submit Response</button>
+                            <textarea class="prompt-regular" name="response" placeholder="พิมพ์ข้อความที่นี่..." required></textarea>
+                            <p><small class="prompt-light text-secondary-foreground">คุณสามารถตอบกลับได้เพียงครั้งเดียว</small></p>
+                            <button type="submit" class="prompt-medium">บันทึก</button>
                         </form>
+                        
+
                     <% } %>
                 </li>
             <% }) %>
@@ -100,4 +142,5 @@
         <p class="no-reviews">No reviews yet.</p>
     <% } %>
 </body>
+
 </html>

@@ -97,53 +97,54 @@
               เพื่อแชทสอบถามรายละเอียดเพิ่มเติมได้เลย</p>
 
             <p class="mt-5 text-orange-500 prompt-bold">ความพึงพอใจต่อบริการช่าง</p>
-              <ul>
-                <% if (comments.length > 0) { %>
-                  <% comments.forEach(review => { %>
-                    <li>
-                      <div class="max-w-3xl mx-2 p-4 bg-card text-card-foreground">
-                        <div class="border-b border-muted mb-4 pb-4 mt-5">
-                          <div class="flex justify-between items-center">
-                            <div>
-                              <h3 class="prompt-medium">
-                                <%= review.customer_name.slice(0, 1) + '*' .repeat(review.customer_name.length - 1) %>
-                              </h3>
-                              <span class="text-muted prompt-light text-sm">
-                                <%= new Date(review.created_at).toLocaleDateString() %>
-                              </span>
-                            </div>
-                            <div class="flex items-center">
-                              <% for (let i = 1; i <= 5; i++) { %>
-                                <span class="<%= i <= review.rating ? 'text-yellow-500' : 'text-gray-400' %>">★</span>
+            <ul>
+              <% if (comments.length> 0) { %>
+                <% comments.forEach(review=> { %>
+                  <li>
+                    <div class="max-w-3xl mx-2 p-4 bg-card text-card-foreground">
+                      <div class="border-b border-muted mb-4 pb-4 mt-5">
+                        <div class="flex justify-between items-center">
+                          <div>
+                            <h3 class="prompt-medium">
+                              <%= review.customer_name.slice(0, 1) + '*' .repeat(review.customer_name.length - 1) %>
+                            </h3>
+                            <span class="text-muted prompt-light text-sm">
+                              <%= new Date(review.created_at).toLocaleDateString() %>
+                            </span>
+                          </div>
+                          <div class="flex items-center">
+                            <% for (let i=1; i <=5; i++) { %>
+                              <span class="<%= i <= review.rating ? 'text-yellow-500' : 'text-gray-400' %>">★</span>
                               <% } %>
-                              <span class="ml-2 prompt-medium">
-                                <%= review.rating %>/5
-                              </span>
-                            </div>
+                                <span class="ml-2 prompt-medium">
+                                  <%= review.rating %>/5
+                                </span>
                           </div>
-                          <p class="mt-2 prompt-regular text-muted-foreground">
-                            <%= review.comment ? review.comment : 'No comment' %>
-                          </p>
                         </div>
-              
-                        <!-- Display team response if exists -->
-                        <% if (review.response_text) { %>
-                          <div class="bg-gray-100 p-4 mt-4">
-                            <strong>Response from Team:</strong>
-                            <p class="text-gray-700 mt-1"><%= review.response_text %></p>
-                            <p class="text-sm text-muted">Responded on <%= new Date(review.response_created_at).toLocaleDateString() %></p>
+                        <p class="mt-2 prompt-regular text-muted-foreground">
+                          <%= review.comment ? review.comment : 'No comment' %>
+                        </p>
+
+                        <!-- แสดงข้อความตอบกลับจากทีม ถ้ามี -->
+                        <% if (review.response) { %>
+                          <div class="mt-4 p-3 bg-gray-100 border-l-2 border-orange-400">
+                            <h4 class="prompt-light text-gray-500">
+                              <%= detail.name %> ตอบกลับ:
+                            </h4>
+                            <p class="prompt-regular text-muted-foreground">
+                              <%= review.response %>
+                            </p>
                           </div>
-                        <% } %>
-              
-                       
+                          <% } else { %>
+                            <% } %>
                       </div>
-                    </li>
-                  <% }); %>
-                <% } else { %>
-                  <li class="prompt-regular">ยังไม่มีรีวิว</li>
-                <% } %>
-              </ul>
-              
+                    </div>
+                  </li>
+                  <% }) %>
+                    <% } else { %>
+                      <li class="prompt-regular">ยังไม่มีรีวิว</li>
+                      <% } %>
+            </ul>
           </div>
         </div>
       </div>
