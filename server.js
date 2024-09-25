@@ -929,7 +929,8 @@ app.post('/teams/confirm_booking/:id', checkTeamAuthenticated, async (req, res) 
     const booking_id = req.params.id;
     const team_id = req.session.teamId;
 
-    const query = 'UPDATE bookings SET status = $1 WHERE id = $2 AND team_id = $3 RETURNING *';
+    // อัปเดต status และบันทึกเวลาในคอลัมน์ confirmed_at
+    const query = 'UPDATE bookings SET status = $1, confirmed_at = NOW() WHERE id = $2 AND team_id = $3 RETURNING *';
     const values = ['ยืนยันงาน', booking_id, team_id];
 
     const result = await pool.query(query, values);
@@ -944,6 +945,7 @@ app.post('/teams/confirm_booking/:id', checkTeamAuthenticated, async (req, res) 
     res.status(500).send('Error ' + err);
   }
 });
+
 
 
 
@@ -1397,6 +1399,21 @@ app.get("/team/logout", (req, res) => {
   });
 });
 
+app.post('/bookings/confirm/:id', (req, res) => {
+  const bookingId = req.params.id;
+  
+  // อัปเดตสถานะของ booking ในฐานข้อมูล
+  Booking.update({ status: 'งานได้รับการยืนยันแล้ว' }, { where: { id: bookingId } })
+      .then(() => {
+          req.flash('success', 'ยืนยันการรับงานสำเร็จ');
+          res.redirect(`/bookings/${bookingId}`);
+      })
+      .catch(err => {
+          console.error(err);
+          req.flash('error', 'เกิดข้อผิดพลาดในการยืนยันการรับงาน');
+          res.redirect(`/bookings/${bookingId}`);
+      });
+});
 
 
 

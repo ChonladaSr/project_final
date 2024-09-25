@@ -123,10 +123,20 @@
                                         <div class="flex items-center prompt-medium text-gray-800">
                                             <img src="https://cdn-icons-png.freepik.com/512/5644/5644717.png?uid=R154930515&ga=GA1.1.1806679622.1698741403"
                                                 alt="mobile icon" class="w-4 h-4 mr-2" />
-                                            <span class="prompt-medium text-gray-800">สถานะ: &nbsp;</span>
+                                                <span class="prompt-medium text-gray-800">สถานะ: &nbsp;</span>
+                                                <span class="">
+                                                    
+                                                        <% if (booking.payment_status === 'รอการตรวจสอบ') { %>
+                                                            รอการตรวจสอบ
+                                                        <% } else if (booking.payment_status === 'ยืนยัน') { %>
+                                                            <%= booking.status %>
+                                                        <% } %>
+                                                    </span>
+                                                
+                                                <!-- <span class="prompt-medium text-gray-800">สถานะ: &nbsp;</span>
                                             <span class="">
                                                 <%= booking.status %>
-                                            </span>
+                                            </span> -->
                                         </div>
                                     </div>
                                     <div class="ml-auto flex items-center prompt-medium text-gray-800">
