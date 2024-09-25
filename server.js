@@ -515,12 +515,13 @@ app.get('/users/view_bookings', ensureAuthenticated, async (req, res) => {
   }
 });
 
+// ดูรายละเอียดแต่ละ order
 app.get('/users/view_booking/:id', ensureAuthenticated, async (req, res) => {
   try {
     const booking_id = req.params.id;
 
     const query = `
-      SELECT bookings.*, teams.name AS team_name 
+      SELECT bookings.*, teams.name AS team_name, teams.phone AS team_phone, teams.email AS team_email
       FROM bookings 
       JOIN teams ON bookings.team_id = teams.id 
       WHERE bookings.id = $1 AND bookings.user_id = $2;
