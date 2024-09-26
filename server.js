@@ -1102,9 +1102,9 @@ app.post('/bookings/:id/cancel', async (req, res) => {
     `, [bookingId, cancelledAt]);
 
     if (result.rows.length > 0) {
-      res.redirect(`/bookings/${bookingId}?success=true&message=ยกเลิกการจองสำเร็จ`);
+      res.redirect(`/users/view_bookings?success=true&message=ยกเลิกการจองสำเร็จ`);
     } else {
-      res.redirect(`/bookings/${bookingId}?success=false&message=ไม่พบการจอง`);
+      res.redirect(`/users/view_bookings?success=false&message=ไม่พบการจอง`);
     }
   } catch (err) {
     console.error(err.message);
@@ -1403,7 +1403,7 @@ app.post('/bookings/confirm/:id', (req, res) => {
   const bookingId = req.params.id;
   
   // อัปเดตสถานะของ booking ในฐานข้อมูล
-  Booking.update({ status: 'งานได้รับการยืนยันแล้ว' }, { where: { id: bookingId } })
+  app.update({ status: 'งานได้รับการยืนยันแล้ว' }, { where: { id: bookingId } })
       .then(() => {
           req.flash('success', 'ยืนยันการรับงานสำเร็จ');
           res.redirect(`/bookings/${bookingId}`);
@@ -1682,13 +1682,23 @@ app.post('/admin/verify_payment/:id', async (req, res) => {
   const bookingId = req.params.id;
   const { action } = req.body; // 'verify' or 'reject'
   const paymentVerifiedAt = new Date();
+  
   try {
-    const newStatus = action === 'ยืนยัน' ? 'ยืนยัน' : 'ยกเลิก';
-    await pool.query(`
-      UPDATE bookings 
-      SET payment_status = $1, payment_verified_at = $2
-      WHERE id = $3
-    `, [newStatus, paymentVerifiedAt, bookingId]);
+    if (action === 'ยกเลิกการจอง') {
+      // ลบการจองเมื่อสถานะเป็นยกเลิกการจอง
+      await pool.query(`
+        DELETE FROM bookings 
+        WHERE id = $1
+      `, [bookingId]);
+    } else {
+      // อัปเดตสถานะเป็น 'ยืนยัน' หรือ 'ยกเลิก'
+      const newStatus = action === 'ยืนยัน' ? 'ยืนยัน' : 'ยกเลิก';
+      await pool.query(`
+        UPDATE bookings 
+        SET payment_status = $1, payment_verified_at = $2
+        WHERE id = $3
+      `, [newStatus, paymentVerifiedAt, bookingId]);
+    }
 
     res.redirect('/admin/verify_payments');
   } catch (err) {
@@ -1696,6 +1706,7 @@ app.post('/admin/verify_payment/:id', async (req, res) => {
     res.send('Error ' + err);
   }
 });
+
 
 
 
