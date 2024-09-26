@@ -1110,7 +1110,7 @@ app.post('/bookings/:id/cancel', async (req, res) => {
     console.error(err.message);
     res.redirect(`/bookings/${bookingId}?success=false&message=Server Error`);
   }
-});
+}); 
 
 
 app.get('/users/roofer', ensureAuthenticated, async (req, res) => {
@@ -1399,21 +1399,27 @@ app.get("/team/logout", (req, res) => {
   });
 });
 
-app.post('/bookings/confirm/:id', (req, res) => {
+app.post('/bookings/confirm/:id', async (req, res) => {
   const bookingId = req.params.id;
-  
-  // อัปเดตสถานะของ booking ในฐานข้อมูล
-  app.update({ status: 'งานได้รับการยืนยันแล้ว' }, { where: { id: bookingId } })
-      .then(() => {
-          req.flash('success', 'ยืนยันการรับงานสำเร็จ');
-          res.redirect(`/bookings/${bookingId}`);
-      })
-      .catch(err => {
-          console.error(err);
-          req.flash('error', 'เกิดข้อผิดพลาดในการยืนยันการรับงาน');
-          res.redirect(`/bookings/${bookingId}`);
-      });
+  try {
+    const result = await pool.query(`
+      UPDATE bookings
+      SET status = 'ยืนยันการรับงาน'
+      WHERE id = $1
+      RETURNING *
+    `, [bookingId]);
+
+    if (result.rows.length > 0) {
+      res.redirect(`/users/view_bookings/${bookingId}?success=true&message=ยืนยันการรับงานสำเร็จ`);
+    } else {
+      res.redirect(`/users/view_bookings/${bookingId}?success=false&message=ไม่พบการจอง`);
+    }
+  } catch (err) {
+    console.error(err.message);
+    res.redirect(`/bookings/${bookingId}?success=false&message=Server Error`);
+  }
 });
+
 
 
 
