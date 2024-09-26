@@ -487,7 +487,7 @@ app.post('/users/book_service', ensureAuthenticated, async (req, res) => {
     const booking = result.rows[0];
 
     req.flash('success', `การจองสำเร็จ! รหัสการจอง: ${booking.id}`);
-    res.redirect('/users/book_service');
+    res.redirect('/users/view_bookings');
   } catch (err) {
     console.error(err);
     req.flash('error', 'Error: ' + err.message);
