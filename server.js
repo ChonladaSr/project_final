@@ -471,7 +471,8 @@ app.post('/users/book_service', ensureAuthenticated, async (req, res) => {
 
     // ตรวจสอบว่าข้อมูลถูกส่งมาครบ
     if (!team_id || !name || !email || !phone || !address || !booking_date || !booking_time || !service_details) {
-      return res.status(400).send('Please fill in all required fields.');
+      req.flash('error', 'Please fill in all required fields.');
+      return res.redirect('/users/book_service');
     }
 
     // ถ้าข้อมูลครบจะทำการบันทึก
@@ -485,10 +486,12 @@ app.post('/users/book_service', ensureAuthenticated, async (req, res) => {
     const result = await pool.query(query, values);
     const booking = result.rows[0];
 
-    res.status(201).send(`การจองสำเร็จ! รหัสการจอง: ${booking.id}`);
+    req.flash('success', `การจองสำเร็จ! รหัสการจอง: ${booking.id}`);
+    res.redirect('/users/book_service');
   } catch (err) {
     console.error(err);
-    res.status(500).send('Error ' + err);
+    req.flash('error', 'Error: ' + err.message);
+    res.redirect('/users/book_service');
   }
 });
 

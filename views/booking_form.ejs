@@ -38,6 +38,18 @@
 </head>
 
 <body>
+    <% if (messages.success) { %>
+        <script>
+          alert("<%= messages.success %>");
+        </script>
+      <% } %>
+      
+      <% if (messages.error) { %>
+        <script>
+          alert("<%= messages.error %>");
+        </script>
+      <% } %>
+      
 
     <div class="container">
         <div class="booking-form">
@@ -53,16 +65,15 @@
                 <textarea name="address" placeholder="ที่อยู่" required></textarea>
                 <input type="date" name="booking_date" required>
                 <select name="booking_time" required>
-                    <option value="08:00">08:00</option>
-                    <option value="09:00">09:00</option>
-                    <!-- เวลาที่เพิ่มทีละ 1 ชั่วโมง -->
-                    <option value="10:00">10:00</option>
-                    <option value="11:00">11:00</option>
-                    <option value="12:00">12:00</option>
-                    <option value="13:00">13:00</option>
-                    <option value="14:00">14:00</option>
-                    <option value="15:00">15:00</option>
-                    <option value="16:00">16:00</option>
+                    <option value="08:00-09:00">08:00-09:00</option>
+                    <option value="09:00-10:00">09:00-10:00</option>
+                    <option value="10:00-11:00">10:00-11:00</option>
+                    <option value="11:00-12:00">11:00-12:00</option>
+                    <option value="12:00-13:00">12:00-13:00</option>
+                    <option value="13:00-14:00">13:00-14:00</option>
+                    <option value="14:00-15:00">14:00-15:00</option>
+                    <option value="15:00-16:00">15:00-16:00</option>
+                    <option value="16:00-17:00">16:00-17:00</option>
                 </select>
                 <textarea name="service_details" placeholder="รายละเอียดการบริการ" required></textarea>
                 <input type="file" name="payment_proof" id="payment_proof" accept="image/*" required>
