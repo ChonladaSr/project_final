@@ -144,81 +144,24 @@ const ensureAuthenticated = (req, res, next) => {
 io.on("connection", (socket) => {
   console.log("New user connected:", socket.id);
 
-  socket.on("joinRoom", async (room) => {
+  socket.on("joinRoom", (room) => {
     if (room && room.trim()) {
       socket.join(room);
       console.log(`User ${socket.id} joined room ${room}`);
-
-      try {
-        const result = await pool.query(
-          `SELECT * FROM messages WHERE room_id = $1 ORDER BY created_at ASC`,
-          [room]
-        );
-
-        // Retrieve user and team names
-        const messages = await Promise.all(result.rows.map(async (message) => {
-          let name = "Unknown";
-
-          if (message.user_id) {
-            const userResult = await pool.query(`SELECT name FROM users WHERE id = $1`, [message.user_id]);
-            if (userResult.rows.length > 0) {
-              name = userResult.rows[0].name;
-            }
-          } else if (message.team_id) {
-            const teamResult = await pool.query(`SELECT name FROM teams WHERE id = $1`, [message.team_id]);
-            if (teamResult.rows.length > 0) {
-              name = teamResult.rows[0].name;
-            }
-          }
-
-          // Return message along with created_at and user/team name
-          return {
-            ...message,
-            name,
-            created_at: message.created_at  // Include created_at
-          };
-        }));
-
-        // Send the messages with created_at back to the client
-        socket.emit('loadMessages', messages);
-      } catch (err) {
-        console.error("Error retrieving chat history:", err);
-      }
     } else {
       socket.emit('message', 'Room name cannot be empty');
     }
   });
 
-  socket.on("chatMessage", async ({ room, message, userId, teamId }) => {
+  socket.on("chatMessage", async ({ room, message, userId }) => {
     if (room && message) {
-      let username = "Unknown";
-      const createdAt = new Date();  // Get the current timestamp
+      io.to(room).emit("chatMessage", { userId, message });
 
-      // Fetch username based on userId or teamId
-      if (userId) {
-        const result = await pool.query(`SELECT name FROM users WHERE id = $1`, [userId]);
-        if (result.rows.length > 0) {
-          username = result.rows[0].name;
-        }
-      } else if (teamId) {
-        const result = await pool.query(`SELECT name FROM teams WHERE id = $1`, [teamId]);
-        if (result.rows.length > 0) {
-          username = result.rows[0].name;
-        }
-      }
-
-      // Emit the message along with created_at
-      io.to(room).emit("chatMessage", {
-        username,
-        message,
-        created_at: createdAt  // Send the timestamp
-      });
-
-      // Save the message to the database
+      // Save message to the database with userId and roomId
       try {
         await pool.query(
-          `INSERT INTO messages (room_id, user_id, team_id, message, created_at) VALUES ($1, $2, $3, $4, $5)`,
-          [room, userId || null, teamId || null, message, createdAt]
+          `INSERT INTO messages (room_id, user_id, message) VALUES ($1, $2, $3)`,
+          [room, userId, message]
         );
         console.log("Message saved to the database.");
       } catch (err) {
@@ -227,12 +170,34 @@ io.on("connection", (socket) => {
     }
   });
 
-
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
   });
 });
 
+
+
+app.get('/users/chat/:teamId', ensureAuthenticated, (req, res) => {
+  const teamId = req.params.teamId;
+  const userId = req.params.userId;
+  res.render('chat', { userId: userId, teamId: teamId });
+});
+
+app.get('/team/chat/:teamId', checkTeamAuthenticated, (req, res) => {
+  const teamId = req.params.teamId;
+  const userId = req.session.userId || req.user?.id; // Assuming userId is stored in the session or user object
+
+  if (!userId) {
+    return res.redirect('/users/login'); // Redirect to login if no user is logged in
+  }
+
+  res.render('chat', { userId: userId, teamId: teamId });
+});
+
+
+app.get("/chat", (req, res) => {
+  res.render("chat");
+});
 
 
 // Routes
