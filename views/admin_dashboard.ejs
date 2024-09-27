@@ -71,14 +71,14 @@
 
           <li class="text-gray-500 hover:bg-gray-100 hover:text-gray-900">
             <a class="w-full flex items-center py-3" href="/admin/tasks">
-              <i class="fa-solid fa-chart-line text-center px-5"></i>
+              <i class="fa-solid fa-check-square text-center px-5"></i>
               <span class="whitespace-nowrap pl-1 prompt-bold ">ระบบตรวจสอบช่าง</span>
             </a>
           </li>
 
           <li class="text-gray-500 hover:bg-gray-100 hover:text-gray-900">
             <a class="w-full flex items-center py-3" href="/admin/team">
-              <i class="fa-solid fa-users text-center px-5"></i>
+              <i class="fa-solid fa-wrench text-center px-5"></i>
               <span class="whitespace-nowrap prompt-bold">ระบบจัดการฐานข้อมูลช่าง</span>
             </a>
           </li>
@@ -93,7 +93,7 @@
 
           <li class="text-gray-500 hover:bg-gray-100 hover:text-gray-900">
             <a class="w-full flex items-center py-3" href="/admin/verify_payments">
-              <i class="fa-solid fa-users text-center px-5"></i>
+              <i class="fa-solid fa-credit-card-alt text-center px-5"></i>
               <span class="whitespace-nowrap prompt-bold">ตรวจสอบการชำระเงิน</span>
             </a>
           </li>
@@ -128,7 +128,7 @@
             <h3 class="prompt-bold">งานที่สำเร็จแล้ว</h3>
             <p class="text-gray-500"><%= workCount %></p>
           </div>
-          <i class="fa-solid fa-users p-4 bg-green-200 rounded-md"></i>
+          <i class="fa-solid fa-folder p-4 bg-green-200 rounded-md"></i>
         </div>
 
         <div class="bg-slate-50 p-5 m-2 flex justify-between items-center shadow">
@@ -136,7 +136,7 @@
             <h3 class="prompt-bold">จำนวนช่างที่รอการอนุมัติ</h3>
             <p class="text-gray-500"><%= pendingCount %></p>
           </div>
-          <i class="fa-solid fa-users p-4 bg-yellow-200 rounded-md"></i>
+          <i class="fa-solid fa-wrench p-4 bg-yellow-200 rounded-md"></i>
         </div>
 
         <div class="bg-slate-50 p-5 m-2 flex justify-between items-center shadow">
@@ -144,7 +144,7 @@
             <h3 class="prompt-bold">รอตรวจสอบการชำระเงิน</h3>
             <p class="text-gray-500"><%= paymentCount %></p>
           </div>
-          <i class="fa-solid fa-users p-4 bg-red-200 rounded-md"></i>
+          <i class="fa-solid fa-credit-card-alt p-4 bg-red-200 rounded-md"></i>
         </div>
       </div>
 

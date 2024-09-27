@@ -5,6 +5,8 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>รายละเอียดและข้อมูลการสมัครของช่าง</title>
+    <link rel="icon" href="https://cdn-icons-png.freepik.com/512/6144/6144388.png?ga=GA1.1.512366322.1722083948">
+
     <script src="https://cdn.tailwindcss.com"></script>
 
     <%- include('./font') %>
@@ -87,7 +89,7 @@
 
 </body> -->
 <body>
-    <body>
+  
     
         <div class="bg-white py-5">
             <div class="max-w-4xl mx-auto p-6 bg-zinc-100 text-card-foreground rounded-lg shadow-md">
@@ -151,10 +153,11 @@
                         </span>
                     </div>
                     <hr class="border-border" />
-                    <img src="/uploads/<%= team.photo1 %>" alt="Photo 1">
-                    <img src="/uploads/<%= team.photo2 %>" alt="Photo 2">
-                    <img src="/uploads/<%= team.photo3 %>" alt="Photo 3">
-
+                    <div class="flex space-x-4">
+                        <img class="w-32 h-32 object-cover rounded-lg" src="/uploads/<%= team.photo1 %>" alt="Photo 1">
+                        <img class="w-32 h-32 object-cover rounded-lg" src="/uploads/<%= team.photo2 %>" alt="Photo 2">
+                        <img class="w-32 h-32 object-cover rounded-lg" src="/uploads/<%= team.photo3 %>" alt="Photo 3">
+                    </div>
                 </div>
                 <div class="text-right mt-4">
                     <a href="/team/dashboard" type="button"
@@ -164,7 +167,7 @@
                 </div>
             </div>
         </div>
-    </body>
+ 
     
 </body>
 

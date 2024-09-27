@@ -23,7 +23,7 @@
       }
 
       .consult-button {
-        margin-left: auto;
+        margin-left: auto;        
       }
     </style>
 </head>
@@ -64,8 +64,6 @@
                       <% } %>
                 </div>
 
-
-
                 <!-- Contact information on the same line -->
                 <div class="flex items-center mt-2 space-x-6">
 
@@ -86,6 +84,8 @@
                   </div>
                 </div>
               </div>
+              <a href="/chat" class="btn btn-warning text-white prompt-medium consult-button ml-auto">ปรึกษาช่าง</a> 
+
             </div>
             <p class="mt-4 text-orange-500 prompt-bold">เกี่ยวกับช่าง</p>
             <p class="mt-3 prompt-medium">&nbsp;&nbsp; ประเภทการให้บริการ - <%= detail.job_type %>
@@ -153,8 +153,6 @@
       </div>
     </div>
 
-    <!-- <a href="/users/book_service" class="btn btn-custom">ปรึกษาช่าง</a> -->
-    <!-- <a href="/chat" class="btn btn-primary consult-button">ปรึกษาช่าง</a> -->
  
     <%- include('./partials/footer') %>
 
