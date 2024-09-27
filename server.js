@@ -606,14 +606,13 @@ app.post('/reviews/:id', ensureAuthenticated, async (req, res) => {
 
   try {
     await pool.query('INSERT INTO reviews (booking_id, rating, comment, created_at) VALUES ($1, $2, $3, NOW())', [bookingId, rating, comment]);
-    req.flash('success', 'รีวิวของคุณถูกส่งเรียบร้อยแล้ว!');
-    res.redirect(`/users/view_booking/${bookingId}`);
+    res.redirect(`/users/view_booking/${bookingId}?success=รีวิวของคุณถูกส่งเรียบร้อยแล้ว!`);
   } catch (err) {
     console.error('Error inserting review:', err);
-    req.flash('error', 'เกิดข้อผิดพลาดในการส่งรีวิว');
-    res.redirect(`/users/view_booking/${bookingId}`);
+    res.redirect(`/users/view_booking/${bookingId}?error=เกิดข้อผิดพลาดในการส่งรีวิว`);
   }
 });
+
 
 // รีวิว
 app.post('/teams/:teamId/review', ensureAuthenticated, async (req, res) => {

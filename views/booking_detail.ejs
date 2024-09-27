@@ -157,151 +157,71 @@
 </style>
 
 <body onload="showAlert()">
-    <%- include('./partials/header') %>
 
-        <div class="container">
-            <!-- Left Side: Booking Details -->
-            <div class="details">
-                <p class="prompt-medium text-orange-500 mt-2">รายละเอียดการจอง</p>
-                <p class="prompt-regular mt-1">หมายเลขการจอง #<%= booking.id %>
-                </p>
-                <p class="prompt-regular mt-1">รายละเอียด: <%= booking.service_details %>
-                </p>
-                <p class="prompt-regular mt-1">ชื่อผู้จอง: <%= booking.name %>
-                </p>
-                <p class="prompt-regular mt-1">วันนัดหมาย:
-                    <% const bookingDate=new Date(booking.booking_date); const
-                        thaiDate=bookingDate.toLocaleDateString('th-TH', { weekday: 'long' , year: 'numeric' ,
-                        month: 'long' , day: 'numeric' }); const thaiTime=bookingDate.toLocaleTimeString('th-TH'); %>
-                        <%= thaiDate %>
-                </p>
-                <p class="prompt-regular mt-1">เวลานัดหมาย: <%= booking.booking_time %>
-                </p>
-                <hr style="width: 50%" class="mt-2">
-                <p class="prompt-medium text-orange-500 mt-2">ข้อมูลช่างที่จอง</p>
-                <p class="prompt-regular">ชื่อ: <%= booking.team_name %>
-                </p>
-                <p class="prompt-regular">เบอร์โทรศัพท์: <%= booking.team_phone %>
-                </p>
-                <p class="prompt-regular">อีเมล: <%= booking.team_email %>
-                </p>
-                <hr style="width: 50%" class="mt-2">
-                <p class="prompt-medium text-orange-500 mt-2">สถานะการจอง</p>
-                <p class="prompt-regular">
-                    <span id="status-text">
-                        <% if (booking.payment_status==='รอการตรวจสอบ' && booking.status !=='ยกเลิกการจอง' ) { %>
-                            รอการตรวจสอบ
-                            <% } else if (booking.payment_status==='ยืนยัน' ) { %>
-                                <%= booking.status %>
-                                    <% } else if (booking.payment_status==='รอการตรวจสอบ' &&
-                                        booking.status==='ยกเลิกการจอง' ) { %>
-                                        <%= booking.status %>
-                                            <% } %>
-                    </span>
-                </p>
+    <% if (typeof success !=='undefined' ) { %>
+        <script>
+            alert("<%= success %>");
+        </script>
+        <% } else if (typeof error !=='undefined' ) { %>
+            <script>
+                alert("<%= error %>");
+            </script>
+            <% } %>
 
-            </div>
+                <%- include('./partials/header') %>
+
+                    <div class="container">
+                        <!-- Left Side: Booking Details -->
+                        <div class="details">
+                            <p class="prompt-medium text-orange-500 mt-2">รายละเอียดการจอง</p>
+                            <p class="prompt-regular mt-1">หมายเลขการจอง #<%= booking.id %>
+                            </p>
+                            <p class="prompt-regular mt-1">รายละเอียด: <%= booking.service_details %>
+                            </p>
+                            <p class="prompt-regular mt-1">ชื่อผู้จอง: <%= booking.name %>
+                            </p>
+                            <p class="prompt-regular mt-1">วันนัดหมาย:
+                                <% const bookingDate=new Date(booking.booking_date); const
+                                    thaiDate=bookingDate.toLocaleDateString('th-TH', { weekday: 'long' , year: 'numeric'
+                                    , month: 'long' , day: 'numeric' }); const
+                                    thaiTime=bookingDate.toLocaleTimeString('th-TH'); %>
+                                    <%= thaiDate %>
+                            </p>
+                            <p class="prompt-regular mt-1">เวลานัดหมาย: <%= booking.booking_time %>
+                            </p>
+                            <hr style="width: 50%" class="mt-2">
+                            <p class="prompt-medium text-orange-500 mt-2">ข้อมูลช่างที่จอง</p>
+                            <p class="prompt-regular">ชื่อ: <%= booking.team_name %>
+                            </p>
+                            <p class="prompt-regular">เบอร์โทรศัพท์: <%= booking.team_phone %>
+                            </p>
+                            <p class="prompt-regular">อีเมล: <%= booking.team_email %>
+                            </p>
+                            <hr style="width: 50%" class="mt-2">
+                            <p class="prompt-medium text-orange-500 mt-2">สถานะการจอง</p>
+                            <p class="prompt-regular">
+                                <span id="status-text">
+                                    <% if (booking.payment_status==='รอการตรวจสอบ' && booking.status !=='ยกเลิกการจอง' )
+                                        { %>
+                                        รอการตรวจสอบ
+                                        <% } else if (booking.payment_status==='ยืนยัน' ) { %>
+                                            <%= booking.status %>
+                                                <% } else if (booking.payment_status==='รอการตรวจสอบ' &&
+                                                    booking.status==='ยกเลิกการจอง' ) { %>
+                                                    <%= booking.status %>
+                                                        <% } %>
+                                </span>
+                            </p>
+
+                        </div>
 
 
-            <!-- Right Side: Timeline -->
-            <div class="timeline-section">
-                <div class="p-4  pt-20 flow-root">
-                    <ul role="list" class="-mb-8">
-                        <% if (booking.cancelled_at) { %>
-                            <!-- แสดงสถานะ ยกเลิก -->
-                            <li>
-                                <div class="relative pb-8">
-                                    <span class="absolute left-4 top-4 -ml-px h-full w-0.5 bg-gray-200"
-                                        aria-hidden="true"></span>
-                                    <div class="relative flex space-x-3">
-                                        <div>
-                                            <span
-                                                class="h-8 w-8 rounded-full bg-red-500 flex items-center justify-center ring-8 ring-white">
-                                                <svg class="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor"
-                                                    aria-hidden="true">
-                                                    <path
-                                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 00-2 0v5a1 1 0 002 0V7zm0 7a1 1 0 00-2 0v1a1 1 0 002 0v-1z" />
-                                                </svg>
-                                            </span>
-                                        </div>
-                                        <div class="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
-                                            <div>
-                                                <p class="text-sm text-gray-800 prompt-regular">ยกเลิก</p>
-                                            </div>
-                                            <div class="whitespace-nowrap text-right text-sm text-gray-500">
-                                                <time>
-                                                    <%= new Date(booking.cancelled_at).toLocaleString('th-TH', {
-                                                        timeZone: 'Asia/Bangkok' }) %>
-                                                </time>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
-                            <% } else if (booking.payment_status==='รอการตรวจสอบ' ) { %>
-                                <!-- แสดงสถานะ รอการตรวจสอบ -->
-                                <li>
-                                    <div class="relative pb-8">
-                                        <span class="absolute left-4 top-4 -ml-px h-full w-0.5 bg-gray-200"
-                                            aria-hidden="true"></span>
-                                        <div class="relative flex space-x-3">
-                                            <div>
-                                                <span
-                                                    class="h-8 w-8 rounded-full bg-yellow-500 flex items-center justify-center ring-8 ring-white">
-                                                    <svg class="h-5 w-5 text-white" viewBox="0 0 20 20"
-                                                        fill="currentColor" aria-hidden="true">
-                                                        <path
-                                                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 00-2 0v5a1 1 0 002 0V7zm0 7a1 1 0 00-2 0v1a1 1 0 002 0v-1z" />
-                                                    </svg>
-                                                </span>
-                                            </div>
-                                            <div class="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
-                                                <div>
-                                                    <p class="text-sm text-gray-800 prompt-regular">รอการตรวจสอบ</p>
-                                                </div>
-                                                <div class="whitespace-nowrap text-right text-sm text-gray-500">
-                                                    <time class="prompt-light text-xs">
-                                                        <%= new Date(booking.created_at).toLocaleString('th-TH', {
-                                                            timeZone: 'Asia/Bangkok' }) %>
-                                                    </time>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </li>
-                                <% } else if (booking.payment_status==='ยืนยัน' ) { %>
-                                    <!-- แสดงสถานะ รอดำเนินการ -->
-                                    <li>
-                                        <div class="relative pb-8">
-                                            <span class="absolute left-4 top-4 -ml-px h-full w-0.5 bg-gray-200"
-                                                aria-hidden="true"></span>
-                                            <div class="relative flex space-x-3">
-                                                <div>
-                                                    <span
-                                                        class="h-8 w-8 rounded-full bg-yellow-500 flex items-center justify-center ring-8 ring-white">
-                                                        <svg class="h-5 w-5 text-white" viewBox="0 0 20 20"
-                                                            fill="currentColor" aria-hidden="true">
-                                                            <path
-                                                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 00-2 0v5a1 1 0 002 0V7zm0 7a1 1 0 00-2 0v1a1 1 0 002 0v-1z" />
-                                                        </svg>
-                                                    </span>
-                                                </div>
-                                                <div class="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
-                                                    <div>
-                                                        <p class="text-sm text-gray-800 prompt-regular">รอดำเนินการ</p>
-                                                    </div>
-                                                    <div class="whitespace-nowrap text-right text-sm text-gray-500">
-                                                        <time class="prompt-light text-xs">
-                                                            <%= new Date(booking.created_at).toLocaleString('th-TH', {
-                                                                timeZone: 'Asia/Bangkok' }) %>
-                                                        </time>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </li>
-                                    <!-- แสดงสถานะ กำลังดำเนินการ -->
-                                    <% if (booking.approved_at) { %>
+                        <!-- Right Side: Timeline -->
+                        <div class="timeline-section">
+                            <div class="p-4  pt-20 flow-root">
+                                <ul role="list" class="-mb-8">
+                                    <% if (booking.cancelled_at) { %>
+                                        <!-- แสดงสถานะ ยกเลิก -->
                                         <li>
                                             <div class="relative pb-8">
                                                 <span class="absolute left-4 top-4 -ml-px h-full w-0.5 bg-gray-200"
@@ -309,7 +229,7 @@
                                                 <div class="relative flex space-x-3">
                                                     <div>
                                                         <span
-                                                            class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center ring-8 ring-white">
+                                                            class="h-8 w-8 rounded-full bg-red-500 flex items-center justify-center ring-8 ring-white">
                                                             <svg class="h-5 w-5 text-white" viewBox="0 0 20 20"
                                                                 fill="currentColor" aria-hidden="true">
                                                                 <path
@@ -319,13 +239,12 @@
                                                     </div>
                                                     <div class="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
                                                         <div>
-                                                            <p class="text-sm text-gray-800 prompt-regular">
-                                                                กำลังดำเนินการ</p>
+                                                            <p class="text-sm text-gray-800 prompt-regular">ยกเลิก</p>
                                                         </div>
                                                         <div class="whitespace-nowrap text-right text-sm text-gray-500">
-                                                            <time class="prompt-light text-xs">
+                                                            <time>
                                                                 <%= new
-                                                                    Date(booking.approved_at).toLocaleString('th-TH', {
+                                                                    Date(booking.cancelled_at).toLocaleString('th-TH', {
                                                                     timeZone: 'Asia/Bangkok' }) %>
                                                             </time>
                                                         </div>
@@ -333,9 +252,43 @@
                                                 </div>
                                             </div>
                                         </li>
-                                        <% } %>
-                                            <!-- แสดงสถานะ ยืนยันงาน -->
-                                            <% if (booking.confirmed_at) { %>
+                                        <% } else if (booking.payment_status==='รอการตรวจสอบ' ) { %>
+                                            <!-- แสดงสถานะ รอการตรวจสอบ -->
+                                            <li>
+                                                <div class="relative pb-8">
+                                                    <span class="absolute left-4 top-4 -ml-px h-full w-0.5 bg-gray-200"
+                                                        aria-hidden="true"></span>
+                                                    <div class="relative flex space-x-3">
+                                                        <div>
+                                                            <span
+                                                                class="h-8 w-8 rounded-full bg-yellow-500 flex items-center justify-center ring-8 ring-white">
+                                                                <svg class="h-5 w-5 text-white" viewBox="0 0 20 20"
+                                                                    fill="currentColor" aria-hidden="true">
+                                                                    <path
+                                                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 00-2 0v5a1 1 0 002 0V7zm0 7a1 1 0 00-2 0v1a1 1 0 002 0v-1z" />
+                                                                </svg>
+                                                            </span>
+                                                        </div>
+                                                        <div
+                                                            class="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
+                                                            <div>
+                                                                <p class="text-sm text-gray-800 prompt-regular">
+                                                                    รอการตรวจสอบ</p>
+                                                            </div>
+                                                            <div
+                                                                class="whitespace-nowrap text-right text-sm text-gray-500">
+                                                                <time class="prompt-light text-xs">
+                                                                    <%= new
+                                                                        Date(booking.created_at).toLocaleString('th-TH',
+                                                                        { timeZone: 'Asia/Bangkok' }) %>
+                                                                </time>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                            <% } else if (booking.payment_status==='ยืนยัน' ) { %>
+                                                <!-- แสดงสถานะ รอดำเนินการ -->
                                                 <li>
                                                     <div class="relative pb-8">
                                                         <span
@@ -344,7 +297,7 @@
                                                         <div class="relative flex space-x-3">
                                                             <div>
                                                                 <span
-                                                                    class="h-8 w-8 rounded-full bg-green-500 flex items-center justify-center ring-8 ring-white">
+                                                                    class="h-8 w-8 rounded-full bg-yellow-500 flex items-center justify-center ring-8 ring-white">
                                                                     <svg class="h-5 w-5 text-white" viewBox="0 0 20 20"
                                                                         fill="currentColor" aria-hidden="true">
                                                                         <path
@@ -356,13 +309,13 @@
                                                                 class="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
                                                                 <div>
                                                                     <p class="text-sm text-gray-800 prompt-regular">
-                                                                        ยืนยันงาน</p>
+                                                                        รอดำเนินการ</p>
                                                                 </div>
                                                                 <div
                                                                     class="whitespace-nowrap text-right text-sm text-gray-500">
                                                                     <time class="prompt-light text-xs">
                                                                         <%= new
-                                                                            Date(booking.confirmed_at).toLocaleString('th-TH',
+                                                                            Date(booking.created_at).toLocaleString('th-TH',
                                                                             { timeZone: 'Asia/Bangkok' }) %>
                                                                     </time>
                                                                 </div>
@@ -370,73 +323,153 @@
                                                         </div>
                                                     </div>
                                                 </li>
-                                                <% } %>
+                                                <!-- แสดงสถานะ กำลังดำเนินการ -->
+                                                <% if (booking.approved_at) { %>
+                                                    <li>
+                                                        <div class="relative pb-8">
+                                                            <span
+                                                                class="absolute left-4 top-4 -ml-px h-full w-0.5 bg-gray-200"
+                                                                aria-hidden="true"></span>
+                                                            <div class="relative flex space-x-3">
+                                                                <div>
+                                                                    <span
+                                                                        class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center ring-8 ring-white">
+                                                                        <svg class="h-5 w-5 text-white"
+                                                                            viewBox="0 0 20 20" fill="currentColor"
+                                                                            aria-hidden="true">
+                                                                            <path
+                                                                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 00-2 0v5a1 1 0 002 0V7zm0 7a1 1 0 00-2 0v1a1 1 0 002 0v-1z" />
+                                                                        </svg>
+                                                                    </span>
+                                                                </div>
+                                                                <div
+                                                                    class="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
+                                                                    <div>
+                                                                        <p class="text-sm text-gray-800 prompt-regular">
+                                                                            กำลังดำเนินการ</p>
+                                                                    </div>
+                                                                    <div
+                                                                        class="whitespace-nowrap text-right text-sm text-gray-500">
+                                                                        <time class="prompt-light text-xs">
+                                                                            <%= new
+                                                                                Date(booking.approved_at).toLocaleString('th-TH',
+                                                                                { timeZone: 'Asia/Bangkok' }) %>
+                                                                        </time>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </li>
                                                     <% } %>
+                                                        <!-- แสดงสถานะ ยืนยันงาน -->
+                                                        <% if (booking.confirmed_at) { %>
+                                                            <li>
+                                                                <div class="relative pb-8">
+                                                                    <span
+                                                                        class="absolute left-4 top-4 -ml-px h-full w-0.5 bg-gray-200"
+                                                                        aria-hidden="true"></span>
+                                                                    <div class="relative flex space-x-3">
+                                                                        <div>
+                                                                            <span
+                                                                                class="h-8 w-8 rounded-full bg-green-500 flex items-center justify-center ring-8 ring-white">
+                                                                                <svg class="h-5 w-5 text-white"
+                                                                                    viewBox="0 0 20 20"
+                                                                                    fill="currentColor"
+                                                                                    aria-hidden="true">
+                                                                                    <path
+                                                                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 00-2 0v5a1 1 0 002 0V7zm0 7a1 1 0 00-2 0v1a1 1 0 002 0v-1z" />
+                                                                                </svg>
+                                                                            </span>
+                                                                        </div>
+                                                                        <div
+                                                                            class="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
+                                                                            <div>
+                                                                                <p
+                                                                                    class="text-sm text-gray-800 prompt-regular">
+                                                                                    ยืนยันงาน</p>
+                                                                            </div>
+                                                                            <div
+                                                                                class="whitespace-nowrap text-right text-sm text-gray-500">
+                                                                                <time class="prompt-light text-xs">
+                                                                                    <%= new
+                                                                                        Date(booking.confirmed_at).toLocaleString('th-TH',
+                                                                                        { timeZone: 'Asia/Bangkok' }) %>
+                                                                                </time>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </li>
+                                                            <% } %>
+                                                                <% } %>
 
-                    </ul>
-                    <!-- แสดงปุ่ม ยืนยันการรับงาน -->
-                    <% if (booking.status==='ยืนยันงาน' ) { %>
-                        <div class="mt-4 text-center">
-                            <form action="/bookings/confirm/<%= booking.id %>" method="POST">
-                                <button type="submit"
-                                    class="prompt-medium bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
-                                    ยืนยันการรับงาน
-                                </button>
-                            </form>
+                                </ul>
+                                <!-- แสดงปุ่ม ยืนยันการรับงาน -->
+                                <% if (booking.status==='ยืนยันงาน' ) { %>
+                                    <div class="mt-4 text-center">
+                                        <form action="/bookings/confirm/<%= booking.id %>" method="POST">
+                                            <button type="submit"
+                                                class="prompt-medium bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+                                                ยืนยันการรับงาน
+                                            </button>
+                                        </form>
+                                    </div>
+                                    <% } %>
+                            </div>
+
                         </div>
-                        <% } %>
-                </div>
 
-            </div>
+                        <!-- Show Cancel or Review Button -->
+                        <% if (booking.status !=='ยกเลิกการจอง' && booking.status !=='ยืนยันงาน' && booking.status
+                            !=='กำลังดำเนินการ' && booking.status !=='ยืนยันการรับงาน' ) { %>
+                            <form action="/bookings/<%= booking.id %>/cancel" method="POST">
+                                <button type="submit" class="prompt-bold btn btn-danger mt-4">ยกเลิกการจอง</button>
+                            </form>
+                            <% } else if (booking.status==='ยืนยันงาน' ) { %>
+                                <form action="/bookings/<%= booking.id %>/review" method="POST">
+                                    <!--<button type="submit" class="prompt-bold btn btn-primary mt-4">รีวิวงานนี้</button>-->
+                                </form>
+                                <% } else { %>
+                                    <p class="prompt-medium text-red-500"></p>
+                                    <% } %>
 
-            <!-- Show Cancel or Review Button -->
-            <% if (booking.status !=='ยกเลิกการจอง' && booking.status !=='ยืนยันงาน' && booking.status
-                !=='กำลังดำเนินการ' && booking.status !=='ยืนยันการรับงาน' ) { %>
-                <form action="/bookings/<%= booking.id %>/cancel" method="POST">
-                    <button type="submit" class="prompt-bold btn btn-danger mt-4">ยกเลิกการจอง</button>
-                </form>
-                <% } else if (booking.status==='ยืนยันงาน' ) { %>
-                    <form action="/bookings/<%= booking.id %>/review" method="POST">
-                        <!--<button type="submit" class="prompt-bold btn btn-primary mt-4">รีวิวงานนี้</button>-->
-                    </form>
-                    <% } else { %>
-                        <p class="prompt-medium text-red-500"></p>
-                        <% } %>
-
-                        <% if (booking.status === 'ยืนยันการรับงาน') { %>
-                            <% if (booking.review_rating) { %> 
-                                <!-- <div class="mt-4">
+                                        <% if (booking.status==='ยืนยันการรับงาน' ) { %>
+                                            <% if (booking.review_rating) { %>
+                                                <!-- <div class="mt-4">
                                     <h4 class="prompt-bold">รีวิวของคุณ:</h4>
                                     <p>คะแนน: <%= booking.review_rating %> ดาว</p>
                                     <p>คอมเมนต์: <%= booking.review_comment %></p> 
                                 </div> -->
-                            <% } else { %>
-                                <form action="/reviews/<%= booking.id %>" method="POST" class="mt-4">
-                                    <div class="flex items-center">
-                                        <label class="prompt-bold">ให้คะแนน:</label>
-                                        <div class="ml-2">
-                                            <div class="rating">
-                                                <% for (let i = 1; i <= 5; i++) { %>
-                                                    <input type="radio" id="star<%= i %>" name="rating" value="<%= i %>" required />
-                                                    <label for="star<%= i %>"></label>
-                                                <% } %>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="mt-4">
-                                        <label for="comment" class="prompt-bold">คอมเมนต์:</label>
-                                        <textarea name="comment" id="comment" rows="4"
-                                            class="form-textarea mt-1 block w-full prompt-regular border border-black"
-                                            required></textarea>
-                                    </div>
-                                    <button type="submit" class="prompt-bold btn btn-primary mt-4">ส่งรีวิว</button>
-                                </form>
-                            <% } %>
-                        <% } %>
-                        
-                        
+                                                <% } else { %>
+                                                    <form action="/reviews/<%= booking.id %>" method="POST"
+                                                        class="mt-4">
+                                                        <div class="flex items-center">
+                                                            <label class="prompt-bold">ให้คะแนน:</label>
+                                                            <div class="ml-2">
+                                                                <div class="rating">
+                                                                    <% for (let i=5; i>= 1; i--) { %>
+                                                                        <input type="radio" id="star<%= i %>"
+                                                                            name="rating" value="<%= i %>" required />
+                                                                        <label for="star<%= i %>"></label>
+                                                                        <% } %>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="mt-4">
+                                                            <label for="comment" class="prompt-bold">คอมเมนต์:</label>
+                                                            <textarea name="comment" id="comment" rows="4"
+                                                                class="form-textarea mt-1 block w-full prompt-regular border border-black"
+                                                                required></textarea>
+                                                        </div>
+                                                        <button type="submit"
+                                                            class="prompt-bold btn btn-primary mt-4">ส่งรีวิว</button>
+                                                    </form>
+                                                    <% } %>
+                                                        <% } %>
 
-        </div>
+
+
+                    </div>
 
 
 </body>
