@@ -144,55 +144,93 @@ const ensureAuthenticated = (req, res, next) => {
 io.on("connection", (socket) => {
   console.log("New user connected:", socket.id);
 
-  socket.on("joinRoom", (room) => {
-    if (room && room.trim()) {
-      socket.join(room);
-      console.log(`User ${socket.id} joined room ${room}`);
-    } else {
-      socket.emit('message', 'Room name cannot be empty');
-    }
-  });
-
-  socket.on("chatMessage", async ({ room, message, userId }) => {
-    if (room && message) {
-      io.to(room).emit("chatMessage", { userId, message });
-
-      // Save message to the database with userId and roomId
+  // ฟังก์ชันสำหรับเข้าร่วมห้อง
+  socket.on("joinRoom", async ({ room, userId }) => {
+    if (room && room.trim() && userId) {
       try {
-        await pool.query(
-          `INSERT INTO messages (room_id, user_id, message) VALUES ($1, $2, $3)`,
-          [room, userId, message]
+        const roomMessages = await pool.query(
+          `SELECT * FROM messages WHERE room_id = $1 LIMIT 1`,
+          [room]
         );
-        console.log("Message saved to the database.");
+
+        if (roomMessages.rows.length > 0) {
+          socket.join(room);
+          console.log(`User ${socket.id} joined room ${room}`);
+
+          // โหลดประวัติการสนทนา
+          const result = await pool.query(
+            `SELECT * FROM messages WHERE room_id = $1 ORDER BY created_at ASC`,
+            [room]
+          );
+          socket.emit('loadMessages', result.rows);
+        } else {
+          socket.emit('message', 'Room does not exist or you are not allowed to join this room');
+        }
       } catch (err) {
-        console.error("Error saving message:", err);
+        console.error("Error retrieving chat history:", err);
+        socket.emit('message', 'An error occurred while joining the room');
       }
+    } else {
+      socket.emit('message', 'Room name or User ID cannot be empty');
     }
   });
 
+  // ฟังก์ชันสำหรับส่งข้อความ
+  socket.on("chatMessage", async ({ room, message, userId }) => {
+    if (room && message && userId) {
+      try {
+        const roomMessages = await pool.query(
+          `SELECT * FROM messages WHERE room_id = $1 LIMIT 1`,
+          [room]
+        );
+
+        if (roomMessages.rows.length > 0) {
+          const createdAt = new Date();
+          const result = await pool.query(`SELECT name FROM users WHERE id = $1`, [userId]);
+          const username = result.rows[0]?.name || "Unknown";
+
+          // ส่งข้อความไปยังห้อง
+          io.to(room).emit("chatMessage", { 
+            username, 
+            message, 
+            created_at: createdAt 
+          });
+
+          // บันทึกข้อความลงในฐานข้อมูล
+          await pool.query(
+            `INSERT INTO messages (room_id, user_id, message, created_at) VALUES ($1, $2, $3, $4)`,
+            [room, userId, message, createdAt]
+          );
+        } else {
+          socket.emit('message', 'You are not allowed to send messages in this room');
+        }
+      } catch (err) {
+        console.error("Error sending message:", err);
+        socket.emit('message', 'An error occurred while sending the message');
+      }
+    } else {
+      socket.emit('message', 'Room, message, or userId cannot be empty');
+    }
+  });
+
+  // ฟังก์ชันเมื่อผู้ใช้ตัดการเชื่อมต่อ
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
   });
 });
 
-
-
+// ฟังก์ชันเพื่อเรนเดอร์หน้าแชท
 app.get('/users/chat/:teamId', ensureAuthenticated, (req, res) => {
   const teamId = req.params.teamId;
-  const userId = req.params.userId;
-  res.render('chat', { userId: userId, teamId: teamId });
+  const userId = req.user.id; // แก้ไขจาก req.params.userId เป็น req.user.id
+  res.render('chat', { userId, teamId });
 });
 
 app.get('/team/chat/:teamId', checkTeamAuthenticated, (req, res) => {
   const teamId = req.params.teamId;
-  const userId = req.session.userId || req.user?.id; // Assuming userId is stored in the session or user object
-
-  if (!userId) {
-    return res.redirect('/users/login'); // Redirect to login if no user is logged in
-  }
-
-  res.render('chat', { userId: userId, teamId: teamId });
+  res.render('chat', { userId: null, teamId });
 });
+
 
 
 app.get("/chat", (req, res) => {
@@ -436,11 +474,23 @@ app.post('/users/book_service', ensureAuthenticated, async (req, res) => {
 
     // Validate input fields
     if (!team_id || !name || !email || !phone || !address || !booking_date || !booking_time || !service_details) {
-      return res.status(400).send('Please fill in all required fields.');
+      return res.status(400).send('<script>alert("Please fill in all required fields."); window.history.back();</script>');
     }
 
     if (!payment_proof) {
-      return res.status(400).send('Please upload the payment proof.');
+      return res.status(400).send('<script>alert("Please upload the payment proof."); window.history.back();</script>');
+    }
+
+    // Check if the team has another booking at the same date and time
+    const checkQuery = `
+      SELECT * FROM bookings
+      WHERE team_id = $1 AND booking_date = $2 AND booking_time = $3;
+    `;
+    const checkValues = [team_id, booking_date, booking_time];
+    const existingBooking = await pool.query(checkQuery, checkValues);
+
+    if (existingBooking.rows.length > 0) {
+      return res.status(400).send('<script>alert("ขออภัย วันและเวลานี้ถูกจองแล้ว กรุณาจองใหม่อีกครั้ง"); window.history.back();</script>');
     }
 
     // Define the directory to save the uploaded payment proof
@@ -448,7 +498,7 @@ app.post('/users/book_service', ensureAuthenticated, async (req, res) => {
     payment_proof.mv(`.${paymentProofPath}`, async function(err) {
       if (err) {
         console.error(err);
-        return res.status(500).send('Error uploading payment proof.');
+        return res.status(500).send('<script>alert("Error uploading payment proof."); window.history.back();</script>');
       }
 
       // Insert booking data into the bookings table
@@ -462,13 +512,15 @@ app.post('/users/book_service', ensureAuthenticated, async (req, res) => {
       const booking = result.rows[0];
 
       const alertMessage = `การจองสำเร็จ!`;
-      res.status(201).send(`<script>alert('${alertMessage}'); window.location.href='/users/dashboard';</script>`);
+      res.status(201).send(`<script>alert('${alertMessage}'); window.location.href='/users/view_bookings';</script>`);
     });
   } catch (err) {
     console.error(err);
-    res.status(500).send('Error ' + err);
+    res.status(500).send('<script>alert("Error occurred: ' + err.message + '"); window.history.back();</script>');
   }
 });
+
+
 
 
 
@@ -478,7 +530,7 @@ app.get('/users/view_bookings', ensureAuthenticated, async (req, res) => {
   try {
     const user_id = req.user.id;
 
-    const query = 'SELECT * FROM bookings WHERE user_id = $1 ORDER BY booking_date ASC;';
+    const query = 'SELECT * FROM bookings WHERE user_id = $1 ORDER BY id DESC;';
     const values = [user_id];
     const result = await pool.query(query, values);
 
@@ -555,11 +607,11 @@ app.post('/reviews/:id', ensureAuthenticated, async (req, res) => {
   try {
     await pool.query('INSERT INTO reviews (booking_id, rating, comment, created_at) VALUES ($1, $2, $3, NOW())', [bookingId, rating, comment]);
     req.flash('success', 'รีวิวของคุณถูกส่งเรียบร้อยแล้ว!');
-    res.redirect(`/bookings/${bookingId}`);
+    res.redirect(`/users/view_booking/${bookingId}`);
   } catch (err) {
     console.error('Error inserting review:', err);
     req.flash('error', 'เกิดข้อผิดพลาดในการส่งรีวิว');
-    res.redirect(`/bookings/${bookingId}`);
+    res.redirect(`/users/view_booking/${bookingId}`);
   }
 });
 
@@ -1393,9 +1445,9 @@ app.post('/bookings/confirm/:id', async (req, res) => {
     `, [bookingId]);
 
     if (result.rows.length > 0) {
-      res.redirect(`/users/view_bookings/${bookingId}?success=true&message=ยืนยันการรับงานสำเร็จ`);
+      res.redirect(`/users/view_bookings?success=true&message=ยืนยันการรับงานสำเร็จ`);
     } else {
-      res.redirect(`/users/view_bookings/${bookingId}?success=false&message=ไม่พบการจอง`);
+      res.redirect(`/users/view_bookings?success=false&message=ไม่พบการจอง`);
     }
   } catch (err) {
     console.error(err.message);
@@ -1770,6 +1822,6 @@ function checkAdmin(req, res, next) {
   res.redirect('/users/login');
 }
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

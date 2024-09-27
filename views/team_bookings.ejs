@@ -106,7 +106,7 @@
         <a class="active" href="/team/get_all_bookings">งานทั้งหมด</a>
         <div class="topnav-right">
             <a href="#">ข้อความ</a>
-            <a href="#">แก้ไขข้อมูล</a>
+            <a href="/team/profile/edit">แก้ไขข้อมูล</a>
             <a href="/team/logout">ออกจากระบบ</a>
         </div>
     </div>
@@ -115,7 +115,7 @@
         <h3 class="prompt-medium">งานทั้งหมด</h3>
 
         <% if (message) { %>
-            <div class="alert alert-info">
+            <div class="alert alert-info prompt-medium">
                 <%= message %>
             </div>
             <% } %>
