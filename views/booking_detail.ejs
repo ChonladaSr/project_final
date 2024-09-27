@@ -15,54 +15,63 @@
 </head>
 
 <style>
- body {
-    font-family: Arial, sans-serif;
-    background-color: #fff;
-    margin: 0;
-    padding: 0;
-}
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #fff;
+        margin: 0;
+        padding: 0;
+    }
 
-.container {
-    max-width: 1200px; /* ขยายความกว้างของ container */
-    margin: 20px auto; /* ทำให้ container อยู่ตรงกลางของหน้าจอ */
-    padding: 30px;
-    background: #fff; /* เปลี่ยนเป็นสีขาว */
-    border-radius: 8px;
-    display: flex;
-    justify-content: flex-start; /* ให้เริ่มต้นจากซ้าย */
-    gap: 20px; /* เพิ่มช่องว่างระหว่าง details และ timeline-section */
-    flex-direction: row;
-}
+    .container {
+        max-width: 1200px;
+        /* ขยายความกว้างของ container */
+        margin: 20px auto;
+        /* ทำให้ container อยู่ตรงกลางของหน้าจอ */
+        padding: 30px;
+        background: #fff;
+        /* เปลี่ยนเป็นสีขาว */
+        border-radius: 8px;
+        display: flex;
+        justify-content: flex-start;
+        /* ให้เริ่มต้นจากซ้าย */
+        gap: 20px;
+        /* เพิ่มช่องว่างระหว่าง details และ timeline-section */
+        flex-direction: row;
+    }
 
-.details {
-    flex: 1; /* ใช้ 2 ส่วนจากทั้งหมด */
-    padding: 20px;
-    
-    
-    max-width: 350px; /* กำหนดความกว้างสูงสุด */
-    margin: 0 auto; /* ทำให้เนื้อหาของ details อยู่ตรงกลาง */
-     /* จัดข้อความให้อยู่ตรงกลาง */
-}
+    .details {
+        flex: 1;
+        /* ใช้ 2 ส่วนจากทั้งหมด */
+        padding: 20px;
 
-.timeline-section {
-    flex: 1; /* ใช้ 1 ส่วนจากทั้งหมด */
-    padding: 20px;
 
-}
+        max-width: 350px;
+        /* กำหนดความกว้างสูงสุด */
+        margin: 0 auto;
+        /* ทำให้เนื้อหาของ details อยู่ตรงกลาง */
+        /* จัดข้อความให้อยู่ตรงกลาง */
+    }
 
-h1 {
-    text-align: center;
-    color: #333;
-}
+    .timeline-section {
+        flex: 1;
+        /* ใช้ 1 ส่วนจากทั้งหมด */
+        padding: 20px;
 
-.timeline {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 0;
-    margin-top: 20px;
-}
+    }
+
+    h1 {
+        text-align: center;
+        color: #333;
+    }
+
+    .timeline {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 0;
+        margin-top: 20px;
+    }
 
 
 
@@ -120,7 +129,7 @@ h1 {
     }
 
     .rating {
-        display:inline-flex;
+        display: inline-flex;
     }
 
     .rating input {
@@ -150,7 +159,7 @@ h1 {
     <%- include('./partials/header') %>
 
         <div class="container">
-    <!-- Left Side: Booking Details -->
+            <!-- Left Side: Booking Details -->
             <div class="details">
                 <p class="prompt-medium text-orange-500 mt-2">รายละเอียดการจอง</p>
                 <p class="prompt-regular mt-1">หมายเลขการจอง #<%= booking.id %>
@@ -179,22 +188,21 @@ h1 {
                 <p class="prompt-medium text-orange-500 mt-2">สถานะการจอง</p>
                 <p class="prompt-regular">
                     <span id="status-text">
-                        <% if (booking.payment_status==='รอการตรวจสอบ' && booking.status !=='ยกเลิกการจอง') { %>
+                        <% if (booking.payment_status==='รอการตรวจสอบ' && booking.status !=='ยกเลิกการจอง' ) { %>
                             รอการตรวจสอบ
                             <% } else if (booking.payment_status==='ยืนยัน' ) { %>
                                 <%= booking.status %>
-                                    <% } else if (booking.payment_status==='รอการตรวจสอบ' && booking.status==='ยกเลิกการจอง' ) { %>
+                                    <% } else if (booking.payment_status==='รอการตรวจสอบ' &&
+                                        booking.status==='ยกเลิกการจอง' ) { %>
                                         <%= booking.status %>
                                             <% } %>
                     </span>
                 </p>
 
-
-
             </div>
 
 
-<!-- Right Side: Timeline -->
+            <!-- Right Side: Timeline -->
             <div class="timeline-section">
                 <div class="p-4  pt-20 flow-root">
                     <ul role="list" class="-mb-8">
@@ -202,7 +210,8 @@ h1 {
                             <!-- แสดงสถานะ ยกเลิก -->
                             <li>
                                 <div class="relative pb-8">
-                                    <span class="absolute left-4 top-4 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>
+                                    <span class="absolute left-4 top-4 -ml-px h-full w-0.5 bg-gray-200"
+                                        aria-hidden="true"></span>
                                     <div class="relative flex space-x-3">
                                         <div>
                                             <span
@@ -238,8 +247,8 @@ h1 {
                                             <div>
                                                 <span
                                                     class="h-8 w-8 rounded-full bg-yellow-500 flex items-center justify-center ring-8 ring-white">
-                                                    <svg class="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor"
-                                                        aria-hidden="true">
+                                                    <svg class="h-5 w-5 text-white" viewBox="0 0 20 20"
+                                                        fill="currentColor" aria-hidden="true">
                                                         <path
                                                             d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 00-2 0v5a1 1 0 002 0V7zm0 7a1 1 0 00-2 0v1a1 1 0 002 0v-1z" />
                                                     </svg>
@@ -269,8 +278,8 @@ h1 {
                                                 <div>
                                                     <span
                                                         class="h-8 w-8 rounded-full bg-yellow-500 flex items-center justify-center ring-8 ring-white">
-                                                        <svg class="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor"
-                                                            aria-hidden="true">
+                                                        <svg class="h-5 w-5 text-white" viewBox="0 0 20 20"
+                                                            fill="currentColor" aria-hidden="true">
                                                             <path
                                                                 d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 00-2 0v5a1 1 0 002 0V7zm0 7a1 1 0 00-2 0v1a1 1 0 002 0v-1z" />
                                                         </svg>
@@ -300,8 +309,8 @@ h1 {
                                                     <div>
                                                         <span
                                                             class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center ring-8 ring-white">
-                                                            <svg class="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor"
-                                                                aria-hidden="true">
+                                                            <svg class="h-5 w-5 text-white" viewBox="0 0 20 20"
+                                                                fill="currentColor" aria-hidden="true">
                                                                 <path
                                                                     d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 00-2 0v5a1 1 0 002 0V7zm0 7a1 1 0 00-2 0v1a1 1 0 002 0v-1z" />
                                                             </svg>
@@ -314,7 +323,8 @@ h1 {
                                                         </div>
                                                         <div class="whitespace-nowrap text-right text-sm text-gray-500">
                                                             <time class="prompt-light text-xs">
-                                                                <%= new Date(booking.approved_at).toLocaleString('th-TH', {
+                                                                <%= new
+                                                                    Date(booking.approved_at).toLocaleString('th-TH', {
                                                                     timeZone: 'Asia/Bangkok' }) %>
                                                             </time>
                                                         </div>
@@ -327,7 +337,8 @@ h1 {
                                             <% if (booking.confirmed_at) { %>
                                                 <li>
                                                     <div class="relative pb-8">
-                                                        <span class="absolute left-4 top-4 -ml-px h-full w-0.5 bg-gray-200"
+                                                        <span
+                                                            class="absolute left-4 top-4 -ml-px h-full w-0.5 bg-gray-200"
                                                             aria-hidden="true"></span>
                                                         <div class="relative flex space-x-3">
                                                             <div>
@@ -340,15 +351,18 @@ h1 {
                                                                     </svg>
                                                                 </span>
                                                             </div>
-                                                            <div class="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
+                                                            <div
+                                                                class="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
                                                                 <div>
                                                                     <p class="text-sm text-gray-800 prompt-regular">
                                                                         ยืนยันงาน</p>
                                                                 </div>
-                                                                <div class="whitespace-nowrap text-right text-sm text-gray-500">
+                                                                <div
+                                                                    class="whitespace-nowrap text-right text-sm text-gray-500">
                                                                     <time class="prompt-light text-xs">
-                                                                        <%= new Date(booking.confirmed_at).toLocaleString('th-TH', {
-                                                                            timeZone: 'Asia/Bangkok' }) %>
+                                                                        <%= new
+                                                                            Date(booking.confirmed_at).toLocaleString('th-TH',
+                                                                            { timeZone: 'Asia/Bangkok' }) %>
                                                                     </time>
                                                                 </div>
                                                             </div>
@@ -357,23 +371,22 @@ h1 {
                                                 </li>
                                                 <% } %>
                                                     <% } %>
-            
+
                     </ul>
                     <!-- แสดงปุ่ม ยืนยันการรับงาน -->
                     <% if (booking.status==='ยืนยันงาน' ) { %>
                         <div class="mt-4 text-center">
                             <form action="/bookings/confirm/<%= booking.id %>" method="POST">
-                                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                                <button type="submit"
+                                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                                     ยืนยันการรับงาน
                                 </button>
                             </form>
                         </div>
                         <% } %>
                 </div>
-            
-            </div>
 
-        
+            </div>
 
             <!-- Show Cancel or Review Button -->
             <% if (booking.status !=='ยกเลิกการจอง' && booking.status !=='ยืนยันงาน' && booking.status
@@ -389,17 +402,23 @@ h1 {
                         <p class="prompt-medium text-red-500"></p>
                         <% } %>
 
-                            <% if (booking.status==='ยืนยันการรับงาน' && !booking.review) { %>
+                        <% if (booking.status === 'ยืนยันการรับงาน') { %>
+                            <% if (booking.review_rating) { %> 
+                                <!-- <div class="mt-4">
+                                    <h4 class="prompt-bold">รีวิวของคุณ:</h4>
+                                    <p>คะแนน: <%= booking.review_rating %> ดาว</p>
+                                    <p>คอมเมนต์: <%= booking.review_comment %></p> 
+                                </div> -->
+                            <% } else { %>
                                 <form action="/bookings/<%= booking.id %>/review" method="POST" class="mt-4">
                                     <div class="flex items-center">
                                         <label class="prompt-bold">ให้คะแนน:</label>
                                         <div class="ml-2">
                                             <div class="rating">
-                                                <% for (let i=1; i <=5; i++) { %>
-                                                    <input type="radio" id="star<%= i %>" name="rating" value="<%= i %>"
-                                                        required />
+                                                <% for (let i = 1; i <= 5; i++) { %>
+                                                    <input type="radio" id="star<%= i %>" name="rating" value="<%= i %>" required />
                                                     <label for="star<%= i %>"></label>
-                                                    <% } %>
+                                                <% } %>
                                             </div>
                                         </div>
                                     </div>
@@ -411,7 +430,10 @@ h1 {
                                     </div>
                                     <button type="submit" class="prompt-bold btn btn-primary mt-4">ส่งรีวิว</button>
                                 </form>
-                                <% } %>
+                            <% } %>
+                        <% } %>
+                        
+                        
 
         </div>
 

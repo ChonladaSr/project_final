@@ -18,7 +18,7 @@
 
             .multi-step-form {
                 max-width: 600px;
-                margin: 40px auto;
+                margin:  auto;
                 background: fff;
                 padding: 30px;
                 /* border-radius: 8px;
@@ -44,7 +44,9 @@
             }
 
             .btn-custom:hover {
-                background-color: #FFA500;
+                background-color: #FF8C00;
+                color: white;
+
             }
 
             .step-indicators {
@@ -99,15 +101,12 @@
                     <!-- Step 1 -->
                     <div class="step active">
                         <input type="hidden" name="team_id" id="teamId" value="<%= teamId %>">
-
-                        
-
-                        <input type="text" name="name" placeholder="ชื่อ" required class="form-control mb-3">
-                        <input type="email" name="email" placeholder="อีเมล" required class="form-control mb-3">
-                        <input type="text" name="phone" placeholder="เบอร์โทร" required class="form-control mb-3">
-                        <textarea name="address" placeholder="ที่อยู่" required class="form-control mb-3"></textarea>
-                        <input type="date" name="booking_date" required class="form-control mb-3">
-                        <select name="booking_time" required class="form-control mb-3">
+                        <input type="text" name="name" placeholder="กรุณากรอกชื่อ" required class="prompt-regular form-control mb-3">
+                        <input type="email" name="email" placeholder="กรุณากรอกอีเมล" required class="prompt-regular form-control mb-3">
+                        <input type="text" name="phone" placeholder="กรุณากรอกเบอร์โทรศัพท์" required class="prompt-regular form-control mb-3">
+                        <textarea name="address" placeholder="กรุณากรอกที่อยู่" required class="prompt-regular form-control mb-3"></textarea>
+                        <input type="date" name="booking_date" required class="prompt-regular form-control mb-3">
+                        <select name="booking_time" required class="prompt-regular form-control mb-3">
                             <option value="08:00-09:00">08:00-09:00</option>
                             <option value="09:00-10:00">09:00-10:00</option>
                             <option value="10:00-11:00">10:00-11:00</option>
@@ -118,46 +117,54 @@
                             <option value="15:00-16:00">15:00-16:00</option>
                             <option value="16:00-17:00">16:00-17:00</option>
                         </select>
-                        <textarea name="service_details" placeholder="รายละเอียดการบริการ" required
-                            class="form-control mb-3"></textarea>
-                        <button type="button" class="btn btn-custom w-100" id="nextBtn">ถัดไป</button>
+                        <textarea name="service_details" placeholder="กรุณากรอกรายละเอียดการบริการ" required
+                            class="form-control mb-3 prompt-regular"></textarea>
+                       
+                            <button type="button" class="prompt-medium mt-2 btn btn-custom w-100" id="nextBtn">ถัดไป</button>
                     </div>
-
+        
                     <!-- Step 2 -->
                     <div class="step">
 
                         <div class="flex-wrap md:flex">
                             <div class="mx-auto">
-                              <img class="mx-auto mt-12 h-52 w-52 rounded-lg border p-2 md:mt-0" src="https://i.imgur.com/FQS7fFC.png" alt="step" />
-                              <div>
-                                <h1 class="font-laonoto mt-4 text-center text-xl font-bold">ໂອນດ້ວຍເລກບັນຊີ</h1>
-                                <p class="mt-2 text-center font-semibold text-gray-600">YOTHIN BOUBPHA</p>
-                                <p class="mt-1 text-center font-medium text-red-500">040-12-00-01166166-001</p>
-                              </div>
-                              <div class="mx-auto w-52">
-                                <div class="m-4">
-                                  <div class="flex w-full items-center justify-center">
-                                    <label class="flex h-14 w-full cursor-pointer flex-col border-4 border-dashed border-gray-200 hover:border-gray-300 hover:bg-gray-100">
-                                      <div class="mt-4 flex items-center justify-center space-x-1">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-6 w-6 text-gray-400">
-                                          <path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
-                                        </svg>
-                      
-                                        <p class="font-laonoto text-sm tracking-wider text-gray-400 group-hover:text-gray-600">ອັບໂຫຼດຮູບບິນ</p>
-                                      </div>
-                                      <input type="file" class="opacity-0" />
-                                    </label>
-                                  </div>
+                                <img class="mx-auto mt-12 h-52 w-52 rounded-lg border p-2 md:mt-0"
+                                    src="https://img2.pic.in.th/pic/458260690_1202122877695548_3620449361034568857_n.jpg" alt="step" />
+                                <div>
+                                    <p class="text-xl mt-2 text-center prompt-medium text-gray-600">Skill Deck</p>
+                                    <p class="mt-1 text-center prompt-medium text-red-500">xxx-xx-xx-123</p>
                                 </div>
-                              </div>
-                        <label for="payment_proof">อัปโหลดหลักฐานการชำระเงิน:</label>
-                        <input type="file" name="payment_proof" id="payment_proof" accept="image/*" required
-                            class="form-control mb-3">
+                                <div class="mx-auto w-52">
+                                    <div class="m-4">
+                                        <div class="flex w-full items-center justify-center">
+                                            <label
+                                                class="flex h-30 w-60 cursor-pointer flex-col border-4 border-dashed border-gray-200 hover:border-gray-300 hover:bg-gray-100">
+                                                <div class="mt-4 flex items-center justify-center space-x-1">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                        viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                                                        class="h-6 w-6 text-gray-400">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
+                                                    </svg>
 
+                                                    <p
+                                                        class="prompt-medium font-laonoto text-sm tracking-wider text-gray-400 group-hover:text-gray-600">
+                                                        อัปโหลดหลักฐานการชำระเงิน</p>
+                                                </div>
+                                                <input type="file" class="opacity-0" name="payment_proof" id="payment_proof" accept="image/*" required>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                           <!--      <label for="payment_proof">อัปโหลดหลักฐานการชำระเงิน:</label>
+                                <input type="file" name="payment_proof" id="payment_proof" accept="image/*" required
+                                    class="form-control mb-3"> -->
 
-                        <button type="button" class="btn btn-secondary w-100 mb-3" id="prevBtn">ย้อนกลับ</button>
-                        <button type="submit" class="btn btn-custom w-100">ยืนยันการจอง</button>
-                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <button type="button" class="prompt-medium btn btn-secondary flex-grow-1 me-2" id="prevBtn">ย้อนกลับ</button>
+                                        <button type="submit" class="prompt-medium btn btn-custom flex-grow-1">ยืนยันการจอง</button>
+                                    </div>
+                            </div>
                 </form>
 
             </div>
