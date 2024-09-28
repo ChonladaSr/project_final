@@ -129,6 +129,9 @@
     <div class="flex justify-center mb-8">
       <img src="https://img2.pic.in.th/pic/Screenshot-2024-08-06-225808.png" alt="Logo" class="w-21 h-10">
     </div>
+<!--     <fieldset disabled>
+      <input id="room-input" class="prompt-regular" type="text" value="<%= teamId %>" readonly />
+    </fieldset> -->
     <button id="join-button" class="prompt-regular">เข้าร่วมแชท</button>
   </div>
 
@@ -142,80 +145,135 @@
   <script>
     const socket = io();
     let currentRoom = '<%= teamId %>';
-    const userId = "<%= userId %>";
-    const teamId = "<%= teamId %>";
+    const userIds = ["<%= userIds.join(', ') %>"]; // ส่ง userIds เป็น array โดยใช้ EJS
+    // const userId = "<%= userId %>"; // User ID from backend
+    const teamId = "<%= teamId %>"; // Team ID from backend
+    console.log("Users who have chatted with this team:", userIds);
 
-    // ฟังก์ชันเข้าร่วมห้อง
+    // Join the room when clicking "join-button"
     document.getElementById('join-button').onclick = function () {
-      if (currentRoom && userId) {
-        socket.emit("joinRoom", { room: currentRoom, userId: userId });
+      if (currentRoom) {
+        socket.emit("joinRoom", currentRoom); // Join the room
         document.getElementById('room-selection').style.display = 'none';
         document.getElementById('chat-room').style.display = 'block';
       }
     };
 
-    // ฟังก์ชันส่งข้อความ
+    // Send a message
     document.getElementById('send-button').onclick = function () {
       const message = document.getElementById('message-input').value;
-      if (currentRoom && message && userId) {
-        socket.emit("chatMessage", { room: currentRoom, message: message, userId: userId });
+      if (currentRoom && message) {
+        const now = new Date(); // Current time
+        // Emit chatMessage with created_at
+        socket.emit("chatMessage", {
+          room: currentRoom,
+          message: message,
+          userId: userId || null, // Send userId if available
+          teamId: teamId || null,  // Send teamId if available
+          created_at: now.toISOString() // Add created_at in ISO format
+        });
         document.getElementById('message-input').value = ''; // Clear input
       }
     };
 
-    // ฟังก์ชันโหลดข้อความจากเซิร์ฟเวอร์
     socket.on('loadMessages', (messages) => {
       const messagesContainer = document.getElementById('messages');
-      messagesContainer.innerHTML = '';
+      messagesContainer.innerHTML = ''; // Clear old messages
 
+      // Display each message with created_at
       messages.forEach(message => {
         const messageElement = document.createElement("div");
         messageElement.classList.add('message', 'received');
 
+        // Convert created_at to local time (Thailand time zone UTC+7)
         const date = new Date(message.created_at);
-        const dateString = date.toLocaleDateString('th-TH', { timeZone: 'Asia/Bangkok' });
-        const timeString = date.toLocaleTimeString('th-TH', { timeZone: 'Asia/Bangkok' });
 
+        // Format the date and time
+        const dateOptions = {
+          timeZone: 'Asia/Bangkok',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        };
+        const timeOptions = {
+          timeZone: 'Asia/Bangkok',
+          hour: '2-digit',
+          minute: '2-digit'
+        };
+
+        const dateString = date.toLocaleDateString('th-TH', dateOptions);
+        const timeString = date.toLocaleTimeString('th-TH', timeOptions);
+
+        // Create a span for name and timestamp with class "text-sm"
         const metaDataElement = document.createElement("span");
         metaDataElement.classList.add('text-xs', 'text-gray-500');
         metaDataElement.textContent = `${message.name || 'Unknown'} (${dateString} ${timeString} น.)`;
 
+        // Create a break for separating metadata and message
         const lineBreak = document.createElement("br");
+
+        // Add the actual message content
         const messageContent = document.createTextNode(message.message);
 
+        // Append the elements in order
         messageElement.appendChild(metaDataElement);
         messageElement.appendChild(lineBreak);
         messageElement.appendChild(messageContent);
+
         messagesContainer.appendChild(messageElement);
       });
 
+      // Scroll to the latest message
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
     });
 
-    // ฟังก์ชันรับข้อความจากผู้ใช้รายอื่น
     socket.on("chatMessage", (data) => {
       const messageElement = document.createElement("div");
       messageElement.classList.add('message', 'received');
 
+      // Convert created_at to local time (Thailand time zone UTC+7)
       const date = new Date(data.created_at);
-      const dateString = date.toLocaleDateString('th-TH', { timeZone: 'Asia/Bangkok' });
-      const timeString = date.toLocaleTimeString('th-TH', { timeZone: 'Asia/Bangkok' });
 
+      // Format the date and time
+      const dateOptions = {
+        timeZone: 'Asia/Bangkok',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      };
+      const timeOptions = {
+        timeZone: 'Asia/Bangkok',
+        hour: '2-digit',
+        minute: '2-digit'
+      };
+
+      const dateString = date.toLocaleDateString('th-TH', dateOptions);
+      const timeString = date.toLocaleTimeString('th-TH', timeOptions);
+
+      // Create a span for name and timestamp with class "text-sm"
       const metaDataElement = document.createElement("span");
       metaDataElement.classList.add('text-xs', 'text-gray-500');
       metaDataElement.textContent = `${data.username || 'Unknown'} (${dateString} ${timeString} น.)`;
 
+      // Create a break for separating metadata and message
       const lineBreak = document.createElement("br");
+
+      // Add the actual message content
       const messageContent = document.createTextNode(data.message);
 
+      // Append the elements in order
       messageElement.appendChild(metaDataElement);
       messageElement.appendChild(lineBreak);
       messageElement.appendChild(messageContent);
+
       document.getElementById('messages').appendChild(messageElement);
+
+      // Scroll to the latest message
       document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
     });
 
-    // ฟังก์ชันแสดงข้อความจากเซิร์ฟเวอร์
+
+    // Display server messages
     socket.on('message', (msg) => {
       const messageElement = document.createElement("div");
       messageElement.classList.add('message', 'received');
@@ -223,9 +281,9 @@
       document.getElementById('messages').appendChild(messageElement);
       document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
     });
+
   </script>
 </body>
-
 
 
 </html>
