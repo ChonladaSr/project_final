@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Skill Deck</title>
-  <link rel="icon" href="https://cdn-icons-png.freepik.com/256/9416/9416123.png?semt=ais_hybrid">
+  <link rel="icon" href="https://cdn-icons-png.freepik.com/512/9169/9169949.png?ga=GA1.1.512366322.1722083948">
 
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
   <%- include('./font') %>
@@ -124,14 +124,15 @@
     </style>
 
 </head>
+
 <body>
   <div id="room-selection">
     <div class="flex justify-center mb-8">
       <img src="https://img2.pic.in.th/pic/Screenshot-2024-08-06-225808.png" alt="Logo" class="w-21 h-10">
     </div>
-    <fieldset disabled>
+    <!-- <fieldset disabled>
       <input id="room-input" class="prompt-regular" type="text" value="<%= teamId %>" readonly />
-    </fieldset>
+    </fieldset> -->
     <button id="join-button" class="prompt-regular">เข้าร่วมแชท</button>
   </div>
 
@@ -175,75 +176,101 @@
     };
 
     socket.on('loadMessages', (messages) => {
-      const messagesContainer = document.getElementById('messages');
-      messagesContainer.innerHTML = ''; // Clear old messages
+  const messagesContainer = document.getElementById('messages');
+  messagesContainer.innerHTML = ''; // Clear old messages
 
-      // Display each message with created_at
-      messages.forEach(message => {
-        const messageElement = document.createElement("div");
-        messageElement.classList.add('message', 'received');
+  // Display each message with created_at
+  messages.forEach(message => {
+    const messageElement = document.createElement("div");
+    messageElement.classList.add('message', 'received');
 
-        // Convert created_at to local time (Thailand time zone UTC+7)
-        const date = new Date(message.created_at);
+    // Convert created_at to local time (Thailand time zone UTC+7)
+    const date = new Date(message.created_at);
 
-        // Format the date and time
-        const dateOptions = {
-          timeZone: 'Asia/Bangkok',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric'
-        };
-        const timeOptions = {
-          timeZone: 'Asia/Bangkok',
-          hour: '2-digit',
-          minute: '2-digit'
-          // second: '2-digit' 
-        };
+    // Format the date and time
+    const dateOptions = {
+      timeZone: 'Asia/Bangkok',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    };
+    const timeOptions = {
+      timeZone: 'Asia/Bangkok',
+      hour: '2-digit',
+      minute: '2-digit'
+    };
 
-        const dateString = date.toLocaleDateString('th-TH', dateOptions);
-        const timeString = date.toLocaleTimeString('th-TH', timeOptions);
+    const dateString = date.toLocaleDateString('th-TH', dateOptions);
+    const timeString = date.toLocaleTimeString('th-TH', timeOptions);
 
-        // Display the message with date and time
-        messageElement.textContent = `${message.name || 'Unknown'} [${dateString} ${timeString}]: ${message.message}`;
-        messagesContainer.appendChild(messageElement);
-      });
+    // Create a span for name and timestamp with class "text-sm text-gray-500"
+    const metaDataElement = document.createElement("span");
+    metaDataElement.classList.add('text-sm', 'text-gray-500'); // Gray text class
+    metaDataElement.textContent = `${message.name || 'Unknown'} [${dateString} ${timeString}]`;
 
-      // Scroll to the latest message
-      messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    });
+    // Create a break for separating metadata and message
+    const lineBreak = document.createElement("br");
 
+    // Add the actual message content
+    const messageContent = document.createTextNode(message.message);
 
-    socket.on("chatMessage", (data) => {
-      const messageElement = document.createElement("div");
-      messageElement.classList.add('message', 'received');
+    // Append the elements in order
+    messageElement.appendChild(metaDataElement);
+    messageElement.appendChild(lineBreak);
+    messageElement.appendChild(messageContent);
 
-      // Convert created_at to local time (Thailand time zone UTC+7)
-      const date = new Date(data.created_at);
+    messagesContainer.appendChild(messageElement);
+  });
 
-      // Format the date and time
-      const dateOptions = {
-        timeZone: 'Asia/Bangkok',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      };
-      const timeOptions = {
-        timeZone: 'Asia/Bangkok',
-        hour: '2-digit',
-        minute: '2-digit'
-        // second: '2-digit'
-      };
+  // Scroll to the latest message
+  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+});
 
-      const dateString = date.toLocaleDateString('th-TH', dateOptions);
-      const timeString = date.toLocaleTimeString('th-TH', timeOptions);
+socket.on("chatMessage", (data) => {
+  const messageElement = document.createElement("div");
+  messageElement.classList.add('message', 'received');
 
-      // Display the message with date and time
-      messageElement.textContent = `${data.username} [${dateString} ${timeString}]: ${data.message}`;
-      document.getElementById('messages').appendChild(messageElement);
+  // Convert created_at to local time (Thailand time zone UTC+7)
+  const date = new Date(data.created_at);
 
-      // Scroll to the latest message
-      document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
-    });
+  // Format the date and time
+  const dateOptions = {
+    timeZone: 'Asia/Bangkok',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  };
+  const timeOptions = {
+    timeZone: 'Asia/Bangkok',
+    hour: '2-digit',
+    minute: '2-digit'
+  };
+
+  const dateString = date.toLocaleDateString('th-TH', dateOptions);
+  const timeString = date.toLocaleTimeString('th-TH', timeOptions);
+
+  // Create a span for name and timestamp with class "text-sm text-gray-500"
+  const metaDataElement = document.createElement("span");
+  metaDataElement.classList.add('text-sm', 'text-gray-500'); // Gray text class
+  metaDataElement.textContent = `${data.username || 'Unknown'} [${dateString} ${timeString}]`;
+
+  // Create a break for separating metadata and message
+  const lineBreak = document.createElement("br");
+
+  // Add the actual message content
+  const messageContent = document.createTextNode(data.message);
+
+  // Append the elements in order
+  messageElement.appendChild(metaDataElement);
+  messageElement.appendChild(lineBreak);
+  messageElement.appendChild(messageContent);
+
+  document.getElementById('messages').appendChild(messageElement);
+
+  // Scroll to the latest message
+  document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+});
+
 
     // Display server messages
     socket.on('message', (msg) => {

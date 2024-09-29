@@ -139,9 +139,11 @@ const ensureAuthenticated = (req, res, next) => {
   res.redirect('/users/login');
 };
 
+
+
+
+
 //ระบบแชท
-
-
 io.on("connection", (socket) => {
   console.log("New user connected:", socket.id);
 
@@ -227,7 +229,6 @@ io.on("connection", (socket) => {
       }
     }
   });
-  
 
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
@@ -243,10 +244,15 @@ app.get('/users/chat/:teamId', ensureAuthenticated, (req, res) => {
 
 app.get('/team/chat/:teamId', checkTeamAuthenticated, (req, res) => {
   const teamId = req.params.teamId;
-  res.render('chat', { userId: null, teamId });
+  const userId = req.session.userId || null; // ดึง userId จาก session ถ้ามี
+  res.render('chat', { userId, teamId });
 });
 
 
+/* app.get('/team/chat/:teamId', checkTeamAuthenticated, (req, res) => {
+  const teamId = req.params.teamId;
+  res.render('chat', { userId: null, teamId });
+}); */
 
 
 /* // ฟังก์ชันเพื่อเรนเดอร์หน้าแชท
