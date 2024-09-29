@@ -185,32 +185,34 @@ io.on("connection", (socket) => {
   });
   
   
-
   socket.on("chatMessage", async ({ room, message, userId, teamId }) => {
     if (room && message) {
       let username = "Unknown";
       const createdAt = new Date();  // Get the current timestamp
-
+  
       // Fetch username based on userId or teamId
       if (userId) {
         const result = await pool.query(`SELECT name FROM users WHERE id = $1`, [userId]);
         if (result.rows.length > 0) {
-          username = result.rows[0].name;  // ดึงชื่อผู้ใช้จากฐานข้อมูล
+          username = result.rows[0].name;
         }
-      } else if (teamId) {
-        const result = await pool.query(`SELECT name FROM teams WHERE id = $1`, [teamId]);
-        if (result.rows.length > 0) {
-          username = result.rows[0].name;  // ดึงชื่อทีมจากฐานข้อมูล
+      } 
+      
+      // ถ้าไม่มี userId ให้ดึงชื่อทีมจาก teamId
+      if (!userId && teamId) {
+        const teamResult = await pool.query(`SELECT name FROM teams WHERE id = $1`, [teamId]);
+        if (teamResult.rows.length > 0) {
+          username = teamResult.rows[0].name;  // ใช้ชื่อทีมเป็น username
         }
       }
-
+  
       // Emit the message along with created_at
       io.to(room).emit("chatMessage", { 
-        username,  // ส่งชื่อผู้ใช้ไปยังไคลเอนต์
+        username,  // อาจเป็นชื่อผู้ใช้หรือชื่อทีม ขึ้นอยู่กับการมีอยู่ของ userId หรือ teamId
         message, 
-        created_at: createdAt  // ส่งเวลาไปยังไคลเอนต์
+        created_at: createdAt 
       });
-
+  
       // Save the message to the database
       try {
         await pool.query(
@@ -223,6 +225,8 @@ io.on("connection", (socket) => {
       }
     }
   });
+  
+
 
 
   socket.on("disconnect", () => {
@@ -238,10 +242,14 @@ app.get('/users/chat/:teamId', ensureAuthenticated, (req, res) => {
   res.render('chat', { userId, teamId });
 });
 
-app.get('/team/chat/:teamId', checkTeamAuthenticated, (req, res) => {
+app.get('/team/chat/:teamId', checkTeamAuthenticated, async (req, res) => {
   const teamId = req.params.teamId;
-  res.render('chat', { userId: null, teamId });
+  const userId = req.user ? req.user.id : null; // ดึง userId จากผู้ใช้ที่เข้าสู่ระบบ
+  
+  res.render('chat', { userId, teamId });
+
 });
+
 
 
 

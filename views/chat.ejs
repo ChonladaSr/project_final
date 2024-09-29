@@ -129,6 +129,7 @@
     <div class="flex justify-center mb-8">
       <img src="https://img2.pic.in.th/pic/Screenshot-2024-08-06-225808.png" alt="Logo" class="w-21 h-10">
     </div>
+
     <button id="join-button" class="prompt-regular">เข้าร่วมแชท</button>
   </div>
 
@@ -147,21 +148,28 @@
 
     // ฟังก์ชันเข้าร่วมห้อง
     document.getElementById('join-button').onclick = function () {
-      if (currentRoom && userId) {
-        socket.emit("joinRoom", { room: currentRoom, userId: userId });
-        document.getElementById('room-selection').style.display = 'none';
-        document.getElementById('chat-room').style.display = 'block';
-      }
-    };
+    if (currentRoom && userId) {
+      socket.emit("joinRoom", { room: currentRoom, userId: userId });
+      document.getElementById('room-selection').style.display = 'none';
+      document.getElementById('chat-room').style.display = 'block';
+    }
+  };
 
-    // ฟังก์ชันส่งข้อความ
-    document.getElementById('send-button').onclick = function () {
-      const message = document.getElementById('message-input').value;
-      if (currentRoom && message && userId) {
-        socket.emit("chatMessage", { room: currentRoom, message: message, userId: userId });
-        document.getElementById('message-input').value = ''; // Clear input
-      }
-    };
+ // ฟังก์ชันส่งข้อความ
+document.getElementById('send-button').onclick = function () {
+  const message = document.getElementById('message-input').value;
+  if (currentRoom && message) {
+    socket.emit("chatMessage", { 
+      room: currentRoom, 
+      message: message, 
+      userId: userId,  // ถ้ามี userId
+      teamId: teamId   // teamId ถูกส่งไปด้วยเสมอ
+    });
+    document.getElementById('message-input').value = ''; // Clear input
+  }
+};
+
+
 
   // ฟังก์ชันโหลดข้อความจากเซิร์ฟเวอร์
 socket.on('loadMessages', (messages) => {
