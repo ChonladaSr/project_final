@@ -6,7 +6,7 @@ function initialize(passport) {
   console.log("start");
 
   const authenticateUser = (email, password, done) => {
-    console.log(email, password);
+    // console.log(email, password);
     pool.query(
       `SELECT * FROM users WHERE email = $1`,
       [email],
@@ -14,7 +14,7 @@ function initialize(passport) {
         if (err) {
           throw err;
         }
-        console.log(results.rows);
+        // console.log(results.rows);
 
         if (results.rows.length > 0) {
           const user = results.rows[0];
@@ -46,14 +46,8 @@ function initialize(passport) {
       authenticateUser
     )
   );
-  // Stores user details inside session. serializeUser determines which data of the user
-  // object should be stored in the session. The result of the serializeUser method is attached
-  // to the session as req.session.passport.user = {}. Here for instance, it would be (as we provide
-  //   the user id as the key) req.session.passport.user = {id: 'xyz'}
+  
   passport.serializeUser((user, done) => done(null, user.id));
-
-  // In deserializeUser that key is matched with the in memory array / database or any data resource.
-  // The fetched object is attached to the request object as req.user
 
   passport.deserializeUser((id, done) => {
     pool.query(`SELECT * FROM users WHERE id = $1`, [id], (err, results) => {
