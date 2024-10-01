@@ -147,105 +147,171 @@ const ensureAuthenticated = (req, res, next) => {
 io.on("connection", (socket) => {
   console.log("New user connected:", socket.id);
 
-  socket.on("joinRoom", async (room) => {
-    if (room && room.trim()) {
+  // เมื่อมีการ joinRoom
+  socket.on("joinRoom", async ({ teamId, userId }) => {
+    if (typeof teamId === 'string' && teamId.trim()) {
+      const room = `${teamId}-${userId}`.trim();
       socket.join(room);
       console.log(`User ${socket.id} joined room ${room}`);
   
       try {
+        // ดึงประวัติการสนทนาที่เกี่ยวข้องกับ teamId และ userId
         const result = await pool.query(
-          `SELECT * FROM messages WHERE room_id = $1 ORDER BY created_at ASC`,
-          [room]
+          `SELECT m.message, m.created_at, u.name AS username, t.name AS teamname
+           FROM messages m
+           LEFT JOIN users u ON m.user_id = u.id
+           LEFT JOIN teams t ON m.team_id = t.id
+           WHERE m.team_id = $1 AND m.user_id = $2
+           ORDER BY m.created_at ASC`,
+          [teamId, userId]
         );
   
-        // Retrieve user and team names
-        const messages = await Promise.all(result.rows.map(async (message) => {
-          let name = "Unknown";
-  
-          if (message.user_id) {
-            const userResult = await pool.query(`SELECT name FROM users WHERE id = $1`, [message.user_id]);
-            if (userResult.rows.length > 0) {
-              name = userResult.rows[0].name;
-            }
-          } else if (message.team_id) {
-            const teamResult = await pool.query(`SELECT name FROM teams WHERE id = $1`, [message.team_id]);
-            if (teamResult.rows.length > 0) {
-              name = teamResult.rows[0].name;
-            }
-          }
-  
-          // Return message along with created_at and user/team name
-          return {
-            ...message,
-            name,
-            created_at: message.created_at  // Include created_at
-          };
+        const messages = result.rows.map(row => ({
+          message: row.message,
+          username: row.username || 'Unknown',
+          teamname: row.teamname || 'Unknown',
+          created_at: row.created_at
         }));
   
-        // Send the messages with created_at back to the client
         socket.emit('loadMessages', messages);
       } catch (err) {
         console.error("Error retrieving chat history:", err);
+        socket.emit('message', 'Error retrieving chat history');
       }
     } else {
-      socket.emit('message', 'Room name cannot be empty');
+      socket.emit('message', 'Invalid team ID or user ID');
     }
   });
+   
+  socket.on("chatMessage", async (data) => {
+    try {
+      // ตรวจสอบว่าข้อมูลที่รับมามีข้อมูลครบถ้วน
+      const { message, room, userId, teamId, created_at } = data;
   
-  socket.on("chatMessage", async ({ room, message, userId, teamId }) => {
-    if (room && message) {
-      let username = "Unknown";
-      const createdAt = new Date();  // Get the current timestamp
-  
-      // Fetch username based on userId or teamId
-      if (userId) {
-        const result = await pool.query(`SELECT name FROM users WHERE id = $1`, [userId]);
-        if (result.rows.length > 0) {
-          username = result.rows[0].name;
-        }
-      } else if (teamId) {
-        const result = await pool.query(`SELECT name FROM teams WHERE id = $1`, [teamId]);
-        if (result.rows.length > 0) {
-          username = result.rows[0].name;
-        }
+      if (!message || !room || !userId) {
+        console.error('Missing data fields');
+        return; // หยุดการทำงานหากข้อมูลไม่ครบ
       }
   
-      // Emit the message along with created_at
-      io.to(room).emit("chatMessage", { 
-        username, 
-        message, 
-        created_at: createdAt  // Send the timestamp
+      // ดึงข้อมูลผู้ใช้จากฐานข้อมูล
+      const user = await getUserById(userId);
+      const username = user ? user.name : 'Unknown';
+  
+      // ส่งข้อความไปยังห้อง
+      io.to(room).emit("chatMessage", {
+        message,
+        username,
+        created_at: created_at || new Date().toISOString(),
       });
   
-      // Save the message to the database
-      try {
-        await pool.query(
-          `INSERT INTO messages (room_id, user_id, team_id, message, created_at) VALUES ($1, $2, $3, $4, $5)`,
-          [room, userId || null, teamId || null, message, createdAt]
-        );
-        console.log("Message saved to the database.");
-      } catch (err) {
-        console.error("Error saving message:", err);
-      }
+      // บันทึกข้อความลงฐานข้อมูล
+      await saveMessageToDatabase({
+        room,
+        message,
+        userId,
+        teamId,
+        created_at: created_at || new Date().toISOString(),
+      });
+  
+    } catch (error) {
+      console.error('Error handling chatMessage:', error);
     }
   });
+  
+  
+  
+  socket.on('loadMessages', async ({ teamId, userId }) => {
+    try {
+      // ดึงประวัติการสนทนาที่เกี่ยวข้องกับ teamId
+      const result = await pool.query(`
+        SELECT m.*, 
+               u.name AS username, 
+               t.name AS teamname 
+        FROM messages m 
+        LEFT JOIN users u ON m.user_id = u.id 
+        LEFT JOIN teams t ON m.team_id = t.id 
+        WHERE m.team_id = $1
+        ORDER BY m.created_at ASC
+      `, [teamId]);
+  
+      // ส่งประวัติการแชทกลับไปที่ client
+      socket.emit('loadMessages', result.rows);
+  
+    } catch (err) {
+      console.error("Error retrieving chat history:", err);
+      socket.emit('message', 'Error retrieving chat history');
+    }
+  });
+  
+  
+  
+  
+  
 
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
   });
 });
 
-// ฟังก์ชันเพื่อเรนเดอร์หน้าแชท
+// ฟังก์ชันดึงข้อมูลผู้ใช้
+async function getUserById(userId) {
+  try {
+    const result = await pool.query('SELECT name FROM users WHERE id = $1', [userId]);
+    return result.rows[0] || null;
+  } catch (err) {
+    console.error('Error fetching user:', err);
+    return null;
+  }
+}
+
+// ฟังก์ชันบันทึกข้อความลงฐานข้อมูล
+async function saveMessageToDatabase({ room, userId, teamId, message, created_at }) {
+  try {
+    await pool.query(`
+      INSERT INTO messages (room_id, user_id, team_id, message, created_at) 
+      VALUES ($1, $2, $3, $4, $5)`,
+      [room, userId || null, teamId || null, message, created_at]
+    );
+    console.log("Message saved to the database.");
+  } catch (error) {
+    console.error("Error saving message:", error);
+    throw error; // ลบหรือแก้ไขได้ถ้าต้องการให้ส่งต่อข้อผิดพลาด
+  }
+}
+
+
+
+// Route แสดงหน้าแชท
 app.get('/users/chat/:teamId', ensureAuthenticated, (req, res) => {
   const teamId = req.params.teamId;
-  const userId = req.user.id; // แก้ไขจาก req.params.userId เป็น req.user.id
+  const userId = req.user.id;
   res.render('chat', { userId, teamId });
 });
 
 app.get('/team/chat/:teamId', checkTeamAuthenticated, (req, res) => {
   const teamId = req.params.teamId;
-  const userId = req.session.userId || null; // ดึง userId จาก session ถ้ามี
+  const userId = req.session.userId || null;
   res.render('chat', { userId, teamId });
+});
+
+// Route แสดงประวัติการแชท
+app.get('/team/chat/history/:teamId', ensureAuthenticated, async (req, res) => {
+  const teamId = req.params.teamId;
+
+  try {
+    const result = await pool.query(`
+      SELECT DISTINCT users.id, users.name
+      FROM messages
+      JOIN users ON messages.user_id = users.id
+      WHERE messages.team_id = $1
+    `, [teamId]);
+
+    const users = result.rows;
+    res.render('teamChatHistory', { teamId, users });
+  } catch (err) {
+    console.error("Error fetching chat history:", err);
+    res.status(500).send("Error fetching chat history.");
+  }
 });
 
 

@@ -120,7 +120,6 @@
         font-weight: bold;
         margin-bottom: 10px;
       }
-      
     </style>
 
 </head>
@@ -151,10 +150,12 @@
 
     // Join the room when clicking "join-button"
     document.getElementById('join-button').onclick = function () {
-      if (currentRoom) {
-        socket.emit("joinRoom", currentRoom); // Join the room
+      if (teamId) {  // ตรวจสอบว่ามีค่า teamId
+        socket.emit("joinRoom", { teamId, userId }); // ส่ง teamId และ userId ไปยัง socket server เพื่อเข้าร่วมห้อง
         document.getElementById('room-selection').style.display = 'none';
         document.getElementById('chat-room').style.display = 'block';
+      } else {
+        console.error("Team ID is not defined.");
       }
     };
 
@@ -162,112 +163,76 @@
     document.getElementById('send-button').onclick = function () {
       const message = document.getElementById('message-input').value;
       if (currentRoom && message) {
-        const now = new Date(); // Current time
-        // Emit chatMessage with created_at
+        const now = new Date(); // เวลาปัจจุบัน
+        // ส่ง event chatMessage พร้อมข้อมูล message, room, userId, teamId และ created_at
         socket.emit("chatMessage", {
-          room: currentRoom,
-          message: message,
-          userId: userId || null, // Send userId if available
-          teamId: teamId || null,  // Send teamId if available
-          created_at: now.toISOString() // Add created_at in ISO format
+          room: currentRoom,  // ห้องแชทปัจจุบัน
+          message: message,  // ข้อความที่ต้องการส่ง
+          userId: userId || null,  // ส่ง userId ถ้ามี
+          teamId: teamId || null,  // ส่ง teamId ถ้ามี
+          created_at: now.toISOString()  // ส่ง created_at ในรูปแบบ ISO
         });
-        document.getElementById('message-input').value = ''; // Clear input
+        document.getElementById('message-input').value = ''; // ล้างช่องข้อความหลังจากส่งแล้ว
       }
     };
 
     socket.on('loadMessages', (messages) => {
-  const messagesContainer = document.getElementById('messages');
-  messagesContainer.innerHTML = ''; // Clear old messages
+      const messagesContainer = document.getElementById('messages');
+      messagesContainer.innerHTML = ''; // ล้างข้อความเก่าออกก่อน
 
-  // Display each message with created_at
-  messages.forEach(message => {
-    const messageElement = document.createElement("div");
-    messageElement.classList.add('message', 'received');
+      // แสดงผลข้อความเก่าทั้งหมด
+      messages.forEach(message => {
+        const messageElement = document.createElement("div");
+        messageElement.classList.add('message', 'received');
 
-    // Convert created_at to local time (Thailand time zone UTC+7)
-    const date = new Date(message.created_at);
+        // แปลง created_at เป็นเวลาท้องถิ่น (เขตเวลาไทย UTC+7)
+        const date = new Date(message.created_at);
 
-    // Format the date and time
-    const dateOptions = {
-      timeZone: 'Asia/Bangkok',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    };
-    const timeOptions = {
-      timeZone: 'Asia/Bangkok',
-      hour: '2-digit',
-      minute: '2-digit'
-    };
+        // ฟอร์แมตวันที่และเวลา
+        const dateString = date.toLocaleDateString('th-TH', { timeZone: 'Asia/Bangkok' });
+        const timeString = date.toLocaleTimeString('th-TH', { timeZone: 'Asia/Bangkok' });
 
-    const dateString = date.toLocaleDateString('th-TH', dateOptions);
-    const timeString = date.toLocaleTimeString('th-TH', timeOptions);
+        const metaDataElement = document.createElement("span");
+        metaDataElement.classList.add('text-sm', 'text-gray-500');
+        metaDataElement.textContent = `${message.name || 'Unknown'} [${dateString} ${timeString}]`;
 
-    // Create a span for name and timestamp with class "text-sm text-gray-500"
-    const metaDataElement = document.createElement("span");
-    metaDataElement.classList.add('text-sm', 'text-gray-500'); // Gray text class
-    metaDataElement.textContent = `${message.name || 'Unknown'} [${dateString} ${timeString}]`;
+        const lineBreak = document.createElement("br");
+        const messageContent = document.createTextNode(message.message);
 
-    // Create a break for separating metadata and message
-    const lineBreak = document.createElement("br");
+        messageElement.appendChild(metaDataElement);
+        messageElement.appendChild(lineBreak);
+        messageElement.appendChild(messageContent);
 
-    // Add the actual message content
-    const messageContent = document.createTextNode(message.message);
+        messagesContainer.appendChild(messageElement);
+      });
 
-    // Append the elements in order
-    messageElement.appendChild(metaDataElement);
-    messageElement.appendChild(lineBreak);
-    messageElement.appendChild(messageContent);
+      // เลื่อนลงไปที่ข้อความล่าสุด
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    });
 
-    messagesContainer.appendChild(messageElement);
-  });
-
-  // Scroll to the latest message
-  messagesContainer.scrollTop = messagesContainer.scrollHeight;
-});
-
-socket.on("chatMessage", (data) => {
+    socket.on("chatMessage", (data) => {
   const messageElement = document.createElement("div");
   messageElement.classList.add('message', 'received');
 
-  // Convert created_at to local time (Thailand time zone UTC+7)
+  // แปลง created_at เป็นเวลาท้องถิ่น (เขตเวลาไทย UTC+7)
   const date = new Date(data.created_at);
 
-  // Format the date and time
-  const dateOptions = {
-    timeZone: 'Asia/Bangkok',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  };
-  const timeOptions = {
-    timeZone: 'Asia/Bangkok',
-    hour: '2-digit',
-    minute: '2-digit'
-  };
+  // ฟอร์แมตวันที่และเวลา
+  const dateString = date.toLocaleDateString('th-TH', { timeZone: 'Asia/Bangkok' });
+  const timeString = date.toLocaleTimeString('th-TH', { timeZone: 'Asia/Bangkok' });
 
-  const dateString = date.toLocaleDateString('th-TH', dateOptions);
-  const timeString = date.toLocaleTimeString('th-TH', timeOptions);
-
-  // Create a span for name and timestamp with class "text-sm text-gray-500"
   const metaDataElement = document.createElement("span");
-  metaDataElement.classList.add('text-sm', 'text-gray-500'); // Gray text class
-  metaDataElement.textContent = `${data.username || 'Unknown'} [${dateString} ${timeString}]`;
+  metaDataElement.classList.add('text-sm', 'text-gray-500');
+  metaDataElement.textContent = `${data.username || 'Unknown'} [${dateString} ${timeString}]`; // ใช้ username ที่ส่งจาก server
 
-  // Create a break for separating metadata and message
   const lineBreak = document.createElement("br");
-
-  // Add the actual message content
   const messageContent = document.createTextNode(data.message);
 
-  // Append the elements in order
   messageElement.appendChild(metaDataElement);
   messageElement.appendChild(lineBreak);
   messageElement.appendChild(messageContent);
 
   document.getElementById('messages').appendChild(messageElement);
-
-  // Scroll to the latest message
   document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
 });
 
@@ -282,6 +247,8 @@ socket.on("chatMessage", (data) => {
     });
 
   </script>
+</body>
+
 </body>
 
 

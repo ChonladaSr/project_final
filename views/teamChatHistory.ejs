@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Team Chat History</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #f7f7f7;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    #chat-container {
+      width: 600px;
+      background: #ffffff;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+      overflow: hidden;
+      padding: 20px;
+    }
+
+    .user-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .user-list li {
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+      cursor: pointer;
+    }
+
+    .user-list li:hover {
+      background-color: #f1f1f1;
+    }
+
+    #messages {
+      height: 300px;
+      overflow-y: scroll;
+      border: 1px solid #ddd;
+      padding: 10px;
+      margin-top: 20px;
+      background-color: #f1f1f1;
+    }
+
+    #message-input {
+      width: calc(100% - 80px);
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    #send-button {
+      width: 60px;
+      padding: 10px;
+      margin-left: 10px;
+      background-color: #ffa20d;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    #send-button:hover {
+      background-color: #ff9635;
+    }
+  </style>
+</head>
+<body>
+  <div id="chat-container">
+    <h2>เลือกผู้ใช้ที่ต้องการแชทด้วย</h2>
+    <ul id="user-list" class="user-list">
+      <% users.forEach(function(user) { %>
+        <li data-user-id="<%= user.id %>"><%= user.name %></li>
+      <% }) %>
+    </ul>
+
+    <div id="chat-room" class="chat-room team-chat" style="display: none;"> <!-- เปลี่ยน class ขึ้นอยู่กับประเภทของแชท -->
+        <div id="messages"></div>
+        <input id="message-input" type="text" placeholder="พิมพ์ข้อความที่นี่..." />
+        <button id="send-button">ส่ง</button>
+      </div>
+      
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const teamId = '<%= teamId %>';
+    let selectedUserId = null;
+    let selectedUserName = null;
+
+    document.querySelectorAll('#user-list li').forEach(userItem => {
+  userItem.addEventListener('click', function () {
+    selectedUserId = this.getAttribute('data-user-id');
+    socket.emit('joinRoom', { teamId, userId: selectedUserId });
+    document.getElementById('chat-room').style.display = 'block';
+  });
+});
+
+
+// แสดงข้อความเมื่อได้รับจาก server
+socket.on("loadMessages", (messages) => {
+  const messagesContainer = document.getElementById('messages');
+  messagesContainer.innerHTML = ''; // ล้างข้อความเก่า
+
+  messages.forEach(message => {
+    const messageElement = document.createElement('div');
+
+    // ใช้ชื่อผู้ใช้หรือชื่อทีมที่ดึงมา
+    const senderName = message.username || message.teamname || 'Unknown';
+    messageElement.innerHTML = `<strong>${senderName}:</strong> ${message.message}`;
+
+    messagesContainer.appendChild(messageElement);
+  });
+});
+
+
+// ส่งข้อความใหม่
+// ส่งข้อความ
+document.getElementById('send-button').onclick = function () {
+  const message = document.getElementById('message-input').value;
+  if (message && selectedUserId) {
+    socket.emit('chatMessage', {
+      room: `${teamId}-${selectedUserId}`,  // ห้องแชทตามทีมและผู้ใช้
+      message,
+      teamId,
+      userId: selectedUserId,
+      created_at: new Date().toISOString()  // บันทึกเวลาที่ส่ง
+    });
+    document.getElementById('message-input').value = ''; // เคลียร์ช่องข้อความ
+  } else {
+    console.error('Message or userId is missing');
+  }
+};
+
+
+
+// แสดงข้อความใหม่เมื่อได้รับจาก server
+socket.on("chatMessage", (data) => {
+  const messageElement = document.createElement("div");
+  messageElement.classList.add('message', 'received');
+
+  const date = new Date(data.created_at);
+  const dateString = date.toLocaleDateString('th-TH', { timeZone: 'Asia/Bangkok' });
+  const timeString = date.toLocaleTimeString('th-TH', { timeZone: 'Asia/Bangkok' });
+
+  const metaDataElement = document.createElement("span");
+  metaDataElement.classList.add('text-sm', 'text-gray-500');
+  metaDataElement.textContent = `${data.username} [${dateString} ${timeString}]`; // แสดงชื่อผู้ใช้หรือทีม
+
+  const lineBreak = document.createElement("br");
+  const messageContent = document.createTextNode(data.message);
+
+  messageElement.appendChild(metaDataElement);
+  messageElement.appendChild(lineBreak);
+  messageElement.appendChild(messageContent);
+
+  document.getElementById('messages').appendChild(messageElement);
+  document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+});
+
+
+userItem.addEventListener('click', function () {
+  selectedUserId = this.getAttribute('data-user-id');
+  const isTeamChat = document.getElementById('chat-room').classList.contains('team-chat'); // ตรวจสอบว่าเป็นห้องทีม
+
+  // เข้าห้องแชทตาม userId และ teamId
+  socket.emit('joinRoom', { teamId, userId: isTeamChat ? null : selectedUserId });
+
+  // โหลดข้อความเก่า
+  socket.emit('loadMessages', { teamId }); // ส่ง teamId เพื่อดึงประวัติการแชท
+
+  document.getElementById('chat-room').style.display = 'block';
+});
+
+
+
+
+  </script>
+</body>
+</html>
