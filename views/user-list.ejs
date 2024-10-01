@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Select User to View Chat History</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f7f7f7;
+      margin: 0;
+      padding: 20px;
+    }
+    .user-list {
+      max-width: 600px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+    }
+    .user {
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      background-color: #f1f1f1;
+      cursor: pointer;
+    }
+    .user:hover {
+      background-color: #e2e2e2;
+    }
+  </style>
+</head>
+<body>
+  <div class="user-list">
+    <h2>Select a User to View Chat History</h2>
+
+    <% if (users.length > 0) { %>
+      <% users.forEach(function(user) { %>
+        <div class="user" onclick="window.location.href='/teams/<%= teamId %>/chat-history/<%= user.id %>'">
+          <p><strong><%= user.name %></strong></p>
+        </div>
+      <% }) %>
+    <% } else { %>
+      <p>No users found who have chatted with this team.</p>
+    <% } %>
+  </div>
+</body>
+</html>

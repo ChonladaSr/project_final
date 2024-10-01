@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Team Chat</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+    }
+    #user-list, #chat-container {
+      width: 45%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      margin: 10px;
+    }
+    #user-list ul {
+      list-style: none;
+      padding: 0;
+    }
+    #user-list ul li {
+      cursor: pointer;
+      padding: 5px;
+      border-bottom: 1px solid #ddd;
+    }
+    #messages {
+      height: 400px;
+      overflow-y: scroll;
+      margin-bottom: 10px;
+    }
+    .message {
+      padding: 10px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+    }
+    .message.sent {
+      background-color: #dbffb6;
+      align-self: flex-end;
+      text-align: right;
+    }
+    .message.received {
+      background-color: #e4e4e4;
+    }
+    #message-input {
+      width: 80%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    #send-button {
+      padding: 10px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="user-list">
+    <h2>Users</h2>
+    <ul id="users"></ul>
+  </div>
+
+  <div id="chat-container" style="display:none;">
+    <h2>Chat with <span id="chat-with"></span></h2>
+    <div id="messages"></div>
+    <input id="message-input" type="text" placeholder="Type a message...">
+    <button id="send-button">Send</button>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const teamId = "<%= teamId %>"; // Team ID from the backend
+    const userList = document.getElementById('users');
+    let currentUserId = null;
+    let currentRoom = null;
+
+    // ดึงรายชื่อผู้ใช้ที่ทีมเคยแชทด้วย
+    socket.emit("getChatUsers", teamId);
+
+    // แสดงรายชื่อผู้ใช้
+    socket.on('chatUsers', (users) => {
+      users.forEach(user => {
+        const li = document.createElement('li');
+        li.textContent = user.name;
+        li.onclick = () => {
+          currentUserId = user.id;
+          joinChat(user.name);
+        };
+        userList.appendChild(li);
+      });
+    });
+
+    // เข้าร่วมห้องแชทส่วนตัว
+    function joinChat(userName) {
+      document.getElementById('chat-with').textContent = userName;
+      document.getElementById('chat-container').style.display = 'block';
+      const room = `${teamId}-${currentUserId}`;
+      currentRoom = room;
+
+      socket.emit("joinPrivateChat", { teamId, userId: currentUserId });
+    }
+
+    // โหลดประวัติการแชท
+    socket.on('loadChatHistory', (messages) => {
+      const messagesContainer = document.getElementById('messages');
+      messagesContainer.innerHTML = ''; // ล้างข้อความเก่า
+
+      messages.forEach(message => {
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('message', 'received');
+        messageElement.textContent = message.message;
+        messagesContainer.appendChild(messageElement);
+      });
+
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    });
+
+    // เมื่อมีการส่งข้อความใหม่
+    document.getElementById('send-button').onclick = () => {
+      const messageInput = document.getElementById('message-input');
+      const message = messageInput.value;
+      if (message && currentRoom) {
+        socket.emit("chatMessage", { room: currentRoom, message, teamId, userId: currentUserId });
+        messageInput.value = ''; // ล้างข้อความ
+      }
+    };
+
+    // แสดงข้อความแชทใหม่
+    socket.on('chatMessage', (data) => {
+      const messageElement = document.createElement('div');
+      messageElement.classList.add('message', 'received');
+      messageElement.textContent = data.message;
+      document.getElementById('messages').appendChild(messageElement);
+      document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+    });
+  </script>
+</body>
+</html>

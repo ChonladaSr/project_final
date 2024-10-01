@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -120,18 +121,19 @@
         font-weight: bold;
         margin-bottom: 10px;
       }
+      
     </style>
-
 </head>
+
 
 <body>
   <div id="room-selection">
     <div class="flex justify-center mb-8">
       <img src="https://img2.pic.in.th/pic/Screenshot-2024-08-06-225808.png" alt="Logo" class="w-21 h-10">
     </div>
-    <!-- <fieldset disabled>
+    <fieldset disabled>
       <input id="room-input" class="prompt-regular" type="text" value="<%= teamId %>" readonly />
-    </fieldset> -->
+    </fieldset>
     <button id="join-button" class="prompt-regular">เข้าร่วมแชท</button>
   </div>
 
@@ -142,102 +144,86 @@
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
+  
   <script>
     const socket = io();
-    let currentRoom = '<%= teamId %>';
     const userId = "<%= userId %>"; // User ID from backend
     const teamId = "<%= teamId %>"; // Team ID from backend
-
-    // Join the room when clicking "join-button"
+    let currentRoom = `${teamId}-${userId}`; // Combine teamId and userId for room
+  
+    // Join the room
     document.getElementById('join-button').onclick = function () {
-      if (teamId) {  // ตรวจสอบว่ามีค่า teamId
-        socket.emit("joinRoom", { teamId, userId }); // ส่ง teamId และ userId ไปยัง socket server เพื่อเข้าร่วมห้อง
-        document.getElementById('room-selection').style.display = 'none';
-        document.getElementById('chat-room').style.display = 'block';
-      } else {
-        console.error("Team ID is not defined.");
-      }
+      socket.emit("joinRoom", currentRoom); // Join the combined room
+      document.getElementById('room-selection').style.display = 'none';
+      document.getElementById('chat-room').style.display = 'block';
     };
-
+  
     // Send a message
     document.getElementById('send-button').onclick = function () {
       const message = document.getElementById('message-input').value;
       if (currentRoom && message) {
-        const now = new Date(); // เวลาปัจจุบัน
-        // ส่ง event chatMessage พร้อมข้อมูล message, room, userId, teamId และ created_at
+        const now = new Date();
         socket.emit("chatMessage", {
-          room: currentRoom,  // ห้องแชทปัจจุบัน
-          message: message,  // ข้อความที่ต้องการส่ง
-          userId: userId || null,  // ส่ง userId ถ้ามี
-          teamId: teamId || null,  // ส่ง teamId ถ้ามี
-          created_at: now.toISOString()  // ส่ง created_at ในรูปแบบ ISO
+          room: currentRoom,
+          message: message,
+          userId: userId || null,
+          teamId: teamId || null,
+          created_at: now.toISOString() 
         });
-        document.getElementById('message-input').value = ''; // ล้างช่องข้อความหลังจากส่งแล้ว
+        document.getElementById('message-input').value = ''; 
       }
     };
-
+  
+    // Load messages and display
     socket.on('loadMessages', (messages) => {
       const messagesContainer = document.getElementById('messages');
-      messagesContainer.innerHTML = ''; // ล้างข้อความเก่าออกก่อน
-
-      // แสดงผลข้อความเก่าทั้งหมด
+      messagesContainer.innerHTML = ''; 
       messages.forEach(message => {
         const messageElement = document.createElement("div");
         messageElement.classList.add('message', 'received');
-
-        // แปลง created_at เป็นเวลาท้องถิ่น (เขตเวลาไทย UTC+7)
+        
         const date = new Date(message.created_at);
-
-        // ฟอร์แมตวันที่และเวลา
-        const dateString = date.toLocaleDateString('th-TH', { timeZone: 'Asia/Bangkok' });
-        const timeString = date.toLocaleTimeString('th-TH', { timeZone: 'Asia/Bangkok' });
-
+        const dateString = date.toLocaleDateString('th-TH', { timeZone: 'Asia/Bangkok', year: 'numeric', month: 'long', day: 'numeric' });
+        const timeString = date.toLocaleTimeString('th-TH', { timeZone: 'Asia/Bangkok', hour: '2-digit', minute: '2-digit' });
+  
         const metaDataElement = document.createElement("span");
         metaDataElement.classList.add('text-sm', 'text-gray-500');
         metaDataElement.textContent = `${message.name || 'Unknown'} [${dateString} ${timeString}]`;
-
-        const lineBreak = document.createElement("br");
+  
         const messageContent = document.createTextNode(message.message);
-
+  
         messageElement.appendChild(metaDataElement);
-        messageElement.appendChild(lineBreak);
+        messageElement.appendChild(document.createElement("br"));
         messageElement.appendChild(messageContent);
-
+  
         messagesContainer.appendChild(messageElement);
       });
-
-      // เลื่อนลงไปที่ข้อความล่าสุด
+  
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
     });
-
+  
     socket.on("chatMessage", (data) => {
-  const messageElement = document.createElement("div");
-  messageElement.classList.add('message', 'received');
-
-  // แปลง created_at เป็นเวลาท้องถิ่น (เขตเวลาไทย UTC+7)
-  const date = new Date(data.created_at);
-
-  // ฟอร์แมตวันที่และเวลา
-  const dateString = date.toLocaleDateString('th-TH', { timeZone: 'Asia/Bangkok' });
-  const timeString = date.toLocaleTimeString('th-TH', { timeZone: 'Asia/Bangkok' });
-
-  const metaDataElement = document.createElement("span");
-  metaDataElement.classList.add('text-sm', 'text-gray-500');
-  metaDataElement.textContent = `${data.username || 'Unknown'} [${dateString} ${timeString}]`; // ใช้ username ที่ส่งจาก server
-
-  const lineBreak = document.createElement("br");
-  const messageContent = document.createTextNode(data.message);
-
-  messageElement.appendChild(metaDataElement);
-  messageElement.appendChild(lineBreak);
-  messageElement.appendChild(messageContent);
-
-  document.getElementById('messages').appendChild(messageElement);
-  document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
-});
-
-
-    // Display server messages
+      const messageElement = document.createElement("div");
+      messageElement.classList.add('message', 'received');
+  
+      const date = new Date(data.created_at);
+      const dateString = date.toLocaleDateString('th-TH', { timeZone: 'Asia/Bangkok', year: 'numeric', month: 'long', day: 'numeric' });
+      const timeString = date.toLocaleTimeString('th-TH', { timeZone: 'Asia/Bangkok', hour: '2-digit', minute: '2-digit' });
+  
+      const metaDataElement = document.createElement("span");
+      metaDataElement.classList.add('text-sm', 'text-gray-500');
+      metaDataElement.textContent = `${data.username || 'Unknown'} [${dateString} ${timeString}]`;
+  
+      const messageContent = document.createTextNode(data.message);
+  
+      messageElement.appendChild(metaDataElement);
+      messageElement.appendChild(document.createElement("br"));
+      messageElement.appendChild(messageContent);
+  
+      document.getElementById('messages').appendChild(messageElement);
+      document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+    });
+  
     socket.on('message', (msg) => {
       const messageElement = document.createElement("div");
       messageElement.classList.add('message', 'received');
@@ -245,11 +231,8 @@
       document.getElementById('messages').appendChild(messageElement);
       document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
     });
-
   </script>
-</body>
+  
 
 </body>
-
-
 </html>
