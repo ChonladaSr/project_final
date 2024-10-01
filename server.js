@@ -1653,6 +1653,18 @@ app.post('/admin/team/delete/:id', async (req, res) => {
   }
 });
 
+app.get('/admin/team/delete/:id', async (req, res) => {
+  const teamId = req.params.id;
+  try {
+    await pool.query('DELETE FROM teams WHERE id = $1', [teamId]);
+    res.redirect('/admin/team');
+  } catch (err) {
+    console.error(err);
+    res.send('Error ' + err);
+  }
+});
+
+
 
 
 
