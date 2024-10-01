@@ -1750,7 +1750,8 @@ app.get('/admin/verify_payments', async (req, res) => {
       SELECT bookings.*, teams.range 
       FROM bookings 
       JOIN teams ON bookings.team_id = teams.id
-      WHERE bookings.payment_status = 'รอการตรวจสอบ';
+      WHERE bookings.payment_status = 'รอการตรวจสอบ'
+      ORDER BY bookings.id DESC;
     `);
     const bookings = result.rows;
     res.render('admin_verify_payments', { bookings });
@@ -1759,6 +1760,7 @@ app.get('/admin/verify_payments', async (req, res) => {
     res.send('Error ' + err);
   }
 });
+
 
 // Admin verify or reject payment
 app.post('/admin/verify_payment/:id', async (req, res) => {
