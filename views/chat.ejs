@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -121,7 +120,6 @@
         font-weight: bold;
         margin-bottom: 10px;
       }
-      
     </style>
 </head>
 
@@ -144,95 +142,145 @@
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
-  
+
   <script>
     const socket = io();
-    const userId = "<%= userId %>"; // User ID from backend
-    const teamId = "<%= teamId %>"; // Team ID from backend
-    let currentRoom = `${teamId}-${userId}`; // Combine teamId and userId for room
-  
-    // Join the room
+    const userId = "<%= userId %>";
+    const teamId = "<%= teamId %>";
+    let currentRoom = `${teamId}-${userId}`;
+
     document.getElementById('join-button').onclick = function () {
-      socket.emit("joinRoom", currentRoom); // Join the combined room
-      document.getElementById('room-selection').style.display = 'none';
-      document.getElementById('chat-room').style.display = 'block';
-    };
-  
+    // ส่งชื่อห้องตามไอดีและชื่อผู้ใช้
+    socket.emit("joinPrivateChat", { teamId, userId });
+    document.getElementById('room-selection').style.display = 'none';
+    document.getElementById('chat-room').style.display = 'block';
+};
+
     // Send a message
     document.getElementById('send-button').onclick = function () {
       const message = document.getElementById('message-input').value;
       if (currentRoom && message) {
-        const now = new Date();
+        const now = new Date(); // Current time
+        // Emit chatMessage with created_at
         socket.emit("chatMessage", {
           room: currentRoom,
           message: message,
-          userId: userId || null,
-          teamId: teamId || null,
-          created_at: now.toISOString() 
+          userId: userId || null, // Send userId if available
+          teamId: teamId || null,  // Send teamId if available
+          created_at: now.toISOString() // Add created_at in ISO format
         });
-        document.getElementById('message-input').value = ''; 
+        document.getElementById('message-input').value = ''; // Clear input
       }
     };
-  
-    // Load messages and display
+
     socket.on('loadMessages', (messages) => {
       const messagesContainer = document.getElementById('messages');
-      messagesContainer.innerHTML = ''; 
+      messagesContainer.innerHTML = ''; // Clear old messages
+
+      // Display each message with created_at
       messages.forEach(message => {
         const messageElement = document.createElement("div");
         messageElement.classList.add('message', 'received');
-        
+
+        // Convert created_at to local time (Thailand time zone UTC+7)
         const date = new Date(message.created_at);
-        const dateString = date.toLocaleDateString('th-TH', { timeZone: 'Asia/Bangkok', year: 'numeric', month: 'long', day: 'numeric' });
-        const timeString = date.toLocaleTimeString('th-TH', { timeZone: 'Asia/Bangkok', hour: '2-digit', minute: '2-digit' });
-  
+
+        // Format the date and time
+        const dateOptions = {
+          timeZone: 'Asia/Bangkok',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        };
+        const timeOptions = {
+          timeZone: 'Asia/Bangkok',
+          hour: '2-digit',
+          minute: '2-digit'
+        };
+
+        const dateString = date.toLocaleDateString('th-TH', dateOptions);
+        const timeString = date.toLocaleTimeString('th-TH', timeOptions);
+
+        // Create a span for name and timestamp with class "text-sm text-gray-500"
         const metaDataElement = document.createElement("span");
-        metaDataElement.classList.add('text-sm', 'text-gray-500');
+        metaDataElement.classList.add('text-sm', 'text-gray-500'); // Gray text class
         metaDataElement.textContent = `${message.name || 'Unknown'} [${dateString} ${timeString}]`;
-  
+
+        // Create a break for separating metadata and message
+        const lineBreak = document.createElement("br");
+
+        // Add the actual message content
         const messageContent = document.createTextNode(message.message);
-  
+
+        // Append the elements in order
         messageElement.appendChild(metaDataElement);
-        messageElement.appendChild(document.createElement("br"));
+        messageElement.appendChild(lineBreak);
         messageElement.appendChild(messageContent);
-  
+
         messagesContainer.appendChild(messageElement);
       });
-  
+
+      // Scroll to the latest message
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
     });
-  
+
     socket.on("chatMessage", (data) => {
       const messageElement = document.createElement("div");
       messageElement.classList.add('message', 'received');
-  
+
+      // Convert created_at to local time (Thailand time zone UTC+7)
       const date = new Date(data.created_at);
-      const dateString = date.toLocaleDateString('th-TH', { timeZone: 'Asia/Bangkok', year: 'numeric', month: 'long', day: 'numeric' });
-      const timeString = date.toLocaleTimeString('th-TH', { timeZone: 'Asia/Bangkok', hour: '2-digit', minute: '2-digit' });
-  
+
+      // Format the date and time
+      const dateOptions = {
+        timeZone: 'Asia/Bangkok',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      };
+      const timeOptions = {
+        timeZone: 'Asia/Bangkok',
+        hour: '2-digit',
+        minute: '2-digit'
+      };
+
+      const dateString = date.toLocaleDateString('th-TH', dateOptions);
+      const timeString = date.toLocaleTimeString('th-TH', timeOptions);
+
+      // Create a span for name and timestamp with class "text-sm text-gray-500"
       const metaDataElement = document.createElement("span");
-      metaDataElement.classList.add('text-sm', 'text-gray-500');
+      metaDataElement.classList.add('text-sm', 'text-gray-500'); // Gray text class
       metaDataElement.textContent = `${data.username || 'Unknown'} [${dateString} ${timeString}]`;
-  
+
+      // Create a break for separating metadata and message
+      const lineBreak = document.createElement("br");
+
+      // Add the actual message content
       const messageContent = document.createTextNode(data.message);
-  
+
+      // Append the elements in order
       messageElement.appendChild(metaDataElement);
-      messageElement.appendChild(document.createElement("br"));
+      messageElement.appendChild(lineBreak);
       messageElement.appendChild(messageContent);
-  
+
       document.getElementById('messages').appendChild(messageElement);
+
+      // Scroll to the latest message
       document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
     });
-  
-    socket.on('message', (msg) => {
+
+
+    // Display server messages
+/*     socket.on('message', (msg) => {
       const messageElement = document.createElement("div");
       messageElement.classList.add('message', 'received');
       messageElement.textContent = msg;
       document.getElementById('messages').appendChild(messageElement);
       document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
-    });
+    }); */
+
   </script>
-  
+
 
 </body>
 </html>

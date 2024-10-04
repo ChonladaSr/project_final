@@ -105,19 +105,57 @@
     }
 
     // โหลดประวัติการแชท
-    socket.on('loadChatHistory', (messages) => {
+    socket.on('loadMessages', (messages) => {
       const messagesContainer = document.getElementById('messages');
-      messagesContainer.innerHTML = ''; // ล้างข้อความเก่า
+      messagesContainer.innerHTML = ''; // Clear old messages
 
+      // Display each message with created_at
       messages.forEach(message => {
-        const messageElement = document.createElement('div');
+        const messageElement = document.createElement("div");
         messageElement.classList.add('message', 'received');
-        messageElement.textContent = message.message;
+
+        // Convert created_at to local time (Thailand time zone UTC+7)
+        const date = new Date(message.created_at);
+
+        // Format the date and time
+        const dateOptions = {
+          timeZone: 'Asia/Bangkok',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        };
+        const timeOptions = {
+          timeZone: 'Asia/Bangkok',
+          hour: '2-digit',
+          minute: '2-digit'
+        };
+
+        const dateString = date.toLocaleDateString('th-TH', dateOptions);
+        const timeString = date.toLocaleTimeString('th-TH', timeOptions);
+
+        // Create a span for name and timestamp with class "text-sm text-gray-500"
+        const metaDataElement = document.createElement("span");
+        metaDataElement.classList.add('text-sm', 'text-gray-500'); // Gray text class
+        metaDataElement.textContent = `${message.name || 'Unknown'} [${dateString} ${timeString}]`;
+
+        // Create a break for separating metadata and message
+        const lineBreak = document.createElement("br");
+
+        // Add the actual message content
+        const messageContent = document.createTextNode(message.message);
+
+        // Append the elements in order
+        messageElement.appendChild(metaDataElement);
+        messageElement.appendChild(lineBreak);
+        messageElement.appendChild(messageContent);
+
         messagesContainer.appendChild(messageElement);
       });
 
+      // Scroll to the latest message
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
     });
+
 
     // เมื่อมีการส่งข้อความใหม่
     document.getElementById('send-button').onclick = () => {
@@ -129,14 +167,51 @@
       }
     };
 
-    // แสดงข้อความแชทใหม่
-    socket.on('chatMessage', (data) => {
-      const messageElement = document.createElement('div');
+    socket.on("chatMessage", (data) => {
+      const messageElement = document.createElement("div");
       messageElement.classList.add('message', 'received');
-      messageElement.textContent = data.message;
+
+      // Convert created_at to local time (Thailand time zone UTC+7)
+      const date = new Date(data.created_at);
+
+      // Format the date and time
+      const dateOptions = {
+        timeZone: 'Asia/Bangkok',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      };
+      const timeOptions = {
+        timeZone: 'Asia/Bangkok',
+        hour: '2-digit',
+        minute: '2-digit'
+      };
+
+      const dateString = date.toLocaleDateString('th-TH', dateOptions);
+      const timeString = date.toLocaleTimeString('th-TH', timeOptions);
+
+      // Create a span for name and timestamp with class "text-sm text-gray-500"
+      const metaDataElement = document.createElement("span");
+      metaDataElement.classList.add('text-sm', 'text-gray-500'); // Gray text class
+      metaDataElement.textContent = `${data.username || 'Unknown'} [${dateString} ${timeString}]`;
+
+      // Create a break for separating metadata and message
+      const lineBreak = document.createElement("br");
+
+      // Add the actual message content
+      const messageContent = document.createTextNode(data.message);
+
+      // Append the elements in order
+      messageElement.appendChild(metaDataElement);
+      messageElement.appendChild(lineBreak);
+      messageElement.appendChild(messageContent);
+
       document.getElementById('messages').appendChild(messageElement);
+
+      // Scroll to the latest message
       document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
     });
+    
   </script>
 </body>
 </html>
