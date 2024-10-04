@@ -60,7 +60,7 @@
         display: none;
       }
 
-      #messages {
+          #messages {
         height: 400px;
         overflow-y: scroll;
         border: 1px solid #ddd;
@@ -71,14 +71,14 @@
         flex-direction: column;
         align-items: flex-start;
       }
-
+ /*  
       .message {
         padding: 10px;
         border-radius: 10px;
         margin-bottom: 10px;
         max-width: 90%;
         align-self: flex-start;
-      }
+      } 
 
       .message.sent {
         background-color: #dbffb6;
@@ -91,7 +91,7 @@
         align-self: flex-start;
         text-align: left;
       }
-
+*/
 
       #message-input {
         width: calc(100% - 80px);
@@ -121,13 +121,66 @@
         margin-bottom: 10px;
       }
 
-      .text-gray {
-  color: gray; /* Change this to your preferred gray color */
-}
+      /* Container for all messages */
+      #messages {
+        max-height: 400px;
+        /* Maximum height for the message container */
+        overflow-y: auto;
+        /* Scrollable when messages exceed height */
+        padding: 10px;
+        /* Padding around the container */
+        background-color: #f9f9f9;
+        /* Light background color */
+        border: 1px solid #ddd;
+        /* Light border */
+        border-radius: 5px;
+        /* Rounded corners */
+      }
 
-.text-sm {
-  font-size: 0.875rem; /* Adjust the size as necessary */
-}
+      /* General message styling */
+      .message {
+        margin-bottom: 10px;
+        /* Space between messages */
+        padding: 8px;
+        /* Padding inside message boxes */
+        border-radius: 5px;
+        /* Rounded corners for messages */
+      }
+
+      /* Styling for messages sent by the user */
+      .sent {
+        background-color: #e1ffc7;
+        /* Light green background for sent messages */
+        text-align: right;
+        /* Align text to the right */
+        margin-left: auto;
+        /* Push to the right */
+        max-width: 70%;
+        /* Limit width of sent messages */
+      }
+
+      /* Styling for messages received from the team */
+      .received {
+        background-color: #f1f1f1;
+        /* Light gray background for received messages */
+        text-align: left;
+        /* Align text to the left */
+        margin-right: auto;
+        /* Push to the left */
+        max-width: 70%;
+        /* Limit width of received messages */
+      }
+
+      /* Optional: Style for the message timestamp */
+      .text-sm {
+        font-size: 0.875rem;
+        /* Smaller font size */
+      }
+
+      .text-gray-500 {
+        color: #6b7280;
+        /* Gray text color */
+      }
     </style>
 </head>
 
@@ -182,64 +235,67 @@
     };
 
     socket.on('loadMessages', (messages) => {
-  const messagesContainer = document.getElementById('messages');
-  messagesContainer.innerHTML = ''; // Clear existing messages
+      const messagesContainer = document.getElementById('messages');
+      messagesContainer.innerHTML = ''; // Clear existing messages
 
-  messages.forEach((message) => {
-    const messageElement = document.createElement("div");
+      messages.forEach((message) => {
+        const messageElement = document.createElement("div");
 
-    // Check sender type and apply the appropriate class
-    if (message.sender_type === 'team') {
-      messageElement.classList.add('message', 'received'); // Left side
-    } else if (message.sender_type === 'user') {
-      messageElement.classList.add('message', 'sent'); // Right side
-    }
+        // Check sender type and apply the appropriate class
+        if (message.sender_type === 'team') {
+          messageElement.classList.add('message', 'received'); // Left side
+        } else if (message.sender_type === 'user') {
+          messageElement.classList.add('message', 'sent'); // Right side
+        }
 
-    // Format the received message
-    const date = new Date(message.created_at); // Assuming you have created_at in your message object
-    const dateString = date.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
-    const timeString = date.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+        // Format the received message
+        const date = new Date(message.created_at); // Assuming you have created_at in your message object
+        const dateString = date.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+        const timeString = date.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
 
-    // Update innerHTML with styling
-    messageElement.innerHTML = `
+        // Update innerHTML with styling
+        messageElement.innerHTML = `
      
       <span class="text-gray text-sm">${dateString} ${timeString}</span><br>
       <span>${message.message}</span>
     `;
-    messagesContainer.appendChild(messageElement);
-  });
-});
+        messagesContainer.appendChild(messageElement);
+      });
+    });
 
-socket.on("chatMessage", (data) => {
-  const messagesContainer = document.getElementById('messages');
-  const messageElement = document.createElement("div");
+    socket.on("chatMessage", (data) => {
+      const messagesContainer = document.getElementById('messages');
+      const messageElement = document.createElement("div");
 
-  // Check sender type and apply the appropriate class
-  if (data.sender_type === 'team') {
-    messageElement.classList.add('message', 'received'); // Left side
-  } else if (data.sender_type === 'user') {
-    messageElement.classList.add('message', 'sent'); // Right side
-  }
+      // Check sender type and apply the appropriate class
+      if (data.sender_type === 'team') {
+        messageElement.classList.add('message', 'received'); // Left side
+      } else if (data.sender_type === 'user') {
+        messageElement.classList.add('message', 'sent'); // Right side
+      }
 
-  // Format the received message
-  const date = new Date();
-  const dateString = date.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
-  const timeString = date.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+      // Format the received message
+      const date = new Date();
+      const dateString = date.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+      const timeString = date.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
 
-  // Update innerHTML with styling
-  messageElement.innerHTML = `
-    
+      // Update innerHTML with styling
+      messageElement.innerHTML = `
     <span class="text-gray text-sm">${dateString} ${timeString}</span><br>
     <span>${data.message}</span>
   `;
-  messagesContainer.appendChild(messageElement);
-});
 
+      messagesContainer.appendChild(messageElement);
 
+      // Scroll to the latest message
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    });
 
     // Load users when the page is loaded
     socket.emit("getChatUsers", teamId);
+    
   </script>
+
 
 
 </body>

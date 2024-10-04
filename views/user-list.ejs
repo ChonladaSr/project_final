@@ -3,19 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Select User to View Chat History</title>
+  <title>ข้อความ</title>
+  <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/6342/6342703.png">
+  <%- include('./font') %>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f7f7f7;
-      margin: 0;
-      padding: 20px;
-    }
+     body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+      }
     .user-list {
       max-width: 600px;
       margin: 0 auto;
       background: #ffffff;
-      padding: 20px;
+      padding: 50px;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
       border-radius: 8px;
     }
@@ -30,20 +30,59 @@
     .user:hover {
       background-color: #e2e2e2;
     }
+    
+    .topnav {
+        overflow: hidden;
+        background-color: #333;
+      }
+
+      .topnav a {
+        float: left;
+        color: #f2f2f2;
+        text-align: center;
+        padding: 14px 16px;
+        text-decoration: none;
+        font-size: 17px;
+      }
+
+      .topnav a:hover {
+        background-color: #ddd;
+        color: black;
+      }
+
+      .topnav a.active {
+        background-color: #04AA6D;
+        color: white;
+      }
+
+      .topnav-right {
+        float: right;
+      }
   </style>
 </head>
 <body>
+  <div class="topnav prompt-medium">
+    <a href="/team/dashboard">หน้าหลัก</a>
+    <a href="/teams/pending_bookings">งานที่รอดำเนินการ</a>
+    <a href="/teams/inprogress_bookings">งานที่กำลังซ่อมแซม</a>
+    <a href="/team/get_all_bookings">งานทั้งหมด</a>
+    <div class="topnav-right">
+      <a href="/team/profile/edit">แก้ไขข้อมูล</a>
+      <a href="/team/logout">ออกจากระบบ</a>
+    </div>
+  </div>
+
   <div class="user-list">
-    <h2>Select a User to View Chat History</h2>
+    <h2 class="prompt-medium">Select a User to View Chat History</h2>
 
     <% if (users.length > 0) { %>
       <% users.forEach(function(user) { %>
         <div class="user" onclick="window.location.href='/teams/<%= teamId %>/chat-history/<%= user.id %>'">
-          <p><strong><%= user.name %></strong></p>
+          <p class="prompt-medium"><%= user.name %></p>
         </div>
       <% }) %>
     <% } else { %>
-      <p>No users found who have chatted with this team.</p>
+      <p class="prompt-medium">No users found who have chatted with this team.</p>
     <% } %>
   </div>
 </body>

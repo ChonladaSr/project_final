@@ -262,7 +262,6 @@ app.get('/users/chat/:teamId', ensureAuthenticated, (req, res) => {
   res.render('chat', { userId, teamId });
 });
 
-
 app.get('/teams/:teamId/chat-history', async (req, res) => {
   const { teamId } = req.params;
 
@@ -325,74 +324,6 @@ app.get('/teams/:teamId/chat-history/:userId', async (req, res) => {
     res.status(500).send('Error fetching chat history');
   }
 });
-
-
-app.get('/team/chat/:teamId', checkTeamAuthenticated, (req, res) => {
-  const teamId = req.params.teamId;
-  const userId = req.session.userId || null;
-  res.render('chat', { userId, teamId });
-});
-
-/* app.get('/teams/:teamId/users/:userId/chat-history', async (req, res) => {
-  const { teamId, userId } = req.params;
-
-  try {
-    // ดึงประวัติการแชทระหว่างทีมกับผู้ใช้จากฐานข้อมูล
-    const result = await pool.query(
-      `SELECT * FROM messages WHERE team_id = $1 AND user_id = $2 ORDER BY created_at ASC`,
-      [teamId, userId]
-    );
-
-    // หากมีประวัติการแชท
-    if (result.rows.length > 0) {
-      // เรนเดอร์หน้าแชทพร้อมกับข้อมูลที่ดึงมา
-      res.render('chat-history', {
-        teamId,
-        userId,
-        chats: result.rows,
-      });
-    } else {
-      // ถ้าไม่มีประวัติการแชท ให้ส่งข้อความแจ้ง
-      res.render('chat-history', {
-        teamId,
-        userId,
-        chats: [],
-        message: 'No chat history found for this team and user.',
-      });
-    }
-  } catch (err) {
-    console.error('Error fetching chat history:', err);
-    res.status(500).send('Error fetching chat history');
-  }
-}); */
-
-
-
-// Route แสดงประวัติการแชท
-/* app.get('/team/chat/history/:teamId', checkTeamAuthenticated, async (req, res) => {
-  const teamId = req.params.teamId;
-
-  try {
-    // ดึงข้อมูล users ที่เคยแชทกับทีมนี้จากฐานข้อมูล
-    const result = await pool.query(`
-      SELECT DISTINCT users.id, users.name
-      FROM messages
-      JOIN users ON messages.user_id = users.id
-      WHERE messages.team_id = $1
-    `, [teamId]);
-
-    const users = result.rows;
-    
-    // ส่งตัวแปร users ไปยังหน้า view
-    res.render('chat', { teamId, users });
-  } catch (err) {
-    console.error("Error fetching users:", err);
-    res.status(500).send("Error fetching users.");
-  }
-});
-
- */
-
 
 
 
@@ -934,6 +865,7 @@ app.get('/team', (req, res) => {
 
 app.get("/team/dashboard", async (req, res) => {
   const teamId = req.session.teamId;
+
   if (!teamId) {
     return res.redirect('/team/login'); // Redirect to login if not authenticated
   }
@@ -995,6 +927,7 @@ app.get("/team/dashboard", async (req, res) => {
     const resultReviewCount = await pool.query(queryReviewCount, [teamId]);
     const reviewCount = resultReviewCount.rows[0].review_count;
 
+ 
     // Render the dashboard with team, tasks, booking counts, and reviews
     res.render('team_dashboard', {
       team: teamData,
@@ -1004,7 +937,7 @@ app.get("/team/dashboard", async (req, res) => {
       inprogressCount: inprogressCount,
       reviews: reviews,
       reviewCount: reviewCount,
-      teamId: teamId
+      teamId: teamId,
     });
   } catch (err) {
     console.error(err);
