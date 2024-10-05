@@ -8,84 +8,86 @@
   <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/6342/6342703.png">
   <%- include('./font') %>
 
-  <style>
-    body {
-      font-family: 'Arial', sans-serif;
-      display: flex;
-      justify-content: center;
+    <style>
+      body {
+        font-family: 'Arial', sans-serif;
+        display: flex;
+        justify-content: center;
 
-      height: 100vh;
-      margin: 0;
-    }
+        height: 100vh;
+        margin: 0;
+      }
 
-    #user-list,
-    #chat-container {
-      width: 45%;
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      margin: 10px;
-    }
+      #user-list,
+      #chat-container {
+        width: 45%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        margin: 10px;
+      }
 
-    #user-list ul {
-      list-style: none;
-      padding: 0;
-    }
+      #user-list ul {
+        list-style: none;
+        padding: 0;
+      }
 
-    #user-list ul li {
-      cursor: pointer;
-      padding: 5px;
-      border-bottom: 1px solid #ddd;
-    }
+      #user-list ul li {
+        cursor: pointer;
+        padding: 5px;
+        border-bottom: 1px solid #ddd;
+      }
 
-    #messages {
-      height: 400px;
-      overflow-y: scroll;
-      margin-bottom: 10px;
-    }
+      #messages {
+        height: 400px;
+        overflow-y: scroll;
+        margin-bottom: 10px;
+      }
 
-    .message {
-      padding: 10px;
-      border-radius: 10px;
-      margin-bottom: 10px;
-    }
+      .message {
+        padding: 10px;
+        border-radius: 10px;
+        margin-bottom: 10px;
+      }
 
-    .message.sent {
-      background-color: #dbffb6;
-      align-self: flex-end;
-      text-align: right;
-    }
+      .message.sent {
+        background-color: #dbffb6;
+        align-self: flex-end;
+        text-align: right;
+      }
 
-    .message.received {
-      background-color: #e4e4e4;
-    }
+      .message.received {
+        background-color: #e4e4e4;
+      }
 
-    #message-input {
-      width: 80%;
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-    }
+      #message-input {
+        width: 80%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
 
-    #send-button {
-      width: 60px;
-      padding: 10px;
-      background-color: #228B22;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    #send-button:hover {
+      #send-button {
+        width: 60px;
+        padding: 10px;
+        background-color: #228B22;
+        color: white;
+        border: none;
+        cursor: pointer;
+      }
+
+      #send-button:hover {
         background-color: #008000;
       }
-    .text-sm {
+
+      .text-sm {
         font-size: 0.75rem;
       }
 
       .text-gray-500 {
         color: #808080;
       }
-  </style>
+    </style>
 </head>
 
 <body>
@@ -109,10 +111,10 @@
     const userList = document.getElementById('users');
     let currentUserId = null;
     let currentRoom = null;
-  
+
     // ดึงรายชื่อผู้ใช้ที่ทีมเคยแชทด้วย
     socket.emit("getChatUsers", teamId);
-  
+
     // แสดงรายชื่อผู้ใช้
     socket.on('chatUsers', (users) => {
       users.forEach(user => {
@@ -125,48 +127,48 @@
         userList.appendChild(li);
       });
     });
-  
+
     // เข้าร่วมห้องแชทส่วนตัว
     function joinChat(userName) {
       document.getElementById('chat-with').textContent = userName;
       document.getElementById('chat-container').style.display = 'block';
       const room = `${teamId}-${currentUserId}`;
       currentRoom = room;
-  
+
       socket.emit("joinPrivateChat", { teamId, userId: currentUserId });
     }
-  
+
     socket.on('loadMessages', (messages) => {
-  const messagesContainer = document.getElementById('messages');
-  messagesContainer.innerHTML = ''; // Clear existing messages
+      const messagesContainer = document.getElementById('messages');
+      messagesContainer.innerHTML = ''; // Clear existing messages
 
-  messages.forEach((message) => {
-    const messageElement = document.createElement("div");
+      messages.forEach((message) => {
+        const messageElement = document.createElement("div");
 
-    // Check sender type and apply the appropriate class
-    if (message.sender_type === 'team') {
-      messageElement.classList.add('message', 'sent'); 
-    } else if (message.sender_type === 'user') {
-      messageElement.classList.add('message', 'received');
-    }
+        // Check sender type and apply the appropriate class
+        if (message.sender_type === 'team') {
+          messageElement.classList.add('message', 'sent');
+        } else if (message.sender_type === 'user') {
+          messageElement.classList.add('message', 'received');
+        }
 
-    // Format the received message
-    const date = new Date(message.created_at); // Assuming you have created_at in your message object
-    const dateString = date.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
-    const timeString = date.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+        // Format the received message
+        const date = new Date(message.created_at); // Assuming you have created_at in your message object
+        const dateString = date.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+        const timeString = date.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
 
-    // Update innerHTML with styling
-    messageElement.innerHTML = `
+        // Update innerHTML with styling
+        messageElement.innerHTML = `
      
       <span class="text-gray-500 text-sm">${dateString} ${timeString}</span><br>
       <span>${message.message}</span>
     `;
-    messagesContainer.appendChild(messageElement);
-  });
-});
-  
-    // เมื่อมีการส่งข้อความใหม่
-    document.getElementById('send-button').onclick = () => {
+        messagesContainer.appendChild(messageElement);
+      });
+    });
+
+
+    function sendMessage() {
       const messageInput = document.getElementById('message-input');
       const message = messageInput.value;
       if (message && currentRoom) {
@@ -176,39 +178,53 @@
           teamId,
           senderType: 'team' 
         });
-  
-        messageInput.value = ''; // ล้างข้อความ
+
+        messageInput.value = ''; // ล้างกล่องข้อความหลังจากส่งแล้ว
       }
+    }
+
+    // ตรวจจับเหตุการณ์กดปุ่ม Enter
+    document.getElementById('message-input').addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault(); // ป้องกันไม่ให้ขึ้นบรรทัดใหม่
+        sendMessage(); // เรียกใช้ฟังก์ชันส่งข้อความ
+      }
+    });
+
+    // เมื่อกดปุ่ม send-button จะส่งข้อความ
+    document.getElementById('send-button').onclick = () => {
+      sendMessage(); // เรียกใช้ฟังก์ชันส่งข้อความ
     };
-  
+
+
     socket.on("chatMessage", (data) => {
-  const messagesContainer = document.getElementById('messages');
-  const messageElement = document.createElement("div");
+      const messagesContainer = document.getElementById('messages');
+      const messageElement = document.createElement("div");
 
-  // Check sender type and apply the appropriate class
-  if (data.sender_type === 'team') {
-    messageElement.classList.add('message', 'sent'); // Left side
-  } else if (data.sender_type === 'user') {
-    messageElement.classList.add('message', 'received'); // Right side
-  }
+      // Check sender type and apply the appropriate class
+      if (data.sender_type === 'team') {
+        messageElement.classList.add('message', 'sent'); // Left side
+      } else if (data.sender_type === 'user') {
+        messageElement.classList.add('message', 'received'); // Right side
+      }
 
-  // Format the received message
-  const date = new Date();
-  const dateString = date.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
-  const timeString = date.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+      // Format the received message
+      const date = new Date();
+      const dateString = date.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+      const timeString = date.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
 
-  // Update innerHTML with styling
-  messageElement.innerHTML = `
+      // Update innerHTML with styling
+      messageElement.innerHTML = `
     
     <span class="text-gray text-sm">${dateString} ${timeString}</span><br>
     <span>${data.message}</span>
   `;
-  messagesContainer.appendChild(messageElement);
-});
+      messagesContainer.appendChild(messageElement);
+    });
 
-  
+
   </script>
-  
+
 
 </body>
 

@@ -212,21 +212,36 @@
           }
         }; */
 
-    document.getElementById('send-button').onclick = () => {
-      const messageInput = document.getElementById('message-input');
-      const message = messageInput.value;
-      if (message && currentRoom) {
-        socket.emit("chatMessage", {
-          room: currentRoom,
-          message,
-          userId,
-          teamId,
-          senderType: 'user' // กำหนด sender type เป็น user
-        });
+  // ฟังก์ชันสำหรับส่งข้อความเมื่อกดปุ่มส่ง (send-button) หรือกด Enter
+function sendMessage() {
+  const messageInput = document.getElementById('message-input');
+  const message = messageInput.value;
+  if (message && currentRoom) {
+    socket.emit("chatMessage", {
+      room: currentRoom,
+      message,
+      userId,
+      teamId,
+      senderType: 'user' // กำหนด sender type เป็น user
+    });
 
-        messageInput.value = ''; // ล้างกล่องข้อความหลังจากส่งแล้ว
-      }
-    };
+    messageInput.value = ''; // ล้างกล่องข้อความหลังจากส่งแล้ว
+  }
+}
+
+// ตรวจจับเหตุการณ์กดปุ่ม Enter
+document.getElementById('message-input').addEventListener('keydown', (event) => {
+  if (event.key === 'Enter') {
+    event.preventDefault(); // ป้องกันไม่ให้ขึ้นบรรทัดใหม่
+    sendMessage(); // เรียกใช้ฟังก์ชันส่งข้อความ
+  }
+});
+
+// เมื่อกดปุ่ม send-button จะส่งข้อความ
+document.getElementById('send-button').onclick = () => {
+  sendMessage(); // เรียกใช้ฟังก์ชันส่งข้อความ
+};
+
 
 
     socket.on('loadMessages', (messages) => {
