@@ -1,37 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ข้อความ</title>
   <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/6342/6342703.png">
   <%- include('./font') %>
-  <style>
-     body {
+    <style>
+      body {
         margin: 0;
         font-family: Arial, Helvetica, sans-serif;
+        text-align: center;
       }
-    .user-list {
-      max-width: 600px;
-      margin: 0 auto;
-      background: #ffffff;
-      padding: 50px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      border-radius: 8px;
-    }
-    .user {
-      padding: 10px;
-      margin-bottom: 10px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      background-color: #f1f1f1;
-      cursor: pointer;
-    }
-    .user:hover {
-      background-color: #e2e2e2;
-    }
-    
-    .topnav {
+
+      .user-list {
+        max-width: 600px;
+        margin: 0 auto;
+        background: #ffffff;
+        padding: 50px;
+        /*       box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      border-radius: 8px; */
+      }
+
+      .user {
+        padding: 10px;
+        margin-bottom: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        background-color: #f1f1f1;
+        cursor: pointer;
+      }
+
+      .user:hover {
+        background-color: #e2e2e2;
+      }
+
+      .topnav {
         overflow: hidden;
         background-color: #333;
       }
@@ -58,8 +63,15 @@
       .topnav-right {
         float: right;
       }
-  </style>
+      .no-users-image {
+        width: 300px; /* ปรับขนาดความกว้างของรูป */
+        height: auto; /* ปรับขนาดความสูงตามอัตโนมัติให้สัมพันธ์กับความกว้าง */
+        display: block;
+        margin: 0 auto; /* จัดรูปให้อยู่ตรงกลาง */
+    }
+    </style>
 </head>
+
 <body>
   <div class="topnav prompt-medium">
     <a href="/team/dashboard">หน้าหลัก</a>
@@ -73,17 +85,24 @@
   </div>
 
   <div class="user-list">
-    <h2 class="prompt-medium">Select a User to View Chat History</h2>
+    <h2 class="prompt-medium">เลือกผู้ใช้งานเพื่อดูประวัติการสนทนา</h2>
 
     <% if (users.length > 0) { %>
-      <% users.forEach(function(user) { %>
-        <div class="user" onclick="window.location.href='/teams/<%= teamId %>/chat-history/<%= user.id %>'">
-          <p class="prompt-medium"><%= user.name %></p>
-        </div>
-      <% }) %>
+        <% users.forEach(function(user) { %>
+            <div class="user" onclick="window.location.href='/teams/<%= teamId %>/chat-history/<%= user.id %>'">
+                <p class="prompt-medium">
+                    <%= user.name %>
+                </p>
+            </div>
+        <% }) %>
     <% } else { %>
-      <p class="prompt-medium">No users found who have chatted with this team.</p>
+        <div class="no-users">
+            <img src="https://img.freepik.com/free-vector/hand-drawn-no-data-illustration_23-2150696452.jpg?t=st=1728113734~exp=1728117334~hmac=62d9dda50773e3e3731f5d248230c9915f35413e99309b5f3045480383c3710b&w=740" alt="No users found" class="no-users-image">
+            <p class="prompt-medium">ไม่พบผู้ใช้งานในขณะนี้</p>
+        </div>
     <% } %>
-  </div>
+</div>
+
 </body>
+
 </html>

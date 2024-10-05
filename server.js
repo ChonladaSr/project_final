@@ -144,7 +144,7 @@ const ensureAuthenticated = (req, res, next) => {
 
 
 //ระบบแชท
-io.on("connection", (socket) => {
+/* io.on("connection", (socket) => {
   console.log("New user connected:", socket.id);
 
   // Get chat users that the team has chatted with
@@ -253,7 +253,123 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
   });
-}); 
+});  */
+
+io.on("connection", (socket) => {
+  console.log("New user connected:", socket.id);
+
+  // Get chat users that the team has chatted with
+  socket.on("getChatUsers", async (teamId) => {
+    try {
+      const result = await pool.query(`
+        SELECT DISTINCT u.id, u.name
+        FROM messages m
+        JOIN users u ON u.id = m.user_id
+        WHERE m.team_id = $1
+      `, [teamId]);
+
+      const users = result.rows;
+      socket.emit('chatUsers', users); // Send user list back to the client
+    } catch (err) {
+      console.error("Error retrieving chat users:", err);
+    }
+  });
+
+  // Join private chat between team and user
+  socket.on("joinPrivateChat", async ({ teamId, userId }) => {
+    const room = `${teamId}-${userId}`;
+    socket.join(room);
+    console.log(`Team ${teamId} joined private chat with User ${userId}`);
+
+    try {
+      const result = await pool.query(
+        `SELECT * FROM messages WHERE room_id = $1 ORDER BY created_at ASC`,
+        [room]
+      );
+
+      const messages = await Promise.all(result.rows.map(async (message) => {
+        let name = "Unknown";
+        let type = "";  // Type of message sender (user or team)
+
+        if (message.user_id) {
+          const userResult = await pool.query(`SELECT name FROM users WHERE id = $1`, [message.user_id]);
+          if (userResult.rows.length > 0) {
+            name = userResult.rows[0].name;
+            type = "user";  // Set type as user
+          }
+        } else if (message.team_id) {
+          const teamResult = await pool.query(`SELECT name FROM teams WHERE id = $1`, [message.team_id]);
+          if (teamResult.rows.length > 0) {
+            name = teamResult.rows[0].name;
+            type = "team";  // Set type as team
+          }
+        }
+
+        // Return message along with created_at, name, and type (user/team)
+        return {
+          ...message,
+          name,
+          type,
+          created_at: message.created_at  // Include created_at
+        };
+      }));
+
+      // Send the messages with created_at back to the client
+      socket.emit('loadMessages', messages);
+    } catch (err) {
+      console.error("Error retrieving chat history:", err);
+    }
+  });
+
+  // Handle sending chat messages
+  socket.on("chatMessage", async ({ room, message, userId, teamId }) => {
+    if (room && message) {
+      let username = "Unknown";
+      const createdAt = new Date(); // Get the current timestamp
+      const senderType = userId ? 'user' : 'team'; // Set the sender type
+
+      // Fetch username based on userId or teamId
+      if (userId) {
+        const result = await pool.query(`SELECT name FROM users WHERE id = $1`, [userId]);
+        if (result.rows.length > 0) {
+          username = result.rows[0].name;
+        }
+      } else if (teamId) {
+        const result = await pool.query(`SELECT name FROM teams WHERE id = $1`, [teamId]);
+        if (result.rows.length > 0) {
+          username = result.rows[0].name;
+        }
+      }
+
+      // Emit the message along with created_at, sender_type, userId, and teamId
+      io.to(room).emit("chatMessage", { 
+        username, 
+        message, 
+        created_at: createdAt,  // Send the timestamp
+        sender_type: senderType,  // Send the sender_type ('user' or 'team')
+        userId,   
+        teamId    
+      });
+
+      // Save the message to the database
+      try {
+        await pool.query(
+          `INSERT INTO messages (message, user_id, team_id, sender_type, room_id, created_at) 
+           VALUES ($1, $2, $3, $4, $5, $6)`,
+          [message, userId, teamId, senderType, room, createdAt] // Include created_at in the insert query
+        );
+        console.log("Message saved to the database.");
+      } catch (err) {
+        console.error("Error saving message:", err);
+      }
+    }
+  });
+
+  // Handle user disconnect
+  socket.on("disconnect", () => {
+    console.log("User disconnected:", socket.id);
+  });
+});
 
 
 app.get('/users/chat/:teamId', ensureAuthenticated, (req, res) => {

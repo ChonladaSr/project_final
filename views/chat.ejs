@@ -60,18 +60,19 @@
         display: none;
       }
 
-          #messages {
+      #messages {
         height: 400px;
         overflow-y: scroll;
         border: 1px solid #ddd;
         padding: 10px;
         margin-bottom: 10px;
-        background-color: #f1f1f1;
+        /* background-color: #f1f1f1; */
         display: flex;
         flex-direction: column;
-        align-items: flex-start;
+        align-items: flex-end;
       }
- /*  
+
+      /*  
       .message {
         padding: 10px;
         border-radius: 10px;
@@ -121,65 +122,42 @@
         margin-bottom: 10px;
       }
 
-      /* Container for all messages */
       #messages {
         max-height: 400px;
-        /* Maximum height for the message container */
         overflow-y: auto;
-        /* Scrollable when messages exceed height */
         padding: 10px;
-        /* Padding around the container */
         background-color: #f9f9f9;
-        /* Light background color */
         border: 1px solid #ddd;
-        /* Light border */
         border-radius: 5px;
-        /* Rounded corners */
       }
 
-      /* General message styling */
       .message {
         margin-bottom: 10px;
-        /* Space between messages */
         padding: 8px;
-        /* Padding inside message boxes */
         border-radius: 5px;
-        /* Rounded corners for messages */
+
       }
 
-      /* Styling for messages sent by the user */
       .sent {
-        background-color: #e1ffc7;
-        /* Light green background for sent messages */
+        background-color: #dbffb6;
         text-align: right;
-        /* Align text to the right */
         margin-left: auto;
-        /* Push to the right */
         max-width: 70%;
-        /* Limit width of sent messages */
       }
 
-      /* Styling for messages received from the team */
       .received {
-        background-color: #f1f1f1;
-        /* Light gray background for received messages */
+        background-color: #e4e4e4;
         text-align: left;
-        /* Align text to the left */
         margin-right: auto;
-        /* Push to the left */
         max-width: 70%;
-        /* Limit width of received messages */
       }
 
-      /* Optional: Style for the message timestamp */
       .text-sm {
-        font-size: 0.875rem;
-        /* Smaller font size */
+        font-size: 0.75rem;
       }
 
       .text-gray-500 {
-        color: #6b7280;
-        /* Gray text color */
+        color: #808080;
       }
     </style>
 </head>
@@ -211,89 +189,107 @@
     let currentRoom = `${teamId}-${userId}`; // Combine teamId and userId for room
 
 
-    // Join the room when clicking "join-button"
     document.getElementById('join-button').onclick = function () {
       if (currentRoom) {
-        socket.emit("joinPrivateChat", { teamId, userId }); // Emit joinPrivateChat
-        document.getElementById('room-selection').style.display = 'none';
-        document.getElementById('chat-room').style.display = 'block';
+        socket.emit("joinPrivateChat", { teamId, userId }); // ส่งคำขอเข้าห้องแชท
+        document.getElementById('room-selection').style.display = 'none'; // ซ่อนการเลือกห้อง
+        document.getElementById('chat-room').style.display = 'block'; // แสดงห้องแชท
       }
     };
+
 
     // Send a message
-    document.getElementById('send-button').onclick = function () {
-      const message = document.getElementById('message-input').value;
-      if (currentRoom && message) {
+    /*     document.getElementById('send-button').onclick = function () {
+          const message = document.getElementById('message-input').value;
+          if (currentRoom && message) {
+            socket.emit("chatMessage", {
+              room: currentRoom,
+              message: message,
+              userId: userId || null,
+              teamId: teamId || null,
+            });
+            document.getElementById('message-input').value = ''; // Clear input
+          }
+        }; */
+
+    document.getElementById('send-button').onclick = () => {
+      const messageInput = document.getElementById('message-input');
+      const message = messageInput.value;
+      if (message && currentRoom) {
         socket.emit("chatMessage", {
           room: currentRoom,
-          message: message,
-          userId: userId || null,
-          teamId: teamId || null,
+          message,
+          userId,
+          teamId,
+          senderType: 'user' // กำหนด sender type เป็น user
         });
-        document.getElementById('message-input').value = ''; // Clear input
+
+        messageInput.value = ''; // ล้างกล่องข้อความหลังจากส่งแล้ว
       }
     };
 
+
     socket.on('loadMessages', (messages) => {
-      const messagesContainer = document.getElementById('messages');
-      messagesContainer.innerHTML = ''; // Clear existing messages
+  const messagesContainer = document.getElementById('messages');
+  messagesContainer.innerHTML = ''; // ล้างข้อความที่มีอยู่แล้ว
 
-      messages.forEach((message) => {
-        const messageElement = document.createElement("div");
+  messages.forEach((message) => {
+    const messageElement = document.createElement("div");
 
-        // Check sender type and apply the appropriate class
-        if (message.sender_type === 'team') {
-          messageElement.classList.add('message', 'received'); // Left side
-        } else if (message.sender_type === 'user') {
-          messageElement.classList.add('message', 'sent'); // Right side
-        }
+    // ตรวจสอบประเภทของผู้ส่งเพื่อกำหนดตำแหน่งข้อความ (ฝั่งซ้ายหรือขวา)
+    if (message.sender_type === 'team') {
+      messageElement.classList.add('message', 'received'); // ฝั่งซ้าย (จากทีม)
+    } else if (message.sender_type === 'user') {
+      messageElement.classList.add('message', 'sent'); // ฝั่งขวา (จากผู้ใช้)
+    }
 
-        // Format the received message
-        const date = new Date(message.created_at); // Assuming you have created_at in your message object
-        const dateString = date.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
-        const timeString = date.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+    // สร้างรูปแบบข้อความพร้อมกับเวลา
+    const date = new Date(message.created_at); 
+    const dateString = date.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+    const timeString = date.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
 
-        // Update innerHTML with styling
-        messageElement.innerHTML = `
-     
-      <span class="text-gray text-sm">${dateString} ${timeString}</span><br>
+    // อัปเดต DOM
+    messageElement.innerHTML = `
+      <span class="text-gray-500 text-sm">${dateString} ${timeString}</span><br>
       <span>${message.message}</span>
     `;
-        messagesContainer.appendChild(messageElement);
-      });
-    });
+    messagesContainer.appendChild(messageElement);
+  });
 
-    socket.on("chatMessage", (data) => {
-      const messagesContainer = document.getElementById('messages');
-      const messageElement = document.createElement("div");
+  // เลื่อนกล่องข้อความลงไปที่ข้อความล่าสุด
+  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+});
 
-      // Check sender type and apply the appropriate class
-      if (data.sender_type === 'team') {
-        messageElement.classList.add('message', 'received'); // Left side
-      } else if (data.sender_type === 'user') {
-        messageElement.classList.add('message', 'sent'); // Right side
-      }
+socket.on("chatMessage", (data) => {
+  const messagesContainer = document.getElementById('messages');
+  const messageElement = document.createElement("div");
 
-      // Format the received message
-      const date = new Date();
-      const dateString = date.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
-      const timeString = date.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+  // ตรวจสอบประเภทของผู้ส่งเพื่อกำหนดตำแหน่งข้อความ (ฝั่งซ้ายหรือขวา)
+  if (data.sender_type === 'team') {
+    messageElement.classList.add('message', 'received'); // ฝั่งซ้าย (จากทีม)
+  } else if (data.sender_type === 'user') {
+    messageElement.classList.add('message', 'sent'); // ฝั่งขวา (จากผู้ใช้)
+  }
 
-      // Update innerHTML with styling
-      messageElement.innerHTML = `
-    <span class="text-gray text-sm">${dateString} ${timeString}</span><br>
+  // สร้างรูปแบบข้อความพร้อมกับเวลา
+  const date = new Date();
+  const dateString = date.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+  const timeString = date.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+
+  // อัปเดต DOM
+  messageElement.innerHTML = `
+    <span class="text-gray-500 text-sm">${dateString} ${timeString}</span><br>
     <span>${data.message}</span>
   `;
+  messagesContainer.appendChild(messageElement);
 
-      messagesContainer.appendChild(messageElement);
-
-      // Scroll to the latest message
-      messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    });
+  // เลื่อนกล่องข้อความลงไปที่ข้อความล่าสุด
+  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+});
 
     // Load users when the page is loaded
     socket.emit("getChatUsers", teamId);
-    
+
   </script>
 
 
