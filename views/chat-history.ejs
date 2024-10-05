@@ -164,6 +164,9 @@
       <span>${message.message}</span>
     `;
         messagesContainer.appendChild(messageElement);
+
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
       });
     });
 
@@ -220,6 +223,9 @@
     <span>${data.message}</span>
   `;
       messagesContainer.appendChild(messageElement);
+
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
     });
 
 

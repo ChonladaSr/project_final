@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Register</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+        }
+
+        .form-box {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: 400;
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 5px;
+        }
+
+        .input-group input,
+        .input-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            background-color: #f9f9f9;
+        }
+
+        .input-group input[type="file"] {
+            padding: 5px;
+            font-size: 14px;
+        }
+
+        textarea {
+            resize: none;
+            height: 100px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #4CAF50;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 500;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background-color: #45a049;
+        }
+
+        @media (max-width: 768px) {
+            .form-box {
+                padding: 20px;
+            }
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 5px;
+        }
+
+        .radio-group input[type="radio"] {
+            margin-right: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="form-box">
+            <h2>Register Your Team</h2>
+            <form action="/teams/register" method="POST" enctype="multipart/form-data">
+                <div class="input-group">
+                    <label for="name">Team Name</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="phone">Phone</label>
+                    <input type="text" id="phone" name="phone" required>
+                </div>
+
+                <!-- Job Type as Radio Buttons -->
+                <div class="input-group">
+                    <label>Job Type</label>
+                    <div class="radio-group">
+                        <input type="radio" id="job_type1" name="job_type" value="ช่างฝ้า" required>
+                        <label for="job_type1">ช่างฝ้า</label>
+
+                        <input type="radio" id="job_type2" name="job_type" value="ช่างทาสี" required>
+                        <label for="job_type2">ช่างทาสี</label>
+
+                        <input type="radio" id="job_type3" name="job_type" value="พนักงานทำความสะอาด" required>
+                        <label for="job_type3">พนักงานทำความสะอาด</label>
+                    </div>
+                </div>
+
+                <!-- Job Scope as Datalist -->
+                <div class="input-group">
+                    <label for="job_scope">Job Scope</label>
+                    <input list="job_scope_options" id="job_scope" name="job_scope" required>
+                    <datalist id="job_scope_options">
+                        <option value="กรุงเทพมหานคร">
+                        <option value="นครปฐม">
+                        <option value="ระยอง">
+                    </datalist>
+                </div>
+
+                <div class="input-group">
+                    <label for="range">Range</label>
+                    <input type="text" id="range" name="range" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+
+                
+
+                <div class="input-group">
+                    <label for="profileImage">Profile Image</label>
+                    <input type="file" id="profileImage" name="profileImage" accept="image/*" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="experience">Experience (Years)</label>
+                    <input type="number" id="experience" name="experience" min="0" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="photo1">Photo 1</label>
+                    <input type="file" id="photo1" name="photo1" accept="image/*" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="photo2">Photo 2</label>
+                    <input type="file" id="photo2" name="photo2" accept="image/*" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="photo3">Photo 3</label>
+                    <input type="file" id="photo3" name="photo3" accept="image/*" required>
+                </div>
+
+                <button type="submit" class="btn">Register</button>
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>

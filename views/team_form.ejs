@@ -14,180 +14,144 @@
 
 <body>
 
+    <form id="teamForm" action="/submit" method="POST" enctype="multipart/form-data">
 
-    <form action="/submit" method="POST" enctype="multipart/form-data">
+        <div class="bg-zinc-100 ">
+            <div class="max-w-2xl mx-auto p-6 bg-card text-card-foreground rounded-lg shadow-md py-4">
+                <h1 class="text-2xl prompt-bold mb-2 ">ลงทะเบียน</h1>
 
-            <div class="bg-zinc-100 ">
-                <div class="max-w-2xl mx-auto p-6 bg-card text-card-foreground rounded-lg shadow-md py-4">
-                    <h1 class="text-2xl prompt-bold mb-2 ">ลงทะเบียน</h1>
-                    <!-- <p class="text-sm text-muted-foreground mb-4"> To become a technician with us, apply</p> -->
-                    <form>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 py-3">
-                            <div>
-                                <label for="name" class="block text-sm prompt-medium mb-1">ชื่อ-สกุล</label>
-                                <input type="text" id="name" name="name"
-                                    class="w-full p-2 border border-border rounded-md prompt-regular" placeholder="ชื่อ"
-                                    required />
-                            </div>
-                            <div>
-                                <label for="phone" class="block text-sm prompt-medium mb-1">เบอร์โทรศัพท์</label>
-                                <input type="phone" id="phone" name="phone"
-                                    class="w-full p-2 border border-border rounded-md prompt-regular"
-                                    placeholder="เบอร์โทรศัพท์" required />
-                            </div>
-                        </div>
-
-
-                        <!--  <div class="mb-4">
-                            <label for="job_type" class="block text-sm font-medium mb-1">Job type</label>
-                            <input type="text" id="job_type" name="job_type"
-                                class="w-full p-2 border border-border rounded-md" placeholder="Job type" required />
-                        </div> -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-
-                            <div>
-                                <label for="email" class="block text-sm prompt-medium mb-1">อีเมล</label>
-                                <input type="text" id="email" name="email"
-                                    class="w-full p-2 border border-border rounded-md prompt-regular"
-                                    placeholder="you@example.com" required />
-
-
-                            </div>
-                            <!--    <div class="mb-4">
-                            <label for="job_scope" class="block text-sm font-medium mb-1">Job Scope</label>
-                            <input type="text" id="job_scope" name="job_scope"
-                                class="w-full p-2 border border-border rounded-md" placeholder="Job Scope" required />
-                        </div> -->
-                            <div>
-                                <label for="password" class="block text-sm prompt-medium mb-1">รหัสผ่าน</label>
-                                <input type="password" id="password" name="password"
-                                    class="w-full p-2 border border-border rounded-md" placeholder="******" required />
-
-                            </div>
-                        </div>
-
-
-                        <div class="mb-4">
-
-                            <label for="job_type" class=" text-sm prompt-medium mb-2">ประเภทของงาน: </label>
-
-                            <label for="job_type" class="prompt-regular  form-check-label text-sm">
-                                <input type="radio" class="form-check-input mb-1 prompt-medium" name="job_type"
-                                    value="ช่างฝ้า"> ช่างฝ้า
-                            </label>
-                            <label for="job_type" class="prompt-regular form-check-label text-sm">
-                                <input type="radio" class="form-check-input mb-1 prompt-medium" name="job_type"
-                                    value="ช่างทาสี"> ช่างทาสี
-                            </label>
-                            <label for="job_type" class="prompt-regular form-check-label text-sm">
-                                <input type="radio" class="form-check-input mb-1 prompt-medium" name="job_type"
-                                    value="พนักงานทำความสะอาด"> พนักงานทำความสะอาด
-                            </label>
-
-                        </div>
-
-                        <div class="mb-4 ">
-                            <label for="job_scope" class="block text-sm prompt-medium mb-1">พื้นที่ให้บริการ:</label>
-                            <input list="job_scopes" name="job_scope"
-                                class=" form-select mt-3 border border-border rounded-md prompt-regular"
-                                placeholder="พื้นที่ให้บริการ" required />
-                            <datalist id="job_scopes" class="w-full p-2 border border-border rounded-md prompt-medium">
-                                <option class="prompt-regular" value="กรุงเทพมหานครฯ">
-                                <option class="prompt-regular" value="นครปฐม">
-                                <option class="prompt-regular" value="ระยอง">
-                            </datalist>
-
-                        </div>
-                        <div class="mb-4">
-                            <label for="range" class="block text-sm prompt-medium mb-1">ช่วงราคา</label>
-                            <input type="number" id="range" name="range"
-                                class="w-full p-2 border border-border rounded-md prompt-regular" placeholder="ช่วงราคา"
-                                required />
-                        </div>
-                        <div class="mb-4">
-                            <label for="range" class="block text-sm prompt-medium mb-1">ประสบการณ์</label>
-                            <input type="number" id="experience" name="experience"
-                                class="w-full p-2 border border-border rounded-md prompt-regular"
-                                placeholder="ประสบการณ์" required />
-                        </div>
-                        <!-- <div class="mb-4 grid w-full max-w-xs items-center gap-1.5">
-                            <label for="profile_image" class="block text-sm font-medium mb-1">Images of associated works</label>
-
-                            <input type="file" name="profile_image" class="flex h-10 w-full rounded-md border border-input bg-zinc-100 px-3 py-2 text-sm text-gray-400 file:border-0 file:bg-transparent file:text-gray-600 file:text-sm file:font-medium" accept="image/*" required>
-                        </div> -->
-<!-- 
-                        <div class="grid w-full max-w-xs items-center gap-1.5">
-                            <label
-                                class="text-sm text-black prompt-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">รูปภาพ</label>
-                            <input
-                                class="flex w-full rounded-md border border-blue-300 border-input bg-white text-sm text-gray-400 file:border-0 file:bg-blue-600 file:text-white file:text-sm file:font-medium"
-                                type="file" id="picture" accept="image/*" required name="profile_image" />
-                        </div> -->
-
-                        <div class="form-group prompt-light">
-                            <label for="profile_image">อัปโหลดรูปโปรไฟล์</label>
-                            <input type="file" id="profile_image" name="profile_image" accept="image/*" required>
-                        </div>
-                        <div class="form-group prompt-light mt-1">
-                            <label for="photo1">อัปโหลดรูปผลงานที่เคยทำ 1</label>
-                            <input type="file" id="photo1" name="photo1" accept="image/*">
-                        </div>
-                        <div class="form-group prompt-light mt-1">
-                            <label for="photo2">อัปโหลดรูปผลงานที่เคยทำ 2</label>
-                            <input type="file" id="photo2" name="photo2" accept="image/*">
-                        </div>
-                        <div class="form-group prompt-light mt-1">
-                            <label for="photo3">อัปโหลดรูปผลงานที่เคยทำ3</label>
-                            <input type="file" id="photo3" name="photo3" accept="image/*">
-                        </div>
-
-
-                        <!-- <input type="file" name="profile_image" accept="image/*" required> -->
-
-
-                    </form>
-
-
-                    <div class="flex justify-end space-x-4 py-5">
-                        <a href="/team" type="button"
-                            class="text-muted-foreground hover:text-muted-foreground/80 py-2 rounded-md prompt-medium">ยกเลิก</a>
-                        <button type="submit"
-                            class="bg-gray-500 text-white hover:bg-black/80 hover:text-white px-4 py-2 rounded-md prompt-medium">บันทึก</button>
+                <!-- ส่วนกรอกข้อมูล -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 py-3">
+                    <div>
+                        <label for="name" class="block text-sm prompt-medium mb-1">ชื่อ-สกุล</label>
+                        <input type="text" id="name" name="name"
+                            class="w-full p-2 border border-border rounded-md prompt-regular" placeholder="ชื่อ"
+                            required />
+                    </div>
+                    <div>
+                        <label for="phone" class="block text-sm prompt-medium mb-1">เบอร์โทรศัพท์</label>
+                        <input type="phone" id="phone" name="phone"
+                            class="w-full p-2 border border-border rounded-md prompt-regular"
+                            placeholder="เบอร์โทรศัพท์" required />
                     </div>
                 </div>
+
+                <!-- ส่วนกรอกข้อมูลเพิ่มเติม -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label for="email" class="block text-sm prompt-medium mb-1">อีเมล</label>
+                        <input type="text" id="email" name="email"
+                            class="w-full p-2 border border-border rounded-md prompt-regular"
+                            placeholder="you@example.com" required />
+                    </div>
+                    <div>
+                        <label for="password" class="block text-sm prompt-medium mb-1">รหัสผ่าน</label>
+                        <input type="password" id="password" name="password"
+                            class="w-full p-2 border border-border rounded-md prompt-regular" placeholder="******"
+                            required />
+                    </div>
+                </div>
+
+                <!-- ส่วนเลือกประเภทของงาน -->
+                <div class="mb-4">
+                    <label for="job_type" class="text-sm prompt-medium mb-2">ประเภทของงาน: </label>
+                    <label for="job_type" class="prompt-regular form-check-label text-sm">
+                        <input type="radio" class="form-check-input mb-1 prompt-medium" name="job_type" value="ช่างฝ้า">
+                        ช่างฝ้า
+                    </label>
+                    <label for="job_type" class="prompt-regular form-check-label text-sm">
+                        <input type="radio" class="form-check-input mb-1 prompt-medium" name="job_type"
+                            value="ช่างทาสี"> ช่างทาสี
+                    </label>
+                    <label for="job_type" class="prompt-regular form-check-label text-sm">
+                        <input type="radio" class="form-check-input mb-1 prompt-medium" name="job_type"
+                            value="พนักงานทำความสะอาด"> พนักงานทำความสะอาด
+                    </label>
+                </div>
+
+
+                <div class="mb-4 ">
+                    <label for="job_scope" class="block text-sm prompt-medium mb-1">พื้นที่ให้บริการ:</label>
+                    <input list="job_scopes" name="job_scope"
+                        class=" form-select mt-3 border border-border rounded-md prompt-regular"
+                        placeholder="พื้นที่ให้บริการ" required />
+                    <datalist id="job_scopes" class="w-full p-2 border border-border rounded-md prompt-medium">
+                        <option class="prompt-regular" value="กรุงเทพมหานครฯ">
+                        <option class="prompt-regular" value="นครปฐม">
+                        <option class="prompt-regular" value="ระยอง">
+                    </datalist>
+
+                </div>
+
+                <div class="mb-4">
+                    <label for="range" class="block text-sm prompt-medium mb-1">ช่วงราคา</label>
+                    <input type="number" id="range" name="range"
+                        class="w-full p-2 border border-border rounded-md prompt-regular" placeholder="ช่วงราคา"
+                        required />
+                </div>
+
+                <div class="mb-4">
+                    <label for="range" class="block text-sm prompt-medium mb-1">ประสบการณ์</label>
+                    <input type="number" id="experience" name="experience"
+                        class="w-full p-2 border border-border rounded-md prompt-regular" placeholder="ประสบการณ์"
+                        required />
+                </div>
+
+              <!-- อัปโหลดไฟล์รูปภาพ -->
+
+              <div class="form-group prompt-light">
+                <label for="profile_image">อัปโหลดรูปโปรไฟล์</label>
+                    <input type="file" id="fileInput" name="profile_image" accept="image/*" required>
             </div>
-    </form>
+            <div class="form-group prompt-light mt-1">
+                <label for="photo1">อัปโหลดรูปผลงานที่เคยทำ 1</label>
+                <input type="file" id="photo1" name="photo1" accept="image/*">
+            </div>
+            <div class="form-group prompt-light mt-1">
+                <label for="photo2">อัปโหลดรูปผลงานที่เคยทำ 2</label>
+                <input type="file" id="photo2" name="photo2" accept="image/*">
+            </div>
+            <div class="form-group prompt-light mt-1">
+                <label for="photo2">อัปโหลดรูปผลงานที่เคยทำ 3</label>
+                <input type="file" id="photo3" name="photo3" accept="image/*">
+            </div>
 
-    <script>
-        const form = document.getElementById('uploadForm');
-        const fileInput = document.getElementById('fileInput');
-        const uploadedImage = document.getElementById('uploadedImage');
+              <!-- ปุ่มบันทึก -->
+              <div class="flex justify-end space-x-4 py-5">
+                <a href="/team" type="button" class="text-muted-foreground hover:text-muted-foreground/80 py-2 rounded-md prompt-medium">ยกเลิก</a>
+                <button type="submit" class="bg-gray-500 text-white hover:bg-black/80 hover:text-white px-4 py-2 rounded-md prompt-medium">บันทึก</button>
+            </div>
+        </div>
+    </div>
+</form>
 
-        form.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const formData = new FormData();
-            formData.append('profile_image', fileInput.files[0]);
+<script>
+    const form = document.getElementById('uploadForm');
+    const fileInput = document.getElementById('fileInput');
 
-            try {
-                const response = await fetch('/upload', {
-                    method: 'POST',
-                    body: formData,
-                });
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();  // ป้องกันการรีเฟรชหน้า
 
-                const result = await response.json();
-                if (response.ok) {
-                    uploadedImage.src = result.filePath;
-                    uploadedImage.style.display = 'block';
-                } else {
-                    alert('Error: ' + result);
-                }
-            } catch (error) {
-                console.error('Error uploading the image', error);
+        const formData = new FormData(form); // สร้าง FormData จากฟอร์มทั้งหมด
+        try {
+            const response = await fetch('/upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+            if (response.ok) {
+                alert('Upload successful!');  // แจ้งเตือนเมื่ออัปโหลดสำเร็จ
+            } else {
+                alert('Error: ' + result.message);  // แจ้งเตือนข้อผิดพลาด
             }
-        });
-    </script>
+        } catch (error) {
+            console.error('Error uploading the image', error);  // จัดการข้อผิดพลาดใน console
+        }
+    });
+</script>
 
-    <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.tailwindcss.com"></script>
 </body>
 
 </html>

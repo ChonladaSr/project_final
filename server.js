@@ -11,7 +11,7 @@ require("dotenv").config();
 const app = express();
 const jwt = require('jsonwebtoken');
 const alert = require('alert');
-const upload = require('./uploadConfig');
+// const upload = require('./uploadConfig');
 const bodyParser = require('body-parser');
 const fileUpload = require('express-fileupload');
 const http = require('http');
@@ -51,6 +51,7 @@ app.use('/uploads/payment_proofs', express.static('uploads/payment_proofs'));
 
 app.use(fileUpload());
 
+// payment ใช้ 50mb
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(express.json({ limit: '50mb' }));
 
@@ -60,6 +61,42 @@ app.use((req, res, next) => {
   res.locals.error_msg = req.flash('error_msg');
   next();
 });
+
+
+// อัปโหลดรูป
+const storage = multer.diskStorage({
+  destination: './uploads/',
+  filename: (req, file, cb) => {
+    cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
+  }
+});
+
+// Initialize upload
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 1024 * 1024 * 5 }, // Limit file size to 5MB
+  fileFilter: (req, file, cb) => {
+    checkFileType(file, cb);
+  }
+}).fields([
+  { name: 'profileImage', maxCount: 1 },
+  { name: 'photo1', maxCount: 1 },
+  { name: 'photo2', maxCount: 1 },
+  { name: 'photo3', maxCount: 1 }
+]);
+
+// Check file type
+function checkFileType(file, cb) {
+  const filetypes = /jpeg|jpg|png|gif/;
+  const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+  const mimetype = filetypes.test(file.mimetype);
+
+  if (mimetype && extname) {
+    return cb(null, true);
+  } else {
+    cb('Error: Images Only!');
+  }
+}
 
 
 
@@ -870,21 +907,26 @@ app.post('/teams/:teamId/review', ensureAuthenticated, async (req, res) => {
 //ช่างสมัครงาน
 app.post("/submit", (req, res) => {
   upload(req, res, async (err) => {
-
     if (err) {
       console.error("Multer error:", err);
       return res.status(400).render("team_form", { errors: [{ message: err.message }] });
     }
 
+    // เช็คว่ามีไฟล์อัปโหลดหรือไม่
+    if (!req.files || Object.keys(req.files).length === 0) {
+      return res.status(400).render("team_form", { errors: [{ message: "No files were uploaded." }] });
+    }
+
     let { name, phone, job_scope, range, email, password, experience } = req.body;
     let job_type = req.body.job_type;
+    
+    if (Array.isArray(job_type)) {
+      job_type = job_type.join(', '); // รวม job_type ถ้าเป็น array
+    }
 
     let errors = [];
 
-    if (Array.isArray(job_type)) {
-      job_type = job_type.join(', ');
-    }
-
+    // Validate form fields
     if (!name || !phone || !job_type || !job_scope || !range || !email || !password || !experience) {
       errors.push({ message: "Please enter all fields" });
     }
@@ -903,45 +945,143 @@ app.post("/submit", (req, res) => {
 
     if (errors.length > 0) {
       return res.render("team_form", { errors, name, phone, job_type, job_scope, range, email, password });
-    } else {
-      try {
-        const userCheck = await pool.query(
-          `SELECT * FROM teams WHERE email = $1`,
-          [email]
+    }
+
+    try {
+      const userCheck = await pool.query(`SELECT * FROM teams WHERE email = $1`, [email]);
+
+      if (userCheck.rows.length > 0) {
+        return res.render("team_form", {
+          message: "Account already registered",
+          name,
+          phone,
+          job_type,
+          job_scope,
+          range,
+          email,
+          password,
+          experience
+        });
+      } else {
+        // จัดการไฟล์ที่อัปโหลด
+        const profileImage = req.files['profile_image'] ? req.files['profile_image'][0].filename : null;
+        const photo1 = req.files['photo1'] ? req.files['photo1'][0].filename : null;
+        const photo2 = req.files['photo2'] ? req.files['photo2'][0].filename : null;
+        const photo3 = req.files['photo3'] ? req.files['photo3'][0].filename : null;
+
+        // บันทึกข้อมูลในฐานข้อมูล
+        await pool.query(
+          `INSERT INTO teams (name, phone, job_type, job_scope, range, email, password, profile_image, experience, photo1, photo2, photo3)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+          [name, phone, job_type, job_scope, range, email, password, profileImage, experience, photo1, photo2, photo3]
         );
 
-        if (userCheck.rows.length > 0) {
-          return res.render("team_form", {
-            message: "Account already registered"
-          });
-        } else {
-          const profileImage = req.files['profile_image'] ? req.files['profile_image'][0].filename : null;
-          const photo1 = req.files['photo1'] ? req.files['photo1'][0].filename : null;
-          const photo2 = req.files['photo2'] ? req.files['photo2'][0].filename : null;
-          const photo3 = req.files['photo3'] ? req.files['photo3'][0].filename : null;
-
-          await pool.query(
-            `INSERT INTO teams (name, phone, job_type, job_scope, range, email, password, profile_image, experience, photo1, photo2, photo3)
-   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
-            [name, phone, job_type, job_scope, range, email, password, profileImage, experience, photo1, photo2, photo3]
-          );
-
-          // เพิ่มงานใหม่ในตาราง tasks
-          const newTask = await pool.query(
-            `INSERT INTO tasks (description, status)
+        const newTask = await pool.query(
+          `INSERT INTO tasks (description, status)
            VALUES ($1, $2) RETURNING *`,
-            [`${name} - ${job_type}`, 'รอดำเนินการ']
-          );
+          [`${name} - ${job_type}`, 'รอดำเนินการ']
+        );
 
-          res.redirect("/team/login");
-        }
-      } catch (err) {
-        console.error("Server error:", err);
-        res.status(500).send("Server error");
+        res.redirect("/team/login");
+      }
+    } catch (err) {
+      console.error("Server error:", err);
+      res.status(500).send("Server error");
+    }
+  });
+});
+
+//ช่างสมัครงาน
+
+app.get("/teams/register", (req, res) => {
+  res.render("team_register"); // Renders the team registration form (team_register.ejs or HTML file)
+});
+
+app.post("/teams/register", (req, res) => {
+  upload(req, res, async (err) => {
+    if (err) {
+      return res.render("team_register", { message: err });
+    } else {
+      let { name, phone, job_type, job_scope, range, email, password, experience } = req.body;
+      let errors = [];
+
+      // File paths for uploaded images
+      const profileImage = req.files['profileImage'] ? req.files['profileImage'][0].filename : null;
+      const photo1 = req.files['photo1'] ? req.files['photo1'][0].filename : null;
+      const photo2 = req.files['photo2'] ? req.files['photo2'][0].filename : null;
+      const photo3 = req.files['photo3'] ? req.files['photo3'][0].filename : null;
+
+      console.log({
+        name,
+        phone,
+        job_type,
+        job_scope,
+        range,
+        email,
+        password,
+        profileImage,
+        experience,
+        photo1,
+        photo2,
+        photo3
+      });
+
+      // Validate the form inputs
+      if (!name || !phone || !job_type || !job_scope || !range || !email || !password || !profileImage || !experience) {
+        errors.push({ message: "Please enter all fields" });
+      }
+
+      if (phone.length !== 10) {
+        errors.push({ message: "เบอร์โทรศัพท์ต้องมีความยาว 10 ตัวอักษร" });
+      }
+
+      if (password.length < 6) {
+        errors.push({ message: "Password must be at least 6 characters long" });
+      }
+
+      // If there are errors, re-render the form
+      if (errors.length > 0) {
+        return res.render("team_register", { errors, name, phone, job_type, job_scope, range, email, password, profileImage, experience, photo1, photo2, photo3 });
+      } else {
+        // Check if the email is already registered
+        pool.query(
+          `SELECT * FROM teams WHERE email = $1`,
+          [email],
+          (err, results) => {
+            if (err) {
+              console.log(err);
+            }
+
+            if (results.rows.length > 0) {
+              return res.render("team_register", {
+                message: "Email already registered"
+              });
+            } else {
+              // Insert the new team into the database without hashing the password
+              pool.query(
+                `INSERT INTO teams (name, phone, job_type, job_scope, range, email, password, profile_image, experience, photo1, photo2, photo3)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+                 RETURNING id`,
+                [name, phone, job_type, job_scope, range, email, password, profileImage, experience, photo1, photo2, photo3],
+                (err, results) => {
+                  if (err) {
+                    throw err;
+                  }
+                  console.log(results.rows);
+                  req.flash("success_msg", "Your team is now registered. Please log in");
+                  res.redirect("/team/login");
+                }
+              );
+            }
+          }
+        );
       }
     }
   });
 });
+
+
+
 
 
 app.post('/team/login', async (req, res) => {
@@ -1275,18 +1415,24 @@ app.post('/team/profile/edit', checkTeamAuthenticated, async (req, res) => {
     res.render('team_profile_edit', { errors, team });
   } else {
     try {
+      const queryValues = [name, phone, job_type, job_scope, range, email, experience, teamId];
+      let query;
+
       if (password) {
         const hashedPassword = await bcrypt.hash(password, 10);
-        await pool.query(
-          'UPDATE teams SET name = $1, phone = $2, job_type = $3, job_scope = $4, range = $5, email = $6, password = $7, experience = $8, profile_image = $9 WHERE id = $10',
-          [name, phone, job_type, job_scope, range, email, hashedPassword, experience, profile_image, teamId]
-        );
+        query = 'UPDATE teams SET name = $1, phone = $2, job_type = $3, job_scope = $4, range = $5, email = $6, password = $7, experience = $8 WHERE id = $9';
+        queryValues.splice(6, 0, hashedPassword); // Add password at the correct position
       } else {
-        await pool.query(
-          'UPDATE teams SET name = $1, phone = $2, job_type = $3, job_scope = $4, range = $5, email = $6, experience = $7, profile_image = $8 WHERE id = $9',
-          [name, phone, job_type, job_scope, range, email, experience, profile_image, teamId]
-        );
+        query = 'UPDATE teams SET name = $1, phone = $2, job_type = $3, job_scope = $4, range = $5, email = $6, experience = $7 WHERE id = $8';
       }
+
+      if (profile_image) {
+        query = query.replace(' WHERE', ', profile_image = $' + (queryValues.length + 1) + ' WHERE');
+        queryValues.push(profile_image);
+      }
+
+      await pool.query(query, queryValues);
+
       req.flash('success_msg', 'Profile updated successfully');
       res.redirect('/team/dashboard');
     } catch (err) {
@@ -1295,6 +1441,7 @@ app.post('/team/profile/edit', checkTeamAuthenticated, async (req, res) => {
     }
   }
 });
+
 
 
 // ดูประวัติทีละ order
