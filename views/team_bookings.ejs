@@ -67,6 +67,7 @@
                 display: flex;
                 gap: 10px;
             }
+
             .topnav {
                 overflow: hidden;
                 background-color: #333;
@@ -101,7 +102,7 @@
 
     <div class="topnav prompt-medium">
         <a href="/team/dashboard">หน้าหลัก</a>
-        <a  href="/teams/pending_bookings">งานที่รอดำเนินการ</a>
+        <a href="/teams/pending_bookings">งานที่รอดำเนินการ</a>
         <a href="/teams/inprogress_bookings">งานที่กำลังซ่อมแซม</a>
         <a class="active" href="/team/get_all_bookings">งานทั้งหมด</a>
         <div class="topnav-right">
@@ -139,21 +140,21 @@
                                         <%= new Date(booking.booking_date).toLocaleDateString('th-TH') %>
                                     </p>
                                     <p class="card-text prompt-regular"><strong>สถานะ:</strong>
-                                        <% if (booking.status === 'ยกเลิก') { %>
+                                        <% if (booking.status==='ยกเลิก' ) { %>
                                             ยกเลิก
-                                        <% } else if (booking.payment_status === 'ยืนยัน') { %>
-                                            <% if (booking.status === 'รอดำเนินการ') { %>
-                                                รอดำเนินการ
-                                            <% } else if (booking.status === 'กำลังดำเนินการ') { %>
-                                                กำลังดำเนินการ
-                                            <% } else if (booking.status === 'ยืนยันงาน') { %>
-                                                ยืนยันงาน
-                                            <% } else { %>
-                                                <%= booking.payment_status %> <!-- Default to payment_status in case status is different -->
-                                            <% } %>
-                                        <% } else { %>
-                                            รอการตรวจสอบ
-                                        <% } %>
+                                            <% } else if (booking.payment_status==='ยืนยัน' ) { %>
+                                                <% if (booking.status==='รอดำเนินการ' ) { %>
+                                                    รอดำเนินการ
+                                                    <% } else if (booking.status==='กำลังดำเนินการ' ) { %>
+                                                        กำลังดำเนินการ
+                                                        <% } else if (booking.status==='ยืนยันงาน' ) { %>
+                                                            ยืนยันงาน
+                                                            <% } else if (booking.status==='ยืนยันการรับงาน' ) { %>
+                                                                ส่งมอบงานสำเร็จ
+                                                                    <% } %>
+                                                                        <% } else { %>
+                                                                            รอการตรวจสอบ
+                                                                            <% } %>
                                     </p>
                                 </div>
                             </div>
