@@ -946,100 +946,12 @@ app.post('/teams/:teamId/review', ensureAuthenticated, async (req, res) => {
 
 // ส่วนของช่าง
 
-//ช่างสมัครงาน
-app.post("/submit", (req, res) => {
-  upload(req, res, async (err) => {
-    if (err) {
-      console.error("Multer error:", err);
-      return res.status(400).render("team_form", { errors: [{ message: err.message }] });
-    }
 
-    // เช็คว่ามีไฟล์อัปโหลดหรือไม่
-    if (!req.files || Object.keys(req.files).length === 0) {
-      return res.status(400).render("team_form", { errors: [{ message: "No files were uploaded." }] });
-    }
-
-    let { name, phone, job_scope, range, email, password, experience } = req.body;
-    let job_type = req.body.job_type;
-
-    if (Array.isArray(job_type)) {
-      job_type = job_type.join(', '); // รวม job_type ถ้าเป็น array
-    }
-
-    let errors = [];
-
-    // Validate form fields
-    if (!name || !phone || !job_type || !job_scope || !range || !email || !password || !experience) {
-      errors.push({ message: "Please enter all fields" });
-    }
-
-    if (phone.length < 10) {
-      errors.push({ message: "Phone Number must be at least 10 characters long" });
-    }
-
-    if (password.length < 6) {
-      errors.push({ message: "Password must be at least 6 characters long" });
-    }
-
-    if (!req.files['profile_image']) {
-      errors.push({ message: "Please upload a profile image" });
-    }
-
-    if (errors.length > 0) {
-      return res.render("team_form", { errors, name, phone, job_type, job_scope, range, email, password });
-    }
-
-    try {
-      const userCheck = await pool.query(`SELECT * FROM teams WHERE email = $1`, [email]);
-
-      if (userCheck.rows.length > 0) {
-        return res.render("team_form", {
-          message: "Account already registered",
-          name,
-          phone,
-          job_type,
-          job_scope,
-          range,
-          email,
-          password,
-          experience
-        });
-      } else {
-        // จัดการไฟล์ที่อัปโหลด
-        const profileImage = req.files['profile_image'] ? req.files['profile_image'][0].filename : null;
-        const photo1 = req.files['photo1'] ? req.files['photo1'][0].filename : null;
-        const photo2 = req.files['photo2'] ? req.files['photo2'][0].filename : null;
-        const photo3 = req.files['photo3'] ? req.files['photo3'][0].filename : null;
-
-        // บันทึกข้อมูลในฐานข้อมูล
-        await pool.query(
-          `INSERT INTO teams (name, phone, job_type, job_scope, range, email, password, profile_image, experience, photo1, photo2, photo3)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
-          [name, phone, job_type, job_scope, range, email, password, profileImage, experience, photo1, photo2, photo3]
-        );
-
-        const newTask = await pool.query(
-          `INSERT INTO tasks (description, status)
-           VALUES ($1, $2) RETURNING *`,
-          [`${name} - ${job_type}`, 'รอดำเนินการ']
-        );
-
-        res.redirect("/team/login");
-      }
-    } catch (err) {
-      console.error("Server error:", err);
-      res.status(500).send("Server error");
-    }
-  });
-});
 
 //ช่างสมัครงาน
-
 app.get("/teams/register", (req, res) => {
   res.render("team_register"); // Renders the team registration form (team_register.ejs or HTML file)
 });
-
-// เส้นทางสำหรับการสมัครสมาชิก
 
 app.post('/teams/register', 
   uploadTeam.fields([{ name: 'profile_image' }, { name: 'photo1' }, { name: 'photo2' }, { name: 'photo3' }]), 
@@ -1090,10 +1002,6 @@ app.post('/teams/register',
       res.status(500).send('Error registering team');
     }
 });
-
-
-
-
 
 
 
@@ -1960,10 +1868,10 @@ app.get('/admin/team/edit/:id', async (req, res) => {
 });
 
 app.post('/admin/team/edit/:id', async (req, res) => {
-  const { name, description } = req.body;
+  const { name, phone, job_type, job_scope, range, experience, email  } = req.body;
   const teamId = req.params.id;
   try {
-    await pool.query('UPDATE teams SET name = $1, description = $2 WHERE id = $3', [name, description, teamId]);
+    await pool.query('UPDATE teams SET name = $1, phone = $2, job_type = $3, job_scope = $4, range = $5, experience = $6, email = $7 WHERE id = $8', [name, phone, job_type, job_scope, range, experience, email, teamId]);
     res.redirect('/admin/team');
   } catch (err) {
     console.error(err);
@@ -2011,7 +1919,7 @@ const isAdmin = (req, res, next) => {
 // แอดมินดูการอนุมัติทั้งหมด
 app.get('/admin/tasks', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM tasks');
+    const result = await pool.query('SELECT * FROM tasks ORDER BY id ASC');
     res.render('tasks', { tasks: result.rows });
   } catch (err) {
     console.error(err);

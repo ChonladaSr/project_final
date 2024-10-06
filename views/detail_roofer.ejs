@@ -45,7 +45,7 @@
   <%- include('./partials/header') %>
     <div class="container">
       <div class="content">
-        <div class="max-full mx-auto p-4 bg-background rounded-lg shadow-md">
+        <div class="max-full mx-auto p-4 bg-background ">
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="relative">
               <img src="/uploads/<%= detail.photo1 %>" alt="Gallery Image 1" class="w-full h-auto rounded-lg" />
@@ -143,7 +143,7 @@
                         <!-- แสดงข้อความตอบกลับจากทีม ถ้ามี -->
                         <% if (review.response) { %>
                           <div class="mt-4 p-3 bg-gray-100 border-l-2 border-orange-400">
-                            <h4 class="prompt-light text-gray-500">
+                            <h4 class="prompt-light text-gray-500 text-sm">
                               <%= detail.name %> ตอบกลับ:
                             </h4>
                             <p class="prompt-regular text-muted-foreground">
