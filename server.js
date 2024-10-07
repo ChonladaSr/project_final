@@ -54,6 +54,7 @@ app.use('/admin/uploads', express.static('uploads'));
 app.use(express.static('public')); // สำหรับไฟล์ static อื่น ๆ
 app.use('/uploads', express.static('uploads')); // ให้บริการไฟล์ในโฟลเดอร์ uploads
 app.use('/uploads/payment_proofs', express.static('uploads/payment_proofs')); // ให้บริการไฟล์ในโฟลเดอร์ payment_proofs
+app.use('/uploads/payment_slips', express.static('uploads/payment_slips')); // ให้บริการไฟล์ในโฟลเดอร์ payment_slips
 
 
 // payment_proofs
@@ -94,10 +95,13 @@ const paymentSlipStorage = multer.diskStorage({
     cb(null, 'uploads/payment_slips'); // บันทึกที่ uploads/payment_slips
   },
   filename: (req, file, cb) => {
+    cb(null, `${Date.now()}_${file.originalname}`); // ตั้งชื่อไฟล์
+  },
+  /* filename: (req, file, cb) => {
     const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1E9)}`;
     const fileExtension = file.originalname.split('.').pop(); // ดึงนามสกุลไฟล์
     cb(null, `slip_${uniqueSuffix}.${fileExtension}`); // ตั้งชื่อไฟล์ไม่ให้ซ้ำ
-  },
+  }, */
 });
 
 // ตั้งค่า multer สำหรับการอัปโหลดสลิปการชำระเงิน
@@ -858,7 +862,7 @@ app.get('/users/view_booking/:id', ensureAuthenticated, async (req, res) => {
 
     const query = `
       SELECT bookings.*, teams.name AS team_name, teams.phone AS team_phone, teams.email AS team_email,
-             reviews.rating AS review_rating, reviews.comment AS review_comment
+             reviews.rating AS review_rating, reviews.comment AS review_comment, reviews.created_at AS review_date
       FROM bookings 
       JOIN teams ON bookings.team_id = teams.id 
       LEFT JOIN reviews ON bookings.id = reviews.booking_id
@@ -1812,17 +1816,20 @@ app.post('/bookings/upload_slip/:id', uploadPaymentSlip.single('payment_slip'), 
   const bookingId = req.params.id;
 
   try {
-    // ตรวจสอบว่ามีไฟล์ที่อัปโหลดหรือไม่
+    // ตรวจสอบว่ามีไฟล์ที่อัปโหลดหรือไม่ req.file
     if (!req.file) {
       return res.redirect(`/users/view_booking/${bookingId}?success=false&message=ไม่มีไฟล์อัปโหลด`);
     }
 
-    // อัปเดตรูปสลิปการชำระเงินในฐานข้อมูล
+    const paymentSlipPath = `uploads/payment_slips/${req.file.filename}`;
+
+
+    // อัปเดตรูปสลิปการชำระเงินในฐานข้อมูล req.file.filename
     await pool.query(`
       UPDATE bookings 
       SET payment_slip = $1 
       WHERE id = $2
-    `, [req.file.filename, bookingId]);
+    `, [paymentSlipPath, bookingId]);
 
     res.redirect(`/users/view_booking/${bookingId}?success=true&message=อัปโหลดสลิปการชำระเงินสำเร็จ`);
   } catch (err) {
@@ -2216,6 +2223,7 @@ app.get('/admin/verify_slips', async (req, res) => {
       FROM bookings 
       JOIN teams ON bookings.team_id = teams.id
       WHERE bookings.payment_slip_status = 'รอการชำระเงิน'
+      AND bookings.payment_status = 'ยืนยัน'
       ORDER BY bookings.id DESC;
     `);
     const bookings = result.rows;
@@ -2225,6 +2233,7 @@ app.get('/admin/verify_slips', async (req, res) => {
     res.send('Error ' + err);
   }
 });
+
 
 // Admin verify or reject payment slips
 app.post('/admin/verify_slip/:id', async (req, res) => {

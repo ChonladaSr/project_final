@@ -3,49 +3,132 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Verify Payment Slips</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบตรวจสอบการชำระเงิน</title>
+    <link rel="icon" href="https://cdn-icons-png.freepik.com/512/6144/6144388.png?ga=GA1.1.512366322.1722083948">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <%- include('./font') %>
+
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 24px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        table {
+            width: 90%;
+            margin: 20px 0;
+            border-collapse: collapse;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            color: #555;
+        }
+
+        td img {
+            border-radius: 8px;
+            width: 80px;
+            height: auto;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .actions button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+        }
+
+        .actions button:first-child {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .actions button:first-child:hover {
+            background-color: #218838;
+        }
+
+        .actions button:last-child {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .actions button:last-child:hover {
+            background-color: #c82333;
+        }
+    </style>
+    
 </head>
 
 <body>
-    <h1>ตรวจสอบสลิปการชำระเงิน</h1>
+    <h2 class="py-3 text-center prompt-medium">ระบบตรวจสอบการชำระเงิน</h2>
     <table>
         <thead>
-            <tr>
-                <th>ID</th>
-                <th>range</th>
+            <tr class="prompt-medium text-center">
+                <th>หมายเลขการจอง</th>
+                <th>ชื่อผู้จอง</th>
+                <th>อีเมล</th>
+                <th>ราคา</th>
                 <th>สลิปการชำระเงิน</th>
-                <th>สถานะการชำระเงิน</th>
-
-                <th>Actions</th>
-            </tr>
+                <th>สถานะ</th>
+                <th></th>
+              </tr>
         </thead>
         <tbody>
-            <% bookings.forEach(booking=> { %>
-                <tr>
-                    <td>
-                        <%= booking.id %>
-                    </td>
-                    <td>
-                        <%= booking.range %>
-                    </td>
-                    <td>
-                        <a href="<%= booking.payment_slip %>" target="_blank">
-                            <img src="<%= booking.payment_slip %>" alt="payment_slip" width="100" class="img-thumbnail">
-                          </a>
-                          
-                    </td>
-                    <td>
-                        <%= booking.payment_slip_status %>
-                    </td>
-                    
-                    <td>
-                        <form action="/admin/verify_slip/<%= booking.id %>" method="POST">
-                            <button name="action" value="ชำระเงินแล้ว">ยืนยัน</button>
-                            <button name="action" value="ยกเลิก">ยกเลิก</button>
-                        </form>
-                    </td>
-                </tr>
-                <% }) %>
+            <% bookings.forEach(booking => { %>
+                <tr class="prompt-light text-center">
+                <td><%= booking.id %></td>
+                <td><%= booking.name %></td>
+                <td><%= booking.email %></td>
+                <td><%= booking.range %></td>
+                <td>
+                    <a href="<%= booking.payment_slip %>" target="_blank">
+                        <img src="<%= booking.payment_slip %>" alt="payment slip">
+                    </a>
+                </td>
+                <!-- <td><%= booking.payment_slip_status %></td> -->
+                 <td>รอการตรวจสอบ</td>
+                <td>
+                    <form action="/admin/verify_slip/<%= booking.id %>" method="POST" class="actions">
+                        <button class="prompt-medium" name="action" value="ชำระเงินแล้ว">ยืนยัน</button>
+                        <button class="prompt-medium" name="action" value="ยกเลิก">ยกเลิก</button>
+                    </form>
+                </td>
+            </tr>
+            <% }) %>
         </tbody>
     </table>
 </body>

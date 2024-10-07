@@ -456,7 +456,7 @@
                                                                             <% } %>
 
                                                                                 <% if (booking.review_rating) { %>
-                                                                                    <!-- แสดงสถานะ ชำระเงินแล้ว -->
+                                                                                    <!-- แสดงสถานะ เสร็จสิ้น -->
                                                                                     <li>
                                                                                         <div class="relative pb-8">
                                                                                             <span
@@ -486,14 +486,14 @@
                                                                                                     </div>
                                                                                                     <div
                                                                                                         class="whitespace-nowrap text-right text-sm text-gray-500">
-                                                                                                        <time
+                                                                                                         <time
                                                                                                             class="prompt-light text-xs">
                                                                                                             <%= new
-                                                                                                                Date(booking.payment_verified_at).toLocaleString('th-TH',
+                                                                                                                Date(booking.review_date).toLocaleString('th-TH',
                                                                                                                 {
                                                                                                                 timeZone: 'Asia/Bangkok'
                                                                                                                 }) %>
-                                                                                                        </time>
+                                                                                                        </time> 
                                                                                                     </div>
                                                                                                 </div>
                                                                                             </div>
@@ -505,7 +505,7 @@
                                 </ul>
 
                                 <!-- แสดงปุ่ม ชำระเงิน -->
-                                <% if (booking.status==='ยืนยันงาน' && booking.payment_slip_status !=='ชำระเงินแล้ว' ) {
+                                <% if (booking.status==='ยืนยันงาน' && booking.payment_slip_status !=='ชำระเงินแล้ว' && !booking.payment_slip) {
                                     %>
                                     <div class="mt-4 text-center">
                                         <form action="/bookings/pay/<%= booking.id %>" method="GET">

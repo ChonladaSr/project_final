@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ระบบตรวจสอบการชำระเงิน</title>
+  <title>ระบบตรวจสอบการชำระเงิน (มัดจำ)</title>
   <link rel="icon" href="https://cdn-icons-png.freepik.com/512/6144/6144388.png?ga=GA1.1.512366322.1722083948">
 
   <%- include('./font') %>
@@ -46,7 +46,7 @@
     <!-- <a href="javascript:history.back()" class="btn btn-secondary back-button">Back</a> -->
 
   <div class="container">
-    <h2 class="text-center prompt-medium">ระบบตรวจสอบการชำระเงิน</h2>
+    <h2 class="text-center prompt-medium">ระบบตรวจสอบการชำระเงิน (มัดจำ)</h2>
     
     <div class="table-responsive mt-3">
       <table class="table table-hover table-striped table-bordered ">
@@ -55,7 +55,7 @@
             <th>หมายเลขการจอง</th>
             <th>ชื่อผู้จอง</th>
             <th>อีเมล</th>
-            <th>ราคา</th> <!-- New column for Range -->
+            <th>ราคา</th>
             <th>สลิปการชำระเงิน</th>
             <th>สถานะ</th>
             <th></th>
@@ -68,7 +68,7 @@
                 <td><%= booking.id %></td>
                 <td><%= booking.name %></td>
                 <td><%= booking.email %></td>
-                <td><%= booking.range %></td> <!-- Display Range from teams -->
+                <td><%= booking.range %></td>
                 <td>
                     <a href="<%= booking.payment_proof %>" target="_blank">
                         <img src="<%= booking.payment_proof %>" alt="Payment Proof" width="100" class="img-thumbnail">
