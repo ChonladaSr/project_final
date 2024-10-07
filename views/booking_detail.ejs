@@ -224,8 +224,7 @@
                                         <!-- แสดงสถานะ ยกเลิก -->
                                         <li>
                                             <div class="relative pb-8">
-                                                <span class="absolute left-4 top-4 -ml-px "
-                                                    aria-hidden="true"></span>
+                                                <span class="absolute left-4 top-4 -ml-px " aria-hidden="true"></span>
                                                 <div class="relative flex space-x-3">
                                                     <div>
                                                         <span
@@ -252,7 +251,8 @@
                                                 </div>
                                             </div>
                                         </li>
-                                        <% } else if (booking.payment_status==='รอการตรวจสอบ' ) { %>
+                                        <% } else if (booking.payment_status==='รอการตรวจสอบ' ||
+                                            booking.payment_status==='ยืนยัน' ) { %>
                                             <!-- แสดงสถานะ รอการตรวจสอบ -->
                                             <li>
                                                 <div class="relative pb-8">
@@ -261,7 +261,7 @@
                                                     <div class="relative flex space-x-3">
                                                         <div>
                                                             <span
-                                                                class="h-8 w-8 rounded-full bg-yellow-500 flex items-center justify-center ring-8 ring-white">
+                                                                class="h-8 w-8 rounded-full bg-zinc-500 flex items-center justify-center ring-8 ring-white">
                                                                 <svg class="h-5 w-5 text-white" viewBox="0 0 20 20"
                                                                     fill="currentColor" aria-hidden="true">
                                                                     <path
@@ -287,7 +287,7 @@
                                                     </div>
                                                 </div>
                                             </li>
-                                            <% } else if (booking.payment_status==='ยืนยัน' ) { %>
+                                            <% if (booking.payment_status==='ยืนยัน' ) { %>
                                                 <!-- แสดงสถานะ รอดำเนินการ -->
                                                 <li>
                                                     <div class="relative pb-8">
@@ -309,7 +309,7 @@
                                                                 class="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
                                                                 <div>
                                                                     <p class="text-sm text-gray-800 prompt-regular">
-                                                                        รอดำเนินการ</p>
+                                                                        ชำระมัดจำแล้ว รอดำเนินการ</p>
                                                                 </div>
                                                                 <div
                                                                     class="whitespace-nowrap text-right text-sm text-gray-500">
@@ -323,55 +323,20 @@
                                                         </div>
                                                     </div>
                                                 </li>
-                                                <!-- แสดงสถานะ กำลังดำเนินการ -->
-                                                <% if (booking.approved_at) { %>
-                                                    <li>
-                                                        <div class="relative pb-8">
-                                                            <span
-                                                                class="absolute left-4 top-4 -ml-px h-full w-0.5 bg-gray-200"
-                                                                aria-hidden="true"></span>
-                                                            <div class="relative flex space-x-3">
-                                                                <div>
-                                                                    <span
-                                                                        class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center ring-8 ring-white">
-                                                                        <svg class="h-5 w-5 text-white"
-                                                                            viewBox="0 0 20 20" fill="currentColor"
-                                                                            aria-hidden="true">
-                                                                            <path
-                                                                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 00-2 0v5a1 1 0 002 0V7zm0 7a1 1 0 00-2 0v1a1 1 0 002 0v-1z" />
-                                                                        </svg>
-                                                                    </span>
-                                                                </div>
-                                                                <div
-                                                                    class="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
-                                                                    <div>
-                                                                        <p class="text-sm text-gray-800 prompt-regular">
-                                                                            กำลังดำเนินการ</p>
-                                                                    </div>
-                                                                    <div
-                                                                        class="whitespace-nowrap text-right text-sm text-gray-500">
-                                                                        <time class="prompt-light text-xs">
-                                                                            <%= new
-                                                                                Date(booking.approved_at).toLocaleString('th-TH',
-                                                                                { timeZone: 'Asia/Bangkok' }) %>
-                                                                        </time>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </li>
+                                                <% } %>
+
                                                     <% } %>
-                                                        <!-- แสดงสถานะ ยืนยันงาน -->
-                                                        <% if (booking.confirmed_at) { %>
+                                                        <!-- แสดงสถานะ กำลังดำเนินการ -->
+                                                        <% if (booking.approved_at) { %>
                                                             <li>
                                                                 <div class="relative pb-8">
                                                                     <span
-                                                                        class="absolute left-4 top-4 -ml-px"
+                                                                        class="absolute left-4 top-4 -ml-px h-full w-0.5 bg-gray-200"
                                                                         aria-hidden="true"></span>
                                                                     <div class="relative flex space-x-3">
                                                                         <div>
                                                                             <span
-                                                                                class="h-8 w-8 rounded-full bg-green-500 flex items-center justify-center ring-8 ring-white">
+                                                                                class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center ring-8 ring-white">
                                                                                 <svg class="h-5 w-5 text-white"
                                                                                     viewBox="0 0 20 20"
                                                                                     fill="currentColor"
@@ -386,13 +351,13 @@
                                                                             <div>
                                                                                 <p
                                                                                     class="text-sm text-gray-800 prompt-regular">
-                                                                                    ยืนยันงาน</p>
+                                                                                    กำลังดำเนินการซ่อมแซม</p>
                                                                             </div>
                                                                             <div
                                                                                 class="whitespace-nowrap text-right text-sm text-gray-500">
                                                                                 <time class="prompt-light text-xs">
                                                                                     <%= new
-                                                                                        Date(booking.confirmed_at).toLocaleString('th-TH',
+                                                                                        Date(booking.approved_at).toLocaleString('th-TH',
                                                                                         { timeZone: 'Asia/Bangkok' }) %>
                                                                                 </time>
                                                                             </div>
@@ -401,20 +366,173 @@
                                                                 </div>
                                                             </li>
                                                             <% } %>
-                                                                <% } %>
+                                                                <!-- แสดงสถานะ ยืนยันงาน -->
+                                                                <% if (booking.confirmed_at) { %>
+                                                                    <li>
+                                                                        <div class="relative pb-8">
+                                                                            <span
+                                                                                class="absolute left-4 top-4 -ml-px h-full w-0.5 bg-gray-200"
+                                                                                aria-hidden="true"></span>
+                                                                            <div class="relative flex space-x-3">
+                                                                                <div>
+                                                                                    <span
+                                                                                        class="h-8 w-8 rounded-full bg-green-500 flex items-center justify-center ring-8 ring-white">
+                                                                                        <svg class="h-5 w-5 text-white"
+                                                                                            viewBox="0 0 20 20"
+                                                                                            fill="currentColor"
+                                                                                            aria-hidden="true">
+                                                                                            <path
+                                                                                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 00-2 0v5a1 1 0 002 0V7zm0 7a1 1 0 00-2 0v1a1 1 0 002 0v-1z" />
+                                                                                        </svg>
+                                                                                    </span>
+                                                                                </div>
+                                                                                <div
+                                                                                    class="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
+                                                                                    <div>
+                                                                                        <p
+                                                                                            class="text-sm text-gray-800 prompt-regular">
+                                                                                            ดำเนินการเสร็จสิ้น</p>
+                                                                                    </div>
+                                                                                    <div
+                                                                                        class="whitespace-nowrap text-right text-sm text-gray-500">
+                                                                                        <time
+                                                                                            class="prompt-light text-xs">
+                                                                                            <%= new
+                                                                                                Date(booking.confirmed_at).toLocaleString('th-TH',
+                                                                                                {
+                                                                                                timeZone: 'Asia/Bangkok'
+                                                                                                }) %>
+                                                                                        </time>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </li>
+                                                                    <% } %>
+
+                                                                        <!-- แสดงสถานะ ชำระเงินแล้ว -->
+                                                                        <% if (booking.uploaded_at) { %>
+                                                                            <li>
+                                                                                <div class="relative pb-8">
+                                                                                    <span
+                                                                                        class="absolute left-4 top-4 -ml-px h-full w-0.5 bg-gray-200"
+                                                                                        aria-hidden="true"></span>
+                                                                                    <div
+                                                                                        class="relative flex space-x-3">
+                                                                                        <div>
+                                                                                            <span
+                                                                                                class="h-8 w-8 rounded-full bg-teal-400 flex items-center justify-center ring-8 ring-white">
+                                                                                                <svg class="h-5 w-5 text-white"
+                                                                                                    viewBox="0 0 20 20"
+                                                                                                    fill="currentColor"
+                                                                                                    aria-hidden="true">
+                                                                                                    <path
+                                                                                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 00-2 0v5a1 1 0 002 0V7zm0 7a1 1 0 00-2 0v1a1 1 0 002 0v-1z" />
+                                                                                                </svg>
+                                                                                            </span>
+                                                                                        </div>
+                                                                                        <div
+                                                                                            class="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
+                                                                                            <div>
+                                                                                                <p
+                                                                                                    class="text-sm text-gray-800 prompt-regular">
+                                                                                                    ชำระเงินสำเร็จ</p>
+                                                                                            </div>
+                                                                                            <div
+                                                                                                class="whitespace-nowrap text-right text-sm text-gray-500">
+                                                                                                <time
+                                                                                                    class="prompt-light text-xs">
+                                                                                                    <%= new
+                                                                                                        Date(booking.uploaded_at).toLocaleString('th-TH',
+                                                                                                        {
+                                                                                                        timeZone: 'Asia/Bangkok'
+                                                                                                        }) %>
+                                                                                                </time>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </li>
+                                                                            <% } %>
+
+                                                                                <% if (booking.review_rating) { %>
+                                                                                    <!-- แสดงสถานะ ชำระเงินแล้ว -->
+                                                                                    <li>
+                                                                                        <div class="relative pb-8">
+                                                                                            <span
+                                                                                                class="absolute left-4 top-4 -ml-px "
+                                                                                                aria-hidden="true"></span>
+                                                                                            <div
+                                                                                                class="relative flex space-x-3">
+                                                                                                <div>
+                                                                                                    <span
+                                                                                                        class="h-8 w-8 rounded-full bg-lime-400 flex items-center justify-center ring-8 ring-white">
+                                                                                                        <svg class="h-5 w-5 text-white"
+                                                                                                            viewBox="0 0 20 20"
+                                                                                                            fill="currentColor"
+                                                                                                            aria-hidden="true">
+                                                                                                            <path
+                                                                                                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 00-2 0v5a1 1 0 002 0V7zm0 7a1 1 0 00-2 0v1a1 1 0 002 0v-1z" />
+                                                                                                        </svg>
+                                                                                                    </span>
+                                                                                                </div>
+                                                                                                <div
+                                                                                                    class="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
+                                                                                                    <div>
+                                                                                                        <p
+                                                                                                            class="text-sm text-gray-800 prompt-regular">
+                                                                                                            เสร็จสิ้น
+                                                                                                        </p>
+                                                                                                    </div>
+                                                                                                    <div
+                                                                                                        class="whitespace-nowrap text-right text-sm text-gray-500">
+                                                                                                        <time
+                                                                                                            class="prompt-light text-xs">
+                                                                                                            <%= new
+                                                                                                                Date(booking.payment_verified_at).toLocaleString('th-TH',
+                                                                                                                {
+                                                                                                                timeZone: 'Asia/Bangkok'
+                                                                                                                }) %>
+                                                                                                        </time>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </li>
+                                                                                    <% } %>
+
 
                                 </ul>
-                                <!-- แสดงปุ่ม ยืนยันการรับงาน -->
-                                <% if (booking.status==='ยืนยันงาน' ) { %>
+
+                                <!-- แสดงปุ่ม ชำระเงิน -->
+                                <% if (booking.status==='ยืนยันงาน' && booking.payment_slip_status !=='ชำระเงินแล้ว' ) {
+                                    %>
                                     <div class="mt-4 text-center">
-                                        <form action="/bookings/confirm/<%= booking.id %>" method="POST">
+                                        <form action="/bookings/pay/<%= booking.id %>" method="GET">
                                             <button type="submit"
-                                                class="prompt-medium bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
-                                                ยืนยันการรับงาน
+                                                class="prompt-medium bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">
+                                                ชำระเงิน
                                             </button>
                                         </form>
                                     </div>
                                     <% } %>
+
+
+
+                                        <!-- แสดงปุ่ม ยืนยันการรับงาน -->
+                                        <% if (booking.status==='ยืนยันงาน' &&
+                                            booking.payment_slip_status==='ชำระเงินแล้ว' ) { %>
+                                            <div class="mt-4 text-center">
+                                                <form action="/bookings/confirm/<%= booking.id %>" method="POST">
+                                                    <button type="submit"
+                                                        class="prompt-medium bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+                                                        ยืนยันการรับงาน
+                                                    </button>
+                                                </form>
+                                            </div>
+                                            <% } %>
+
+
                             </div>
 
                         </div>
@@ -433,7 +551,8 @@
                                     <p class="prompt-medium text-red-500"></p>
                                     <% } %>
 
-                                        <% if (booking.status==='ยืนยันการรับงาน' ) { %>
+                                        <% if (booking.status==='ยืนยันการรับงาน' &&
+                                            booking.payment_slip_status==='ชำระเงินแล้ว' ) { %>
                                             <% if (booking.review_rating) { %>
                                                 <!-- <div class="mt-4">
                                     <h4 class="prompt-bold">รีวิวของคุณ:</h4>

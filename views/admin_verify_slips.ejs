@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Verify Payment Slips</title>
+</head>
+
+<body>
+    <h1>ตรวจสอบสลิปการชำระเงิน</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>range</th>
+                <th>สลิปการชำระเงิน</th>
+                <th>สถานะการชำระเงิน</th>
+
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% bookings.forEach(booking=> { %>
+                <tr>
+                    <td>
+                        <%= booking.id %>
+                    </td>
+                    <td>
+                        <%= booking.range %>
+                    </td>
+                    <td>
+                        <a href="<%= booking.payment_slip %>" target="_blank">
+                            <img src="<%= booking.payment_slip %>" alt="payment_slip" width="100" class="img-thumbnail">
+                          </a>
+                          
+                    </td>
+                    <td>
+                        <%= booking.payment_slip_status %>
+                    </td>
+                    
+                    <td>
+                        <form action="/admin/verify_slip/<%= booking.id %>" method="POST">
+                            <button name="action" value="ชำระเงินแล้ว">ยืนยัน</button>
+                            <button name="action" value="ยกเลิก">ยกเลิก</button>
+                        </form>
+                    </td>
+                </tr>
+                <% }) %>
+        </tbody>
+    </table>
+</body>
+
+</html>

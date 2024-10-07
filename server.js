@@ -18,6 +18,7 @@ const http = require('http');
 const socketIo = require('socket.io');
 const server = http.createServer(app);
 const io = socketIo(server);
+const QRCode = require('qrcode');
 
 
 
@@ -60,12 +61,6 @@ app.use(express.urlencoded({ extended: true, limit: '100mb' }));
 app.use(express.json({ limit: '100mb' }));
 
 
-app.use((req, res, next) => {
-  res.locals.success_msg = req.flash('success_msg');
-  res.locals.error_msg = req.flash('error_msg');
-  next();
-});
-
 // ตั้งค่า storage สำหรับรูปภาพทีม
 const teamStorage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -75,6 +70,9 @@ const teamStorage = multer.diskStorage({
     cb(null, `${Date.now()}_${file.originalname}`); // ตั้งชื่อไฟล์
   },
 });
+
+// ตั้งค่า multer สำหรับการอัปโหลดทีม
+const uploadTeam = multer({ storage: teamStorage });
 
 // ตั้งค่า storage สำหรับ payment proof
 const paymentProofStorage = multer.diskStorage({
@@ -86,14 +84,34 @@ const paymentProofStorage = multer.diskStorage({
   },
 });
 
-// ตั้งค่า multer สำหรับการอัปโหลดทีม
-const uploadTeam = multer({ storage: teamStorage });
-
 // ตั้งค่า multer สำหรับการอัปโหลด payment proof
 const uploadPaymentProof = multer({ storage: paymentProofStorage });
 
 
+// ตั้งค่า storage สำหรับ payment_slips
+const paymentSlipStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/payment_slips'); // บันทึกที่ uploads/payment_slips
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1E9)}`;
+    const fileExtension = file.originalname.split('.').pop(); // ดึงนามสกุลไฟล์
+    cb(null, `slip_${uniqueSuffix}.${fileExtension}`); // ตั้งชื่อไฟล์ไม่ให้ซ้ำ
+  },
+});
 
+// ตั้งค่า multer สำหรับการอัปโหลดสลิปการชำระเงิน
+const uploadPaymentSlip = multer({ storage: paymentSlipStorage });
+
+
+
+
+
+app.use((req, res, next) => {
+  res.locals.success_msg = req.flash('success_msg');
+  res.locals.error_msg = req.flash('error_msg');
+  next();
+});
 
 // Google Strategy
 passport.use(new GoogleStrategy({
@@ -951,8 +969,8 @@ app.get("/teams/register", (req, res) => {
   res.render("team_register"); // Renders the team registration form (team_register.ejs or HTML file)
 });
 
-app.post('/teams/register', 
-  uploadTeam.fields([{ name: 'profile_image' }, { name: 'photo1' }, { name: 'photo2' }, { name: 'photo3' }]), 
+app.post('/teams/register',
+  uploadTeam.fields([{ name: 'profile_image' }, { name: 'photo1' }, { name: 'photo2' }, { name: 'photo3' }]),
   async (req, res) => {
     const { name, phone, job_type, job_scope, range, email, password, experience } = req.body;
 
@@ -960,12 +978,12 @@ app.post('/teams/register',
     if (!req.files['profile_image'] || !req.files['photo1'] || !req.files['photo2'] || !req.files['photo3']) {
       return res.status(400).send('กรุณาอัปโหลดรูปภาพให้ครบทุกไฟล์');
     }
-    
+
     // ตั้งชื่อไฟล์ใหม่เพื่อหลีกเลี่ยงการซ้ำ
     const profileImage = Date.now() + '-' + req.files['profile_image'][0].originalname;
-    const photo1 = Date.now() + '-' + req.files['photo1'][0].originalname; 
-    const photo2 = Date.now() + '-' + req.files['photo2'][0].originalname; 
-    const photo3 = Date.now() + '-' + req.files['photo3'][0].originalname; 
+    const photo1 = Date.now() + '-' + req.files['photo1'][0].originalname;
+    const photo2 = Date.now() + '-' + req.files['photo2'][0].originalname;
+    const photo3 = Date.now() + '-' + req.files['photo3'][0].originalname;
 
     // บันทึกรูปภาพลงในโฟลเดอร์
     await fs.promises.rename(req.files['profile_image'][0].path, path.join(__dirname, 'uploads', profileImage));
@@ -980,7 +998,7 @@ app.post('/teams/register',
       `;
 
       const values = [name, phone, job_type, job_scope, range, email, password, profileImage, experience, photo1, photo2, photo3];
-      
+
       await pool.query(query, values);
 
       const newTask = await pool.query(
@@ -988,7 +1006,7 @@ app.post('/teams/register',
          VALUES ($1, $2) RETURNING *`,
         [`${name} - ${job_type}`, 'รอดำเนินการ']
       );
-      
+
       res.status(201).send(`
         <script>
           alert('สมาชิกสำเร็จ!');
@@ -999,7 +1017,7 @@ app.post('/teams/register',
       console.error('Error inserting data', error);
       res.status(500).send('Error registering team');
     }
-});
+  });
 
 
 
@@ -1435,8 +1453,8 @@ app.get('/users/roofer', ensureAuthenticated, async (req, res) => {
     LEFT JOIN bookings ON teams.id = bookings.team_id
     LEFT JOIN reviews ON bookings.id = reviews.booking_id
     WHERE tasks.status = $1 AND teams.job_type = $2
-  `;    
-  const params = ['อนุมัติ', 'ช่างฝ้า'];
+  `;
+    const params = ['อนุมัติ', 'ช่างฝ้า'];
 
     if (job_scope) {
       query += ' AND teams.job_scope = $3';
@@ -1618,7 +1636,7 @@ app.get('/users/cleaner', ensureAuthenticated, async (req, res) => {
     LEFT JOIN reviews ON bookings.id = reviews.booking_id
     WHERE tasks.status = $1 AND teams.job_type = $2
   `;
-      const params = ['อนุมัติ', 'พนักงานทำความสะอาด'];
+    const params = ['อนุมัติ', 'พนักงานทำความสะอาด'];
 
     if (job_scope) {
       query += ' AND teams.job_scope = $3';
@@ -1765,6 +1783,7 @@ app.get("/team/logout", (req, res) => {
   });
 });
 
+
 app.post('/bookings/confirm/:id', async (req, res) => {
   const bookingId = req.params.id;
   try {
@@ -1784,10 +1803,106 @@ app.post('/bookings/confirm/:id', async (req, res) => {
     console.error(err.message);
     res.redirect(`/bookings/${bookingId}?success=false&message=Server Error`);
   }
+}); 
+
+// Route สำหรับชำระเงิน
+
+// Route สำหรับอัปโหลดสลิป
+app.post('/bookings/upload_slip/:id', uploadPaymentSlip.single('payment_slip'), async (req, res) => {
+  const bookingId = req.params.id;
+
+  try {
+    // ตรวจสอบว่ามีไฟล์ที่อัปโหลดหรือไม่
+    if (!req.file) {
+      return res.redirect(`/users/view_booking/${bookingId}?success=false&message=ไม่มีไฟล์อัปโหลด`);
+    }
+
+    // อัปเดตรูปสลิปการชำระเงินในฐานข้อมูล
+    await pool.query(`
+      UPDATE bookings 
+      SET payment_slip = $1 
+      WHERE id = $2
+    `, [req.file.filename, bookingId]);
+
+    res.redirect(`/users/view_booking/${bookingId}?success=true&message=อัปโหลดสลิปการชำระเงินสำเร็จ`);
+  } catch (err) {
+    console.error(err.message);
+    res.redirect(`/users/view_booking/${bookingId}?success=false&message=Server Error`);
+  }
+});
+
+
+// Route สำหรับแสดงหน้าชำระเงินพร้อม QR Code
+app.get('/bookings/pay/:id', async (req, res) => {
+  const bookingId = req.params.id;
+  const paymentAmount = 1000; // คุณสามารถปรับราคาได้ตามข้อมูลการจอง
+
+  try {
+    // ข้อมูลที่จะแสดงใน QR Code เช่น บัญชีธนาคารและจำนวนเงิน
+    const paymentData = `PromptPay://1234567890?amount=${paymentAmount}`;
+
+    // สร้าง QR Code เป็นรูปภาพ
+    const qrCodeImage = await QRCode.toDataURL(paymentData);
+
+    // ส่ง QR Code ไปยังหน้า EJS เพื่อแสดงให้ผู้ใช้
+    res.render('payment_page', { qrCodeImage, bookingId });
+  } catch (err) {
+    console.error(err.message);
+    res.redirect(`/bookings/${bookingId}?success=false&message=Server Error`);
+  }
+});
+
+app.post('/bookings/pay/:id', async (req, res) => {
+  const bookingId = req.params.id;
+
+  try {
+    // อัปเดตสถานะการชำระเงินเป็น 'ชำระเงินแล้ว'
+    await pool.query(`
+      UPDATE bookings 
+      SET payment_slip_status = 'ชำระเงินแล้ว' 
+      WHERE id = $1
+    `, [bookingId]);
+
+    res.redirect(`/bookings/${bookingId}?success=true&message=ชำระเงินสำเร็จ`);
+  } catch (err) {
+    console.error(err.message);
+    res.redirect(`/bookings/${bookingId}?success=false&message=Server Error`);
+  }
 });
 
 
 
+// Route สำหรับยืนยันการรับงาน (ตัวอย่างที่เคยให้ไป)
+/* app.post('/bookings/confirm/:id', async (req, res) => {
+  const bookingId = req.params.id;
+  try {
+    const checkPayment = await pool.query(`
+      SELECT payment_slip_status
+      FROM bookings
+      WHERE id = $1
+    `, [bookingId]);
+
+    if (checkPayment.rows.length > 0 && checkPayment.rows[0].payment_status === 'ชำระเงินแล้ว') {
+      const result = await pool.query(`
+        UPDATE bookings
+        SET status = 'ยืนยันการรับงาน'
+        WHERE id = $1
+        RETURNING *
+      `, [bookingId]);
+
+      if (result.rows.length > 0) {
+        res.redirect(`/users/view_bookings?success=true&message=ยืนยันการรับงานสำเร็จ`);
+      } else {
+        res.redirect(`/users/view_bookings?success=false&message=ไม่พบการจอง`);
+      }
+    } else {
+      res.redirect(`/bookings/${bookingId}?success=false&message=ยังไม่มีการชำระเงิน`);
+    }
+  } catch (err) {
+    console.error(err.message);
+    res.redirect(`/bookings/${bookingId}?success=false&message=Server Error`);
+  }
+}); */
 
 
 
@@ -1920,7 +2035,7 @@ app.get('/admin/team/edit/:id', async (req, res) => {
 });
 
 app.post('/admin/team/edit/:id', async (req, res) => {
-  const { name, phone, job_type, job_scope, range, experience, email  } = req.body;
+  const { name, phone, job_type, job_scope, range, experience, email } = req.body;
   const teamId = req.params.id;
   try {
     await pool.query('UPDATE teams SET name = $1, phone = $2, job_type = $3, job_scope = $4, range = $5, experience = $6, email = $7 WHERE id = $8', [name, phone, job_type, job_scope, range, experience, email, teamId]);
@@ -2087,6 +2202,54 @@ app.post('/admin/verify_payment/:id', async (req, res) => {
     }
 
     res.redirect('/admin/verify_payments');
+  } catch (err) {
+    console.error(err);
+    res.send('Error ' + err);
+  }
+});
+
+// Route for verifying payment slips
+app.get('/admin/verify_slips', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT bookings.*, teams.range 
+      FROM bookings 
+      JOIN teams ON bookings.team_id = teams.id
+      WHERE bookings.payment_slip_status = 'รอการชำระเงิน'
+      ORDER BY bookings.id DESC;
+    `);
+    const bookings = result.rows;
+    res.render('admin_verify_slips', { bookings });
+  } catch (err) {
+    console.error(err);
+    res.send('Error ' + err);
+  }
+});
+
+// Admin verify or reject payment slips
+app.post('/admin/verify_slip/:id', async (req, res) => {
+  const bookingId = req.params.id;
+  const { action } = req.body; // 'verify' or 'reject'
+  const uploadedAt = new Date();
+
+  try {
+    if (action === 'ยกเลิกการจอง') {
+      // ลบการจองเมื่อสถานะเป็นยกเลิกการจอง
+      await pool.query(`
+        DELETE FROM bookings 
+        WHERE id = $1
+      `, [bookingId]);
+    } else {
+      // อัปเดตสถานะเป็น 'ยืนยัน' หรือ 'ยกเลิก'
+      const newStatus = action === 'ชำระเงินแล้ว' ? 'ชำระเงินแล้ว' : 'ยกเลิก';
+      await pool.query(`
+        UPDATE bookings 
+        SET payment_slip_status = $1, uploaded_at = $2
+        WHERE id = $3
+      `, [newStatus, uploadedAt, bookingId]);
+    }
+
+    res.redirect('/admin/verify_slips');
   } catch (err) {
     console.error(err);
     res.send('Error ' + err);

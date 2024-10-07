@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>การชำระเงิน</title>
+</head>
+<body>
+    <div class="payment-section text-center">
+        <h2>สแกน QR Code เพื่อชำระเงิน</h2>
+        <img src="<%= qrCodeImage %>" alt="QR Code" />
+        
+        <!-- ฟอร์มอัปโหลดสลิป -->
+        <form action="/bookings/upload_slip/<%= bookingId %>" method="POST" enctype="multipart/form-data">
+            <div class="mt-4">
+            <label for="slip">อัปโหลดสลิป:</label>
+            <input type="file" name="payment_slip" accept="image/*" required>
+          </div>
+          <div class="mt-4">
+            <button type="submit" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">
+              อัปโหลดสลิป
+            </button>
+          </div>
+        </form>
+      </div>
+      
+
+</body>
+</html>
