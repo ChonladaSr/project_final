@@ -173,8 +173,6 @@ const ensureAuthenticated = (req, res, next) => {
 
 
 
-
-
 //ระบบแชท
 /* io.on("connection", (socket) => {
   console.log("New user connected:", socket.id);
@@ -1430,13 +1428,23 @@ app.post('/bookings/:id/cancel', async (req, res) => {
 app.get('/users/roofer', ensureAuthenticated, async (req, res) => {
   try {
     const { job_scope } = req.query;
-    let query = 'SELECT teams.*, tasks.* FROM teams INNER JOIN tasks ON teams.id = tasks.id WHERE tasks.status = $1 AND teams.job_type = $2';
-    const params = ['อนุมัติ', 'ช่างฝ้า'];
+    let query = `
+    SELECT teams.*, tasks.*, COUNT(reviews.rating) AS review_count, ROUND(AVG(reviews.rating), 1) AS average_rating
+    FROM teams
+    INNER JOIN tasks ON teams.id = tasks.id
+    LEFT JOIN bookings ON teams.id = bookings.team_id
+    LEFT JOIN reviews ON bookings.id = reviews.booking_id
+    WHERE tasks.status = $1 AND teams.job_type = $2
+  `;    
+  const params = ['อนุมัติ', 'ช่างฝ้า'];
 
     if (job_scope) {
       query += ' AND teams.job_scope = $3';
       params.push(job_scope);
     }
+
+    query += ' GROUP BY teams.id, tasks.id';
+
 
     const result = await pool.query(query, params);
     const job = result.rows;
@@ -1496,7 +1504,7 @@ app.get('/users/roofer/:id', ensureAuthenticated, async (req, res) => {
   }
 });
 
-app.get('/users/painter', ensureAuthenticated, async (req, res) => {
+/* app.get('/users/painter', ensureAuthenticated, async (req, res) => {
   try {
     const { job_scope } = req.query;
     let query = 'SELECT teams.*, tasks.* FROM teams INNER JOIN tasks ON teams.id = tasks.id WHERE tasks.status = $1 AND teams.job_type = $2';
@@ -1510,12 +1518,46 @@ app.get('/users/painter', ensureAuthenticated, async (req, res) => {
     const result = await pool.query(query, params);
     const job = result.rows;
     const tasks = result.rows;
+
+
+    res.render('work_painter', { job, tasks  });
+  } catch (err) {
+    console.error(err);
+    res.send('Error ' + err);
+  }
+}); */
+
+app.get('/users/painter', ensureAuthenticated, async (req, res) => {
+  try {
+    const { job_scope } = req.query;
+    let query = `
+      SELECT teams.*, tasks.*, COUNT(reviews.rating) AS review_count, ROUND(AVG(reviews.rating), 1) AS average_rating
+      FROM teams
+      INNER JOIN tasks ON teams.id = tasks.id
+      LEFT JOIN bookings ON teams.id = bookings.team_id
+      LEFT JOIN reviews ON bookings.id = reviews.booking_id
+      WHERE tasks.status = $1 AND teams.job_type = $2
+    `;
+    const params = ['อนุมัติ', 'ช่างทาสี'];
+
+    if (job_scope) {
+      query += ' AND teams.job_scope = $3';
+      params.push(job_scope);
+    }
+
+    query += ' GROUP BY teams.id, tasks.id';
+
+    const result = await pool.query(query, params);
+    const job = result.rows;
+    const tasks = result.rows;
+
     res.render('work_painter', { job, tasks });
   } catch (err) {
     console.error(err);
     res.send('Error ' + err);
   }
 });
+
 
 app.get('/users/painter/:id', ensureAuthenticated, async (req, res) => {
   try {
@@ -1568,13 +1610,23 @@ app.get('/users/painter/:id', ensureAuthenticated, async (req, res) => {
 app.get('/users/cleaner', ensureAuthenticated, async (req, res) => {
   try {
     const { job_scope } = req.query;
-    let query = 'SELECT teams.*, tasks.* FROM teams INNER JOIN tasks ON teams.id = tasks.id WHERE tasks.status = $1 AND teams.job_type = $2';
-    const params = ['อนุมัติ', 'พนักงานทำความสะอาด'];
+    let query = `
+    SELECT teams.*, tasks.*, COUNT(reviews.rating) AS review_count, ROUND(AVG(reviews.rating), 1) AS average_rating
+    FROM teams
+    INNER JOIN tasks ON teams.id = tasks.id
+    LEFT JOIN bookings ON teams.id = bookings.team_id
+    LEFT JOIN reviews ON bookings.id = reviews.booking_id
+    WHERE tasks.status = $1 AND teams.job_type = $2
+  `;
+      const params = ['อนุมัติ', 'พนักงานทำความสะอาด'];
 
     if (job_scope) {
       query += ' AND teams.job_scope = $3';
       params.push(job_scope);
     }
+
+    query += ' GROUP BY teams.id, tasks.id';
+
 
     const result = await pool.query(query, params);
     const job = result.rows;

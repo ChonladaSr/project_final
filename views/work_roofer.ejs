@@ -149,8 +149,20 @@
                         src="/uploads/<%= item.profile_image %>" alt="User Profile Picture" />
                     <div class="flex-1">
                         <h2 class="text-xl prompt-bold">
-                            <%= item.name %>
-                        </h2>
+                            <div class="flex flex-row items-center">
+                              <%= item.name %>&nbsp;
+                                <img class="w-5" src="https://cdn-icons-png.flaticon.com/512/8212/8212616.png" />
+                                <% if (item.average_rating) { %>
+                                  <span class="prompt-regular text-xs">
+                                    <%= item.average_rating %> (<%= item.review_count %> รีวิว)
+                                  </span>
+                                  <% } else { %>
+              
+                                    <span class=" prompt-regular text-xs text-muted-foreground">ยังไม่มีรีวิวจากผู้ใช้</span>
+              
+                                    <% } %>
+                            </div>
+                          </h2>
                         <p class="text-gray-700 prompt-medium flex items-center mt-1">
                             <img aria-hidden="true" alt="phone-icon"
                                 src="https://cdn-icons-png.freepik.com/512/12606/12606438.png?ga=GA1.1.512366322.1722083948"
