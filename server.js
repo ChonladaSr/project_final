@@ -2174,6 +2174,7 @@ app.get('/admin/verify_payments', async (req, res) => {
       FROM bookings 
       JOIN teams ON bookings.team_id = teams.id
       WHERE bookings.payment_status = 'รอการตรวจสอบ'
+      AND bookings.status != 'ยกเลิกการจอง'
       ORDER BY bookings.id DESC;
     `);
     const bookings = result.rows;

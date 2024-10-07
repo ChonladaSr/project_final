@@ -212,7 +212,9 @@
                                     <% } else if (booking.payment_slip_status === 'ชำระเงินแล้ว' && booking.payment_status === 'ยืนยัน' && booking.status !== 'ยืนยันการรับงาน') { %>
                                         <%= booking.payment_slip_status %>
                                     <% } else if (booking.payment_slip_status === 'ชำระเงินแล้ว' && booking.payment_status === 'ยืนยัน' && booking.status === 'ยืนยันการรับงาน') { %>
-                                        <%= booking.status %>   
+                                        <%= booking.status %>
+                                    <% } else  { %>
+                                        ยกเลิก      
                                     <% } %>
                                     
                                 </span>
@@ -225,6 +227,44 @@
                         <div class="timeline-section">
                             <div class="p-4  pt-20 flow-root">
                                 <ul role="list" class="-mb-8">
+
+
+                                    <% if (booking.payment_status === 'ยกเลิก') { %>
+
+                                        <li>
+                                            <div class="relative pb-8">
+                                                <span class="absolute left-4 top-4 -ml-px " aria-hidden="true"></span>
+                                                <div class="relative flex space-x-3">
+                                                    <div>
+                                                        <span
+                                                            class="h-8 w-8 rounded-full bg-red-500 flex items-center justify-center ring-8 ring-white">
+                                                            <svg class="h-5 w-5 text-white" viewBox="0 0 20 20"
+                                                                fill="currentColor" aria-hidden="true">
+                                                                <path
+                                                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 00-2 0v5a1 1 0 002 0V7zm0 7a1 1 0 00-2 0v1a1 1 0 002 0v-1z" />
+                                                            </svg>
+                                                        </span>
+                                                    </div>
+                                                    <div class="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
+                                                        <div>
+                                                            <p class="text-sm text-gray-800 prompt-regular">การชำระเงินมีข้อผิดพลาด</p>
+                                                        </div>
+                                                        <div class="whitespace-nowrap text-right text-sm text-gray-500">
+                                                            <time>
+                                                                <%= new
+                                                                    Date(booking.payment_verified_at).toLocaleString('th-TH', {
+                                                                    timeZone: 'Asia/Bangkok' }) %>
+                                                            </time>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </li>
+
+                                        <% } %>
+
+
+
                                     <% if (booking.cancelled_at) { %>
                                         <!-- แสดงสถานะ ยกเลิก -->
                                         <li>
@@ -266,7 +306,7 @@
                                                     <div class="relative flex space-x-3">
                                                         <div>
                                                             <span
-                                                                class="h-8 w-8 rounded-full bg-zinc-500 flex items-center justify-center ring-8 ring-white">
+                                                                class="h-8 w-8 rounded-full bg-amber-400 flex items-center justify-center ring-8 ring-white">
                                                                 <svg class="h-5 w-5 text-white" viewBox="0 0 20 20"
                                                                     fill="currentColor" aria-hidden="true">
                                                                     <path
@@ -341,7 +381,7 @@
                                                                     <div class="relative flex space-x-3">
                                                                         <div>
                                                                             <span
-                                                                                class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center ring-8 ring-white">
+                                                                                class="h-8 w-8 rounded-full bg-amber-200 flex items-center justify-center ring-8 ring-white">
                                                                                 <svg class="h-5 w-5 text-white"
                                                                                     viewBox="0 0 20 20"
                                                                                     fill="currentColor"
@@ -381,7 +421,7 @@
                                                                             <div class="relative flex space-x-3">
                                                                                 <div>
                                                                                     <span
-                                                                                        class="h-8 w-8 rounded-full bg-green-500 flex items-center justify-center ring-8 ring-white">
+                                                                                        class="h-8 w-8 rounded-full bg-lime-300 flex items-center justify-center ring-8 ring-white">
                                                                                         <svg class="h-5 w-5 text-white"
                                                                                             viewBox="0 0 20 20"
                                                                                             fill="currentColor"
@@ -426,7 +466,7 @@
                                                                                         class="relative flex space-x-3">
                                                                                         <div>
                                                                                             <span
-                                                                                                class="h-8 w-8 rounded-full bg-teal-400 flex items-center justify-center ring-8 ring-white">
+                                                                                                class="h-8 w-8 rounded-full bg-lime-400 flex items-center justify-center ring-8 ring-white">
                                                                                                 <svg class="h-5 w-5 text-white"
                                                                                                     viewBox="0 0 20 20"
                                                                                                     fill="currentColor"
@@ -460,7 +500,7 @@
                                                                             </li>
                                                                             <% } %>
 
-                                                                                <% if (booking.review_rating) { %>
+                                                                                <% if (booking.review_rating ) { %>
                                                                                     <!-- แสดงสถานะ เสร็จสิ้น -->
                                                                                     <li>
                                                                                         <div class="relative pb-8">
@@ -471,7 +511,7 @@
                                                                                                 class="relative flex space-x-3">
                                                                                                 <div>
                                                                                                     <span
-                                                                                                        class="h-8 w-8 rounded-full bg-lime-400 flex items-center justify-center ring-8 ring-white">
+                                                                                                        class="h-8 w-8 rounded-full bg-lime-500 flex items-center justify-center ring-8 ring-white">
                                                                                                         <svg class="h-5 w-5 text-white"
                                                                                                             viewBox="0 0 20 20"
                                                                                                             fill="currentColor"
@@ -504,7 +544,7 @@
                                                                                             </div>
                                                                                         </div>
                                                                                     </li>
-                                                                                    <% } %>
+                                    <% } %>
 
 
                                 </ul>
@@ -544,7 +584,7 @@
 
                         <!-- Show Cancel or Review Button -->
                         <% if (booking.status !=='ยกเลิกการจอง' && booking.status !=='ยืนยันงาน' && booking.status
-                            !=='กำลังดำเนินการ' && booking.status !=='ยืนยันการรับงาน' ) { %>
+                            !=='กำลังดำเนินการ' && booking.status !=='ยืนยันการรับงาน' && booking.payment_status !=='ยกเลิก') { %>
                             <form action="/bookings/<%= booking.id %>/cancel" method="POST">
                                 <button type="submit" class="prompt-bold btn btn-danger mt-4">ยกเลิกการจอง</button>
                             </form>

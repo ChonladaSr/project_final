@@ -29,7 +29,7 @@
         }
 
         table {
-            width: 90%;
+            width: 98%;
             margin: 20px 0;
             border-collapse: collapse;
             background-color: #fff;
@@ -94,7 +94,7 @@
 </head>
 
 <body>
-    <h2 class="py-3 text-center prompt-medium">ระบบตรวจสอบการชำระเงิน</h2>
+    <h2 class="py-5 text-center prompt-medium">ระบบตรวจสอบการชำระเงิน</h2>
     <table>
         <thead>
             <tr class="prompt-medium text-center">
@@ -108,12 +108,13 @@
               </tr>
         </thead>
         <tbody>
+            <% if (bookings.length > 0) { %>
             <% bookings.forEach(booking => { %>
                 <tr class="prompt-light text-center">
                 <td><%= booking.id %></td>
                 <td><%= booking.name %></td>
                 <td><%= booking.email %></td>
-                <td><%= booking.range %></td>
+                <td><%= booking.range / 2 %></td>
                 <td>
                     <a href="<%= booking.payment_slip %>" target="_blank">
                         <img src="<%= booking.payment_slip %>" alt="payment slip">
@@ -129,6 +130,11 @@
                 </td>
             </tr>
             <% }) %>
+            <% } else { %>
+                <tr>
+                  <td colspan="7" class="text-center prompt-medium">ไม่มีรายการชำระเงินในขณะนี้</td>
+                </tr>
+                <% } %>
         </tbody>
     </table>
 </body>

@@ -136,6 +136,8 @@
                                                     เสร็จสิ้น
                                                 <% } else if (booking.payment_slip_status === 'ชำระเงินแล้ว' && booking.payment_status === 'ยืนยัน' && booking.status !== 'ยืนยันการรับงาน') { %>
                                                     <%= booking.payment_slip_status %>
+                                                <% } else  { %>
+                                                    ยกเลิก 
                                                 <% } %>
                                                 
                                             </span>
