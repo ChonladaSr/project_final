@@ -1266,7 +1266,7 @@ app.post('/teams/confirm_booking/:id', checkTeamAuthenticated, async (req, res) 
       return res.status(404).send('Booking not found or not authorized');
     }
 
-    res.redirect('/team/get_all_bookings?message=ยืนยันการจองสำเร็จแล้ว');
+    res.redirect('/team/get_all_bookings?message=ส่งมอบงานสำเร็จ');
   } catch (err) {
     console.error(err);
     res.status(500).send('Error ' + err);
@@ -2224,6 +2224,7 @@ app.get('/admin/verify_slips', async (req, res) => {
       JOIN teams ON bookings.team_id = teams.id
       WHERE bookings.payment_slip_status = 'รอการชำระเงิน'
       AND bookings.payment_status = 'ยืนยัน'
+      AND bookings.status = 'ยืนยันงาน'
       ORDER BY bookings.id DESC;
     `);
     const bookings = result.rows;

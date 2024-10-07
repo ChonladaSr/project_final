@@ -201,15 +201,20 @@
                             <p class="prompt-medium text-orange-500 mt-2">สถานะการจอง</p>
                             <p class="prompt-regular">
                                 <span id="status-text">
-                                    <% if (booking.payment_status==='รอการตรวจสอบ' && booking.status !=='ยกเลิกการจอง' )
-                                        { %>
+                                    <% if (booking.payment_status === 'รอการตรวจสอบ' && booking.status !== 'ยกเลิกการจอง') { %>
                                         รอการตรวจสอบ
-                                        <% } else if (booking.payment_status==='ยืนยัน' ) { %>
-                                            <%= booking.status %>
-                                                <% } else if (booking.payment_status==='รอการตรวจสอบ' &&
-                                                    booking.status==='ยกเลิกการจอง' ) { %>
-                                                    <%= booking.status %>
-                                                        <% } %>
+                                    <% } else if (booking.payment_status === 'ยืนยัน' && booking.payment_slip_status !== 'ชำระเงินแล้ว') { %>
+                                        <%= booking.status %>
+                                    <% } else if (booking.payment_status === 'รอการตรวจสอบ' && booking.status === 'ยกเลิกการจอง') { %>
+                                        <%= booking.status %>
+                                    <% } else if (booking.payment_slip_status === 'ชำระเงินแล้ว' && booking.payment_status === 'ยืนยัน' && booking.status === 'ยืนยันการรับงาน' && booking.review_rating) { %>
+                                        เสร็จสิ้น
+                                    <% } else if (booking.payment_slip_status === 'ชำระเงินแล้ว' && booking.payment_status === 'ยืนยัน' && booking.status !== 'ยืนยันการรับงาน') { %>
+                                        <%= booking.payment_slip_status %>
+                                    <% } else if (booking.payment_slip_status === 'ชำระเงินแล้ว' && booking.payment_status === 'ยืนยัน' && booking.status === 'ยืนยันการรับงาน') { %>
+                                        <%= booking.status %>   
+                                    <% } %>
+                                    
                                 </span>
                             </p>
 
@@ -309,7 +314,7 @@
                                                                 class="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
                                                                 <div>
                                                                     <p class="text-sm text-gray-800 prompt-regular">
-                                                                        ชำระมัดจำแล้ว รอดำเนินการ</p>
+                                                                        ชำระเงินมัดจำแล้ว, รอดำเนินการ</p>
                                                                 </div>
                                                                 <div
                                                                     class="whitespace-nowrap text-right text-sm text-gray-500">
@@ -486,14 +491,14 @@
                                                                                                     </div>
                                                                                                     <div
                                                                                                         class="whitespace-nowrap text-right text-sm text-gray-500">
-                                                                                                         <time
+                                                                                                        <time
                                                                                                             class="prompt-light text-xs">
                                                                                                             <%= new
                                                                                                                 Date(booking.review_date).toLocaleString('th-TH',
                                                                                                                 {
                                                                                                                 timeZone: 'Asia/Bangkok'
                                                                                                                 }) %>
-                                                                                                        </time> 
+                                                                                                        </time>
                                                                                                     </div>
                                                                                                 </div>
                                                                                             </div>
@@ -505,13 +510,13 @@
                                 </ul>
 
                                 <!-- แสดงปุ่ม ชำระเงิน -->
-                                <% if (booking.status==='ยืนยันงาน' && booking.payment_slip_status !=='ชำระเงินแล้ว' && !booking.payment_slip) {
-                                    %>
+                                <% if (booking.status==='ยืนยันงาน' && booking.payment_slip_status !=='ชำระเงินแล้ว' &&
+                                    !booking.payment_slip) { %>
                                     <div class="mt-4 text-center">
                                         <form action="/bookings/pay/<%= booking.id %>" method="GET">
                                             <button type="submit"
                                                 class="prompt-medium bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">
-                                                ชำระเงิน
+                                                ชำระเงินส่วนที่เหลือ
                                             </button>
                                         </form>
                                     </div>
