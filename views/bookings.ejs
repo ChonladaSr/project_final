@@ -92,10 +92,10 @@
                 <% } else if (bookings.length> 0) { %>
                     <% bookings.forEach(booking=> { %>
                         <a href="/users/view_booking/<%= booking.id %>">
-                            <div class="py-6">
+                            <div class="py-3">
 
                                 <div
-                                    class="max-w-2xl mx-auto bg-zinc-100 shadow-md rounded-md p-4 flex items-center transition duration-200 hover:scale-105">
+                                    class="max-w-3xl mx-auto bg-zinc-100 shadow-md rounded-md p-4 flex items-center transition duration-200 hover:scale-105">
                                     <div>
                                         <p class="text-start prompt-medium text-gray-800">
                                             หมายเลขการจอง: #<%= booking.id %>
@@ -150,7 +150,7 @@
                                     </div>
                                     <div class="ml-auto flex items-center prompt-medium text-gray-800">
 
-                                        <% if (booking.status==='ยืนยันงาน' || booking.status==='ยืนยันการรับงาน' ) { %>
+                                        <% if (booking.status==='ยืนยันงาน' ) { %>
                                             <div class="group relative">
                                                 <button>
                                                     <svg stroke-linejoin="round" stroke-linecap="round"

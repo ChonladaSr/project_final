@@ -1807,7 +1807,7 @@ app.post('/bookings/confirm/:id', async (req, res) => {
     console.error(err.message);
     res.redirect(`/bookings/${bookingId}?success=false&message=Server Error`);
   }
-}); 
+});
 
 // Route สำหรับชำระเงิน
 
@@ -2294,9 +2294,10 @@ app.get("/admin/dashboard", async (req, res) => {
 
     // นับจำนวนที่ต้องตรวจสอบการชำระเงิน
     const paymentCountResult = await pool.query(
-      `SELECT COUNT(*) FROM bookings WHERE  payment_status = 'รอการตรวจสอบ'`
+      `SELECT COUNT(*) FROM bookings WHERE payment_status = 'รอการตรวจสอบ' AND status != 'ยกเลิกการจอง'`
     );
     const paymentCount = paymentCountResult.rows[0].count;
+
 
     res.render("admin_dashboard", { pendingCount, userCount, workCount, paymentCount });
   } catch (err) {
@@ -2304,8 +2305,6 @@ app.get("/admin/dashboard", async (req, res) => {
     res.status(500).send("Server error");
   }
 });
-
-
 
 
 

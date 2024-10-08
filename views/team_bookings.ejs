@@ -140,21 +140,19 @@
                                         <%= new Date(booking.booking_date).toLocaleDateString('th-TH') %>
                                     </p>
                                     <p class="card-text prompt-regular"><strong>สถานะ:</strong>
-                                        <% if (booking.status==='ยกเลิก' ) { %>
-                                            ยกเลิก
-                                            <% } else if (booking.payment_status==='ยืนยัน' ) { %>
-                                                <% if (booking.status==='รอดำเนินการ' ) { %>
-                                                    รอดำเนินการ
-                                                    <% } else if (booking.status==='กำลังดำเนินการ' ) { %>
-                                                        กำลังดำเนินการ
-                                                        <% } else if (booking.status==='ยืนยันงาน' ) { %>
-                                                            ยืนยันงาน
-                                                            <% } else if (booking.status==='ยืนยันการรับงาน' ) { %>
-                                                                ส่งมอบงานสำเร็จ
-                                                                    <% } %>
-                                                                        <% } else { %>
-                                                                            รอการตรวจสอบ
-                                                                            <% } %>
+                                        <% if (booking.payment_status === 'รอการตรวจสอบ' && booking.status !== 'ยกเลิกการจอง') { %>
+                                            รอการตรวจสอบ
+                                        <% } else if (booking.payment_status === 'ยืนยัน' && booking.payment_slip_status !== 'ชำระเงินแล้ว') { %>
+                                            <%= booking.status %>
+                                        <% } else if (booking.payment_status === 'รอการตรวจสอบ' && booking.status === 'ยกเลิกการจอง') { %>
+                                            <%= booking.status %>
+                                        <% } else if (booking.payment_slip_status === 'ชำระเงินแล้ว' && booking.payment_status === 'ยืนยัน' && booking.status === 'ยืนยันการรับงาน') { %>
+                                            เสร็จสิ้น
+                                        <% } else if (booking.payment_slip_status === 'ชำระเงินแล้ว' && booking.payment_status === 'ยืนยัน' && booking.status !== 'ยืนยันการรับงาน') { %>
+                                            <%= booking.payment_slip_status %>
+                                        <% } else  { %>
+                                            ยกเลิก 
+                                        <% } %>
                                     </p>
                                 </div>
                             </div>
