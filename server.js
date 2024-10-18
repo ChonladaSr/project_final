@@ -720,6 +720,7 @@ app.post('/users/book_service', ensureAuthenticated, async (req, res) => {
 });
 */
 
+// user จองบริการ
 app.get('/users/book_service', ensureAuthenticated, (req, res) => {
   const teamId = req.query.teamId;  // รับ team_id จาก query string
   const userId = req.user.id;  // รับ user_id จากผู้ใช้ที่ล็อกอินอยู่
