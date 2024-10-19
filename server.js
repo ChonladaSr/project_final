@@ -974,7 +974,7 @@ app.get("/teams/register", (req, res) => {
   res.render("team_register"); // Renders the team registration form (team_register.ejs or HTML file)
 });
 
-app.post('/teams/register',
+/* app.post('/teams/register',
   uploadTeam.fields([{ name: 'profile_image' }, { name: 'photo1' }, { name: 'photo2' }, { name: 'photo3' }]),
   async (req, res) => {
     const { name, phone, job_type, job_scope, range, email, password, experience } = req.body;
@@ -1022,8 +1022,144 @@ app.post('/teams/register',
       console.error('Error inserting data', error);
       res.status(500).send('Error registering team');
     }
-  });
+  }); */
 
+
+/* app.post('/teams/register',
+  uploadTeam.fields([{ name: 'profile_image' }, { name: 'photo1' }, { name: 'photo2' }, { name: 'photo3' }]),
+  async (req, res) => {
+    const { name, phone, job_type, job_scope, range, email, password, password2, experience } = req.body;
+
+    // สร้างอาเรย์สำหรับเก็บข้อผิดพลาด
+    let errors = [];
+
+    // ตรวจสอบข้อมูลที่จำเป็น
+    if (!name || !phone || !job_type || !job_scope || !range || !email || !password || !password2) {
+      errors.push('กรุณากรอกข้อมูลให้ครบทุกช่อง');
+    }
+
+    // ตรวจสอบความยาวของรหัสผ่าน
+    if (password.length < 6) {
+      errors.push('รหัสผ่านต้องมีความยาวมากกว่า 6 ตัวอักษร');
+    }
+
+    // ตรวจสอบว่ารหัสผ่านตรงกัน
+    if (password !== password2) {
+      errors.push('รหัสผ่านไม่ตรงกัน');
+    }
+
+    // ตรวจสอบว่าไฟล์ถูกอัปโหลดหรือไม่
+    if (!req.files['profile_image'] || !req.files['photo1'] || !req.files['photo2'] || !req.files['photo3']) {
+      return res.status(400).send('กรุณาอัปโหลดรูปภาพให้ครบทุกไฟล์');
+    }
+
+    // ถ้ามีข้อผิดพลาด
+    if (errors.length > 0) {
+      return res.render('register', { errors, name, phone, job_type, job_scope, range, email, password, password2 });
+    }
+
+    // ถ้าข้อมูลถูกต้อง ให้ดำเนินการลงทะเบียน
+    try {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      // ตั้งชื่อไฟล์ใหม่เพื่อหลีกเลี่ยงการซ้ำ
+      const profileImage = Date.now() + '-' + req.files['profile_image'][0].originalname;
+      const photo1 = Date.now() + '-' + req.files['photo1'][0].originalname;
+      const photo2 = Date.now() + '-' + req.files['photo2'][0].originalname;
+      const photo3 = Date.now() + '-' + req.files['photo3'][0].originalname;
+
+      // บันทึกรูปภาพลงในโฟลเดอร์
+      await fs.promises.rename(req.files['profile_image'][0].path, path.join(__dirname, 'uploads', profileImage));
+      await fs.promises.rename(req.files['photo1'][0].path, path.join(__dirname, 'uploads', photo1));
+      await fs.promises.rename(req.files['photo2'][0].path, path.join(__dirname, 'uploads', photo2));
+      await fs.promises.rename(req.files['photo3'][0].path, path.join(__dirname, 'uploads', photo3));
+
+      await pool.query(
+        `INSERT INTO teams (name, phone, job_type, job_scope, range, email, password, profile_image, experience, photo1, photo2, photo3)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+        [name, phone, job_type, job_scope, range, email, hashedPassword, profileImage, experience, photo1, photo2, photo3]
+      );
+      console.log('Data inserted successfully');
+
+      const newTask = await pool.query(
+        `INSERT INTO tasks (description, status)
+         VALUES ($1, $2) RETURNING *`,
+        [`${name} - ${job_type}`, 'รอดำเนินการ']
+      );
+
+
+      req.flash("success_msg", 'ลงทะเบียนสำเร็จแล้ว');
+      res.redirect("/team/login");
+    } catch (error) {
+      console.error('Error inserting data:', error);
+      errors.push('เกิดข้อผิดพลาดในการลงทะเบียน: ' + error.message);
+      return res.render('register', { errors, name, phone, job_type, job_scope, range, email, password, password2 });
+    }
+
+  }); */
+
+  app.post('/teams/register', 
+    uploadTeam.fields([{ name: 'profile_image' }, { name: 'photo1' }, { name: 'photo2' }, { name: 'photo3' }]), 
+    async (req, res) => {
+    const { name, phone, job_type, job_scope, range, email, password, password2, experience } = req.body;
+    
+    let errors = [];
+  
+    if (!name || !phone || !job_type || !job_scope || !range || !email || !password || !password2) {
+      errors.push('กรุณากรอกข้อมูลให้ครบทุกช่อง');
+    }
+  
+    if (password.length < 6) {
+      errors.push('รหัสผ่านต้องมีความยาวมากกว่า 6 ตัวอักษร');
+    }
+  
+    if (password !== password2) {
+      errors.push('รหัสผ่านไม่ตรงกัน');
+    }
+  
+    if (!req.files['profile_image'] || !req.files['photo1'] || !req.files['photo2'] || !req.files['photo3']) {
+      errors.push('กรุณาอัปโหลดรูปภาพให้ครบทุกไฟล์');
+    }
+  
+    const existingTeam = await pool.query(
+      `SELECT * FROM teams WHERE phone = $1 OR email = $2`,
+      [phone, email]
+    );
+  
+    if (existingTeam.rows.length > 0) {
+      errors.push('เบอร์โทรศัพท์หรืออีเมลนี้ถูกใช้ไปแล้ว');
+    }
+  
+    if (errors.length > 0) {
+      return res.status(400).json({ error: errors.join(', ') });
+    }
+  
+    try {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const profileImage = Date.now() + '-' + req.files['profile_image'][0].originalname;
+      const photo1 = Date.now() + '-' + req.files['photo1'][0].originalname;
+      const photo2 = Date.now() + '-' + req.files['photo2'][0].originalname;
+      const photo3 = Date.now() + '-' + req.files['photo3'][0].originalname;
+  
+      await fs.promises.rename(req.files['profile_image'][0].path, path.join(__dirname, 'uploads', profileImage));
+      await fs.promises.rename(req.files['photo1'][0].path, path.join(__dirname, 'uploads', photo1));
+      await fs.promises.rename(req.files['photo2'][0].path, path.join(__dirname, 'uploads', photo2));
+      await fs.promises.rename(req.files['photo3'][0].path, path.join(__dirname, 'uploads', photo3));
+  
+      await pool.query(
+        `INSERT INTO teams (name, phone, job_type, job_scope, range, email, password, profile_image, experience, photo1, photo2, photo3)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+        [name, phone, job_type, job_scope, range, email, hashedPassword, profileImage, experience, photo1, photo2, photo3]
+      );
+  
+      res.status(200).json({ success: 'ลงทะเบียนสำเร็จแล้ว' });
+    } catch (error) {
+      console.error('Error inserting data:', error);
+      res.status(500).json({ error: 'เกิดข้อผิดพลาดในการลงทะเบียน' });
+    }
+  });
+  
+  
+  
 
 
 app.post('/team/login', async (req, res) => {
