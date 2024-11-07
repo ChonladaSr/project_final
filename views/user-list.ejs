@@ -89,7 +89,7 @@
 
     <% if (users.length > 0) { %>
         <% users.forEach(function(user) { %>
-            <div class="user" onclick="window.location.href='/teams/<%= teamId %>/chat-history/<%= user.id %>'">
+            <div class="user" onclick="window.location.href='/teams/<%= teamId %>/chat-team/<%= user.id %>'">
                 <p class="prompt-medium">
                     <%= user.name %>
                 </p>

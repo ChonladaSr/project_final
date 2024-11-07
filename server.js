@@ -14,6 +14,7 @@ const alert = require('alert');
 // const upload = require('./uploadConfig');
 const bodyParser = require('body-parser');
 // const fileUpload = require('express-fileupload');
+
 const http = require('http');
 const socketIo = require('socket.io');
 const server = http.createServer(app);
@@ -310,7 +311,6 @@ const ensureAuthenticated = (req, res, next) => {
 io.on("connection", (socket) => {
   console.log("New user connected:", socket.id);
 
-  // Get chat users that the team has chatted with
   socket.on("getChatUsers", async (teamId) => {
     try {
       const result = await pool.query(`
@@ -321,13 +321,13 @@ io.on("connection", (socket) => {
       `, [teamId]);
 
       const users = result.rows;
-      socket.emit('chatUsers', users); // Send user list back to the client
+      socket.emit('chatUsers', users); //ส่งรายชื่อผู้ใช้งานกลับไปยังclient
     } catch (err) {
       console.error("Error retrieving chat users:", err);
     }
   });
 
-  // Join private chat between team and user
+
   socket.on("joinPrivateChat", async ({ teamId, userId }) => {
     const room = `${teamId}-${userId}`;
     socket.join(room);
@@ -341,32 +341,30 @@ io.on("connection", (socket) => {
 
       const messages = await Promise.all(result.rows.map(async (message) => {
         let name = "Unknown";
-        let type = "";  // Type of message sender (user or team)
+        let type = "";  //ประเภทของผู้ส่งข้อความ (ผู้ใช้หรือช่าง)
 
         if (message.user_id) {
           const userResult = await pool.query(`SELECT name FROM users WHERE id = $1`, [message.user_id]);
           if (userResult.rows.length > 0) {
             name = userResult.rows[0].name;
-            type = "user";  // Set type as user
+            type = "user";
           }
         } else if (message.team_id) {
           const teamResult = await pool.query(`SELECT name FROM teams WHERE id = $1`, [message.team_id]);
           if (teamResult.rows.length > 0) {
             name = teamResult.rows[0].name;
-            type = "team";  // Set type as team
+            type = "team";
           }
         }
 
-        // Return message along with created_at, name, and type (user/team)
         return {
           ...message,
           name,
           type,
-          created_at: message.created_at  // Include created_at
+          created_at: message.created_at
         };
       }));
 
-      // Send the messages with created_at back to the client
       socket.emit('loadMessages', messages);
     } catch (err) {
       console.error("Error retrieving chat history:", err);
@@ -377,10 +375,10 @@ io.on("connection", (socket) => {
   socket.on("chatMessage", async ({ room, message, userId, teamId }) => {
     if (room && message) {
       let username = "Unknown";
-      const createdAt = new Date(); // Get the current timestamp
-      const senderType = userId ? 'user' : 'team'; // Set the sender type
+      const createdAt = new Date(); //เวลาปัจจุบัน
+      const senderType = userId ? 'user' : 'team';
 
-      // Fetch username based on userId or teamId
+      //ดึงชื่อผู้ใช้
       if (userId) {
         const result = await pool.query(`SELECT name FROM users WHERE id = $1`, [userId]);
         if (result.rows.length > 0) {
@@ -393,22 +391,20 @@ io.on("connection", (socket) => {
         }
       }
 
-      // Emit the message along with created_at, sender_type, userId, and teamId
       io.to(room).emit("chatMessage", {
         username,
         message,
-        created_at: createdAt,  // Send the timestamp
-        sender_type: senderType,  // Send the sender_type ('user' or 'team')
+        created_at: createdAt,
+        sender_type: senderType,  //('user'/'team')
         userId,
         teamId
       });
 
-      // Save the message to the database
       try {
         await pool.query(
           `INSERT INTO messages (message, user_id, team_id, sender_type, room_id, created_at) 
            VALUES ($1, $2, $3, $4, $5, $6)`,
-          [message, userId, teamId, senderType, room, createdAt] // Include created_at in the insert query
+          [message, userId, teamId, senderType, room, createdAt] 
         );
         console.log("Message saved to the database.");
       } catch (err) {
@@ -417,7 +413,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Handle user disconnect
+  //ตัดการเชื่อมต่อ
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
   });
@@ -426,15 +422,14 @@ io.on("connection", (socket) => {
 
 app.get('/users/chat/:teamId', ensureAuthenticated, (req, res) => {
   const teamId = req.params.teamId;
-  const userId = req.user.id; // แก้ไขจาก req.params.userId เป็น req.user.id
+  const userId = req.user.id; 
   res.render('chat', { userId, teamId });
 });
 
-app.get('/teams/:teamId/chat-history', async (req, res) => {
+app.get('/teams/:teamId/chat-team', async (req, res) => {
   const { teamId } = req.params;
 
   try {
-    // Get list of users the team has chatted with
     const result = await pool.query(
       `SELECT DISTINCT users.id, users.name
        FROM messages
@@ -443,7 +438,6 @@ app.get('/teams/:teamId/chat-history', async (req, res) => {
       [teamId]
     );
 
-    // Render the user selection page
     res.render('user-list', {
       teamId,
       users: result.rows,
@@ -454,12 +448,11 @@ app.get('/teams/:teamId/chat-history', async (req, res) => {
   }
 });
 
-app.get('/teams/:teamId/chat-history/:userId', async (req, res) => {
+app.get('/teams/:teamId/chat-team/:userId', async (req, res) => {
   const { teamId, userId } = req.params;
   const room = `${teamId}-${userId}`; // Define the room for the chat
 
   try {
-    // Query to fetch chat history
     const result = await pool.query(
       `SELECT m.*, 
               u.name AS user_name, 
@@ -476,16 +469,15 @@ app.get('/teams/:teamId/chat-history/:userId', async (req, res) => {
       const senderName = message.sender_type === 'user' ? `User: ${message.user_name}` : `Team: ${message.team_name}`;
       return {
         ...message,
-        name: senderName, // Use name from sender_type
-        role: message.sender_type // Store sender type
+        name: senderName,
+        role: message.sender_type
       };
     });
 
-    // Render chat page with fetched chat data
-    res.render('chat-history', {
+    res.render('chat-team', {
       teamId,
       userId,
-      chats,  // Send chat data to the page
+      chats,
     });
   } catch (err) {
     console.error('Error fetching chat history:', err);
@@ -1097,69 +1089,69 @@ app.get("/teams/register", (req, res) => {
 
   }); */
 
-  app.post('/teams/register', 
-    uploadTeam.fields([{ name: 'profile_image' }, { name: 'photo1' }, { name: 'photo2' }, { name: 'photo3' }]), 
-    async (req, res) => {
+app.post('/teams/register',
+  uploadTeam.fields([{ name: 'profile_image' }, { name: 'photo1' }, { name: 'photo2' }, { name: 'photo3' }]),
+  async (req, res) => {
     const { name, phone, job_type, job_scope, range, email, password, password2, experience } = req.body;
-    
+
     let errors = [];
-  
+
     if (!name || !phone || !job_type || !job_scope || !range || !email || !password || !password2) {
       errors.push('กรุณากรอกข้อมูลให้ครบทุกช่อง');
     }
-  
+
     if (password.length < 6) {
       errors.push('รหัสผ่านต้องมีความยาวมากกว่า 6 ตัวอักษร');
     }
-  
+
     if (password !== password2) {
       errors.push('รหัสผ่านไม่ตรงกัน');
     }
-  
+
     if (!req.files['profile_image'] || !req.files['photo1'] || !req.files['photo2'] || !req.files['photo3']) {
       errors.push('กรุณาอัปโหลดรูปภาพให้ครบทุกไฟล์');
     }
-  
+
     const existingTeam = await pool.query(
       `SELECT * FROM teams WHERE phone = $1 OR email = $2`,
       [phone, email]
     );
-  
+
     if (existingTeam.rows.length > 0) {
       errors.push('เบอร์โทรศัพท์หรืออีเมลนี้ถูกใช้ไปแล้ว');
     }
-  
+
     if (errors.length > 0) {
       return res.status(400).json({ error: errors.join(', ') });
     }
-  
+
     try {
       const hashedPassword = await bcrypt.hash(password, 10);
       const profileImage = Date.now() + '-' + req.files['profile_image'][0].originalname;
       const photo1 = Date.now() + '-' + req.files['photo1'][0].originalname;
       const photo2 = Date.now() + '-' + req.files['photo2'][0].originalname;
       const photo3 = Date.now() + '-' + req.files['photo3'][0].originalname;
-  
+
       await fs.promises.rename(req.files['profile_image'][0].path, path.join(__dirname, 'uploads', profileImage));
       await fs.promises.rename(req.files['photo1'][0].path, path.join(__dirname, 'uploads', photo1));
       await fs.promises.rename(req.files['photo2'][0].path, path.join(__dirname, 'uploads', photo2));
       await fs.promises.rename(req.files['photo3'][0].path, path.join(__dirname, 'uploads', photo3));
-  
+
       await pool.query(
         `INSERT INTO teams (name, phone, job_type, job_scope, range, email, password, profile_image, experience, photo1, photo2, photo3)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
         [name, phone, job_type, job_scope, range, email, hashedPassword, profileImage, experience, photo1, photo2, photo3]
       );
-  
+
       res.status(200).json({ success: 'ลงทะเบียนสำเร็จแล้ว' });
     } catch (error) {
       console.error('Error inserting data:', error);
       res.status(500).json({ error: 'เกิดข้อผิดพลาดในการลงทะเบียน' });
     }
   });
-  
-  
-  
+
+
+
 
 
 app.post('/team/login', async (req, res) => {

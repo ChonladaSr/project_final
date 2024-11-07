@@ -107,12 +107,12 @@
 
   <script>
     const socket = io();
-    const teamId = "<%= teamId %>"; // Team ID from the backend
+    const teamId = "<%= teamId %>"; 
     const userList = document.getElementById('users');
     let currentUserId = null;
     let currentRoom = null;
 
-    // ดึงรายชื่อผู้ใช้ที่ทีมเคยแชทด้วย
+    // ดึงรายชื่อผู้ใช้งานที่คุยกับช่าง
     socket.emit("getChatUsers", teamId);
 
     // แสดงรายชื่อผู้ใช้
@@ -128,7 +128,6 @@
       });
     });
 
-    // เข้าร่วมห้องแชทส่วนตัว
     function joinChat(userName) {
       document.getElementById('chat-with').textContent = userName;
       document.getElementById('chat-container').style.display = 'block';
@@ -140,24 +139,21 @@
 
     socket.on('loadMessages', (messages) => {
       const messagesContainer = document.getElementById('messages');
-      messagesContainer.innerHTML = ''; // Clear existing messages
+      messagesContainer.innerHTML = ''; 
 
       messages.forEach((message) => {
         const messageElement = document.createElement("div");
 
-        // Check sender type and apply the appropriate class
         if (message.sender_type === 'team') {
           messageElement.classList.add('message', 'sent');
         } else if (message.sender_type === 'user') {
           messageElement.classList.add('message', 'received');
         }
 
-        // Format the received message
-        const date = new Date(message.created_at); // Assuming you have created_at in your message object
+        const date = new Date(message.created_at); 
         const dateString = date.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
         const timeString = date.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
 
-        // Update innerHTML with styling
         messageElement.innerHTML = `
      
       <span class="text-gray-500 text-sm">${dateString} ${timeString}</span><br>
@@ -182,7 +178,7 @@
           senderType: 'team' 
         });
 
-        messageInput.value = ''; // ล้างกล่องข้อความหลังจากส่งแล้ว
+        messageInput.value = ''; 
       }
     }
 
@@ -204,19 +200,16 @@
       const messagesContainer = document.getElementById('messages');
       const messageElement = document.createElement("div");
 
-      // Check sender type and apply the appropriate class
       if (data.sender_type === 'team') {
-        messageElement.classList.add('message', 'sent'); // Left side
+        messageElement.classList.add('message', 'sent'); //ฝั่งซ้าย
       } else if (data.sender_type === 'user') {
-        messageElement.classList.add('message', 'received'); // Right side
+        messageElement.classList.add('message', 'received'); //ฝั่งขวา
       }
 
-      // Format the received message
       const date = new Date();
       const dateString = date.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
       const timeString = date.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
 
-      // Update innerHTML with styling
       messageElement.innerHTML = `
     
     <span class="text-gray text-sm">${dateString} ${timeString}</span><br>
@@ -227,7 +220,6 @@
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
     });
-
 
   </script>
 

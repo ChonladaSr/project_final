@@ -162,9 +162,9 @@
 
   <script>
     const socket = io();
-    const userId = "<%= userId %>"; // User ID from backend
-    const teamId = "<%= teamId %>"; // Team ID from backend
-    let currentRoom = `${teamId}-${userId}`; // Combine teamId and userId for room
+    const userId = "<%= userId %>"; 
+    const teamId = "<%= teamId %>";
+    let currentRoom = `${teamId}-${userId}`;
 
 
     document.getElementById('join-button').onclick = function () {
@@ -200,7 +200,7 @@ function sendMessage() {
       message,
       userId,
       teamId,
-      senderType: 'user' // กำหนด sender type เป็น user
+      senderType: 'user' 
     });
 
     messageInput.value = ''; // ล้างกล่องข้อความหลังจากส่งแล้ว
@@ -222,26 +222,24 @@ document.getElementById('send-button').onclick = () => {
 
 
 
-    socket.on('loadMessages', (messages) => {
+  socket.on('loadMessages', (messages) => {
   const messagesContainer = document.getElementById('messages');
-  messagesContainer.innerHTML = ''; // ล้างข้อความที่มีอยู่แล้ว
+  messagesContainer.innerHTML = ''; 
 
   messages.forEach((message) => {
     const messageElement = document.createElement("div");
 
     // ตรวจสอบประเภทของผู้ส่งเพื่อกำหนดตำแหน่งข้อความ (ฝั่งซ้ายหรือขวา)
     if (message.sender_type === 'team') {
-      messageElement.classList.add('message', 'received'); // ฝั่งซ้าย (จากทีม)
+      messageElement.classList.add('message', 'received');
     } else if (message.sender_type === 'user') {
-      messageElement.classList.add('message', 'sent'); // ฝั่งขวา (จากผู้ใช้)
+      messageElement.classList.add('message', 'sent');
     }
 
-    // สร้างรูปแบบข้อความพร้อมกับเวลา
     const date = new Date(message.created_at); 
     const dateString = date.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
     const timeString = date.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
 
-    // อัปเดต DOM
     messageElement.innerHTML = `
       <span class="text-gray-500 text-sm">${dateString} ${timeString}</span><br>
       <span>${message.message}</span>
@@ -249,7 +247,6 @@ document.getElementById('send-button').onclick = () => {
     messagesContainer.appendChild(messageElement);
   });
 
-  // เลื่อนกล่องข้อความลงไปที่ข้อความล่าสุด
   messagesContainer.scrollTop = messagesContainer.scrollHeight;
 });
 
@@ -259,28 +256,24 @@ socket.on("chatMessage", (data) => {
 
   // ตรวจสอบประเภทของผู้ส่งเพื่อกำหนดตำแหน่งข้อความ (ฝั่งซ้ายหรือขวา)
   if (data.sender_type === 'team') {
-    messageElement.classList.add('message', 'received'); // ฝั่งซ้าย (จากทีม)
+    messageElement.classList.add('message', 'received');
   } else if (data.sender_type === 'user') {
-    messageElement.classList.add('message', 'sent'); // ฝั่งขวา (จากผู้ใช้)
+    messageElement.classList.add('message', 'sent');
   }
 
-  // สร้างรูปแบบข้อความพร้อมกับเวลา
   const date = new Date();
   const dateString = date.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
   const timeString = date.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
 
-  // อัปเดต DOM
   messageElement.innerHTML = `
     <span class="text-gray-500 text-sm">${dateString} ${timeString}</span><br>
     <span>${data.message}</span>
   `;
   messagesContainer.appendChild(messageElement);
 
-  // เลื่อนกล่องข้อความลงไปที่ข้อความล่าสุด
   messagesContainer.scrollTop = messagesContainer.scrollHeight;
 });
 
-    // Load users when the page is loaded
     socket.emit("getChatUsers", teamId);
 
   </script>
